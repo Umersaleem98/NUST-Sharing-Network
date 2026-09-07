@@ -3,6 +3,7 @@
 <title>Our Impact | NUST Sharing Network</title>
 
 <style>
+
     /* =========================================================
        NUST SHARING NETWORK - OUR IMPACT
     ========================================================= */
@@ -18,18 +19,19 @@
         --impact-white: #ffffff;
 
         --impact-light: #f6f8fb;
-        --impact-light-alt: #eef3f7;
+        --impact-border: #e3e9ef;
 
-        --impact-border: #e4e9ef;
-
-        --impact-text: #24364a;
+        --impact-text: #25384b;
         --impact-muted: #6f7f90;
+
         --impact-success: #2e8b66;
     }
+
 
     html {
         scroll-behavior: smooth;
     }
+
 
     body {
         background: var(--impact-white);
@@ -37,61 +39,424 @@
     }
 
 
+
     /* =========================================================
-       COMMON SECTION
+       PAGE HEADER
     ========================================================= */
 
-    .impact-section {
-        padding: 90px 0;
+    .impact-page-header {
+        position: relative;
+
+        min-height: 330px;
+
+        display: flex;
+        align-items: center;
+
+        overflow: hidden;
+
+        isolation: isolate;
+
+        background:
+            linear-gradient(
+                90deg,
+                rgba(5, 30, 51, .97) 0%,
+                rgba(8, 41, 68, .94) 42%,
+                rgba(18, 59, 96, .86) 72%,
+                rgba(18, 59, 96, .72) 100%
+            ),
+            url('{{ asset("templates/assets/sliders/slider2.png") }}');
+
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
     }
 
-    .impact-first-section {
-        padding-top: 90px;
+
+    .impact-page-header::before {
+        content: "";
+
+        position: absolute;
+
+        width: 420px;
+        height: 420px;
+
+        right: -160px;
+        top: -210px;
+
+        z-index: -1;
+
+        border:
+            65px solid
+            rgba(250, 188, 77, .08);
+
+        border-radius: 50%;
     }
 
-    .impact-section-light {
-        background: var(--impact-light);
+
+    .impact-page-header::after {
+        content: "";
+
+        position: absolute;
+
+        width: 260px;
+        height: 260px;
+
+        left: -120px;
+        bottom: -180px;
+
+        z-index: -1;
+
+        border-radius: 50%;
+
+        background:
+            rgba(250, 188, 77, .06);
     }
 
-    .impact-section-heading {
-        max-width: 760px;
-        margin: 0 auto 52px;
-        text-align: center;
+
+    .impact-header-shape {
+        position: absolute;
+
+        width: 115px;
+        height: 115px;
+
+        right: 11%;
+        bottom: 45px;
+
+        z-index: -1;
+
+        border:
+            1px solid
+            rgba(255, 255, 255, .08);
+
+        border-radius: 28px;
+
+        background:
+            rgba(255, 255, 255, .03);
+
+        transform: rotate(25deg);
+
+        backdrop-filter: blur(5px);
     }
 
-    .impact-section-label {
-        display: inline-block;
-        margin-bottom: 10px;
 
-        color: var(--impact-gold-dark);
+    .impact-header-content {
+        position: relative;
+
+        z-index: 3;
+
+        max-width: 800px;
+
+        padding: 52px 0;
+    }
+
+
+    /* =========================================================
+       HEADER NAVIGATION
+    ========================================================= */
+
+    .impact-header-nav {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+
+        gap: 16px;
+
+        margin-bottom: 20px;
+    }
+
+
+    .impact-back-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        gap: 8px;
+
+        padding: 9px 17px;
+
+        border:
+            1px solid
+            rgba(255, 255, 255, .18);
+
+        border-radius: 50px;
+
+        background:
+            rgba(255, 255, 255, .07);
+
+        color:
+            rgba(255, 255, 255, .90);
+
+        text-decoration: none;
 
         font-size: 12px;
+        font-weight: 700;
+
+        transition: .3s ease;
+    }
+
+
+    .impact-back-btn:hover {
+        border-color:
+            var(--impact-gold);
+
+        background:
+            var(--impact-gold);
+
+        color:
+            var(--impact-primary-dark);
+
+        transform:
+            translateX(-3px);
+    }
+
+
+    .impact-breadcrumb {
+        display: inline-flex;
+        align-items: center;
+        flex-wrap: wrap;
+
+        gap: 8px;
+
+        font-size: 12px;
+    }
+
+
+    .impact-breadcrumb a {
+        color:
+            rgba(255, 255, 255, .60);
+
+        text-decoration: none;
+
+        transition: .3s ease;
+    }
+
+
+    .impact-breadcrumb a:hover {
+        color:
+            var(--impact-gold);
+    }
+
+
+    .impact-breadcrumb-divider {
+        color:
+            rgba(255, 255, 255, .35);
+    }
+
+
+    .impact-breadcrumb-current {
+        color:
+            rgba(255, 255, 255, .90);
+    }
+
+
+    /* =========================================================
+       HEADER CONTENT
+    ========================================================= */
+
+    .impact-header-label {
+        display: inline-flex;
+        align-items: center;
+
+        gap: 8px;
+
+        margin-bottom: 13px;
+
+        padding: 7px 13px;
+
+        border:
+            1px solid
+            rgba(250, 188, 77, .22);
+
+        border-radius: 50px;
+
+        background:
+            rgba(250, 188, 77, .09);
+
+        color:
+            var(--impact-gold);
+
+        font-size: 10px;
         font-weight: 800;
-        letter-spacing: 1.7px;
+
+        letter-spacing: 1.6px;
 
         text-transform: uppercase;
     }
 
+
+    .impact-page-header h1 {
+        margin-bottom: 14px;
+
+        color:
+            var(--impact-white);
+
+        font-size:
+            clamp(36px, 5vw, 52px);
+
+        font-weight: 800;
+
+        line-height: 1.1;
+
+        letter-spacing: -.7px;
+    }
+
+
+    .impact-page-header h1 span {
+        position: relative;
+
+        color:
+            var(--impact-gold);
+    }
+
+
+    .impact-page-header h1 span::after {
+        content: "";
+
+        position: absolute;
+
+        left: 1px;
+        bottom: -6px;
+
+        width: 70%;
+        height: 3px;
+
+        border-radius: 50px;
+
+        background:
+            var(--impact-gold);
+    }
+
+
+    .impact-page-header p {
+        max-width: 650px;
+
+        margin: 0;
+
+        color:
+            rgba(255, 255, 255, .74);
+
+        font-size: 15px;
+
+        line-height: 1.8;
+    }
+
+
+    .impact-header-highlights {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+
+        gap: 20px;
+
+        margin-top: 22px;
+    }
+
+
+    .impact-header-highlight {
+        display: flex;
+        align-items: center;
+
+        gap: 8px;
+
+        color:
+            rgba(255, 255, 255, .67);
+
+        font-size: 12px;
+    }
+
+
+    .impact-header-highlight i {
+        width: 29px;
+        height: 29px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        border-radius: 50%;
+
+        background:
+            rgba(250, 188, 77, .12);
+
+        color:
+            var(--impact-gold);
+
+        font-size: 11px;
+    }
+
+
+
+    /* =========================================================
+       COMMON SECTIONS
+    ========================================================= */
+
+    .impact-section {
+        padding: 85px 0;
+    }
+
+
+    .impact-section-light {
+        background:
+            var(--impact-light);
+    }
+
+
+    .impact-section-heading {
+        max-width: 720px;
+
+        margin:
+            0 auto 42px;
+
+        text-align:
+            center;
+    }
+
+
+    .impact-section-label {
+        display: inline-block;
+
+        margin-bottom: 9px;
+
+        color:
+            var(--impact-gold-dark);
+
+        font-size: 11px;
+        font-weight: 800;
+
+        letter-spacing: 1.6px;
+
+        text-transform: uppercase;
+    }
+
+
     .impact-section-heading h2,
     .impact-content-title {
-        color: var(--impact-primary);
+        color:
+            var(--impact-primary);
 
-        font-size: clamp(28px, 4vw, 40px);
+        font-size:
+            clamp(28px, 4vw, 39px);
+
         font-weight: 800;
 
         line-height: 1.2;
     }
 
+
     .impact-section-heading p {
-        max-width: 690px;
+        max-width: 630px;
 
-        margin: 15px auto 0;
+        margin:
+            13px auto 0;
 
-        color: var(--impact-muted);
+        color:
+            var(--impact-muted);
 
-        font-size: 15px;
+        font-size: 14px;
+
         line-height: 1.8;
     }
+
 
 
     /* =========================================================
@@ -101,16 +466,16 @@
     .impact-intro-image {
         position: relative;
 
-        min-height: 480px;
+        min-height: 430px;
 
         overflow: hidden;
 
-        border-radius: 24px;
+        border-radius: 22px;
 
         background:
             linear-gradient(
-                rgba(10, 43, 70, 0.13),
-                rgba(10, 43, 70, 0.13)
+                rgba(8, 41, 68, .08),
+                rgba(8, 41, 68, .08)
             ),
             url('{{ asset("templates/assets/sliders/slider2.png") }}');
 
@@ -118,91 +483,112 @@
         background-position: center;
 
         box-shadow:
-            0 20px 55px
-            rgba(18, 59, 96, 0.13);
+            0 20px 50px
+            rgba(18, 59, 96, .12);
     }
 
-    .impact-intro-image::after {
+
+    .impact-intro-image::before {
         content: "";
 
         position: absolute;
 
-        width: 140px;
-        height: 140px;
+        width: 130px;
+        height: 130px;
 
-        right: -35px;
-        bottom: -35px;
+        right: -40px;
+        bottom: -40px;
 
         border-radius: 50%;
 
-        background: var(--impact-gold);
-
-        opacity: 0.9;
+        background:
+            var(--impact-gold);
     }
+
 
     .impact-intro-content {
         padding-left: 25px;
     }
 
+
     .impact-intro-content p {
-        color: var(--impact-muted);
+        margin-bottom: 18px;
+
+        color:
+            var(--impact-muted);
 
         font-size: 15px;
-        line-height: 1.9;
+
+        line-height: 1.85;
     }
 
-    .impact-feature-list {
-        margin-top: 28px;
+
+    .impact-mini-features {
+        display: grid;
+
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+
+        gap: 13px;
+
+        margin-top: 25px;
     }
 
-    .impact-feature-item {
+
+    .impact-mini-feature {
         display: flex;
-        align-items: flex-start;
+        align-items: center;
 
-        gap: 14px;
+        gap: 11px;
 
-        margin-bottom: 17px;
+        padding: 14px;
+
+        border:
+            1px solid
+            var(--impact-border);
+
+        border-radius: 13px;
+
+        background:
+            var(--impact-white);
     }
 
-    .impact-feature-icon {
-        flex: 0 0 42px;
 
-        width: 42px;
-        height: 42px;
+    .impact-mini-feature i {
+        width: 38px;
+        height: 38px;
+
+        flex: 0 0 38px;
 
         display: flex;
         align-items: center;
         justify-content: center;
 
-        border-radius: 12px;
+        border-radius: 10px;
 
         background:
-            rgba(250, 188, 77, 0.18);
+            rgba(250, 188, 77, .17);
 
-        color: var(--impact-primary);
+        color:
+            var(--impact-primary);
 
-        font-size: 16px;
+        font-size: 14px;
     }
 
-    .impact-feature-item h6 {
-        margin: 1px 0 4px;
 
-        color: var(--impact-primary);
+    .impact-mini-feature span {
+        color:
+            var(--impact-primary);
 
-        font-size: 15px;
+        font-size: 13px;
+
         font-weight: 700;
     }
 
-    .impact-feature-item p {
-        margin: 0;
-
-        font-size: 13px;
-        line-height: 1.65;
-    }
 
 
     /* =========================================================
-       IMPACT STATISTICS
+       PRIMARY STATISTICS
     ========================================================= */
 
     .impact-stat-card {
@@ -212,165 +598,54 @@
 
         overflow: hidden;
 
-        padding: 34px 28px;
+        padding: 30px 27px;
 
-        background: var(--impact-white);
-
-        border: 1px solid var(--impact-border);
+        border:
+            1px solid
+            var(--impact-border);
 
         border-radius: 18px;
 
-        transition: 0.35s ease;
+        background:
+            var(--impact-white);
+
+        transition:
+            all .35s ease;
     }
+
+
+    .impact-stat-card::before {
+        content: "";
+
+        position: absolute;
+
+        width: 115px;
+        height: 115px;
+
+        right: -45px;
+        top: -50px;
+
+        border-radius: 50%;
+
+        background:
+            rgba(250, 188, 77, .13);
+    }
+
 
     .impact-stat-card:hover {
-        transform: translateY(-7px);
+        transform:
+            translateY(-7px);
 
         border-color:
-            rgba(250, 188, 77, 0.70);
+            rgba(250, 188, 77, .75);
 
         box-shadow:
-            0 18px 40px
-            rgba(18, 59, 96, 0.10);
+            0 20px 40px
+            rgba(18, 59, 96, .09);
     }
 
-    .impact-stat-card::after {
-        content: "";
-
-        position: absolute;
-
-        width: 110px;
-        height: 110px;
-
-        top: -40px;
-        right: -40px;
-
-        border-radius: 50%;
-
-        background:
-            rgba(250, 188, 77, 0.13);
-    }
 
     .impact-stat-icon {
-        position: relative;
-
-        z-index: 2;
-
-        width: 54px;
-        height: 54px;
-
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        margin-bottom: 25px;
-
-        border-radius: 14px;
-
-        background: var(--impact-primary);
-
-        color: var(--impact-gold);
-
-        font-size: 20px;
-    }
-
-    .impact-stat-number {
-        position: relative;
-
-        z-index: 2;
-
-        display: block;
-
-        margin-bottom: 9px;
-
-        color: var(--impact-primary);
-
-        font-size: 40px;
-        font-weight: 800;
-
-        line-height: 1;
-    }
-
-    .impact-stat-title {
-        position: relative;
-
-        z-index: 2;
-
-        display: block;
-
-        margin-bottom: 7px;
-
-        color: var(--impact-text);
-
-        font-size: 15px;
-        font-weight: 700;
-    }
-
-    .impact-stat-description {
-        position: relative;
-
-        z-index: 2;
-
-        margin: 0;
-
-        color: var(--impact-muted);
-
-        font-size: 13px;
-        line-height: 1.65;
-    }
-
-
-    /* =========================================================
-       ACTIVE COMMUNITY
-    ========================================================= */
-
-    .impact-active-card {
-        position: relative;
-
-        height: 100%;
-
-        overflow: hidden;
-
-        padding: 32px;
-
-        border-radius: 18px;
-
-        background:
-            linear-gradient(
-                145deg,
-                var(--impact-primary-dark),
-                var(--impact-primary)
-            );
-
-        transition: 0.35s ease;
-    }
-
-    .impact-active-card:hover {
-        transform: translateY(-6px);
-
-        box-shadow:
-            0 20px 45px
-            rgba(18, 59, 96, 0.18);
-    }
-
-    .impact-active-card::after {
-        content: "";
-
-        position: absolute;
-
-        width: 120px;
-        height: 120px;
-
-        top: -50px;
-        right: -50px;
-
-        border-radius: 50%;
-
-        background:
-            rgba(250, 188, 77, 0.10);
-    }
-
-    .impact-active-icon {
         position: relative;
 
         z-index: 2;
@@ -387,247 +662,205 @@
         border-radius: 14px;
 
         background:
-            rgba(255, 255, 255, 0.10);
+            var(--impact-primary);
 
-        color: var(--impact-gold);
+        color:
+            var(--impact-gold);
 
-        font-size: 20px;
+        font-size: 19px;
     }
 
-    .impact-active-number {
+
+    .impact-stat-number {
         position: relative;
 
         z-index: 2;
 
         display: block;
 
-        margin-bottom: 9px;
+        margin-bottom: 8px;
 
-        color: var(--impact-white);
+        color:
+            var(--impact-primary);
 
         font-size: 38px;
+
         font-weight: 800;
 
         line-height: 1;
     }
 
-    .impact-active-title {
+
+    .impact-stat-title {
         position: relative;
 
         z-index: 2;
 
         display: block;
 
-        margin-bottom: 8px;
+        margin-bottom: 7px;
 
-        color: var(--impact-gold);
+        color:
+            var(--impact-text);
 
         font-size: 15px;
-        font-weight: 700;
+
+        font-weight: 750;
     }
 
-    .impact-active-description {
+
+    .impact-stat-description {
         position: relative;
 
         z-index: 2;
 
-        margin-bottom: 0;
+        margin: 0;
 
         color:
-            rgba(255, 255, 255, 0.67);
+            var(--impact-muted);
 
         font-size: 13px;
-        line-height: 1.7;
+
+        line-height: 1.65;
     }
+
 
 
     /* =========================================================
-       VERIFIED COMMUNITY / ROLE DISTRIBUTION
+       PARTICIPATION SUMMARY
     ========================================================= */
 
-    .impact-verified-number {
-        margin-top: 28px;
-
-        padding: 24px 26px;
-
-        background: var(--impact-white);
-
-        border:
-            1px solid
-            var(--impact-border);
-
-        border-radius: 16px;
-    }
-
-    .impact-verified-number .impact-stat-number {
-        margin-bottom: 8px;
-    }
-
-    .impact-role-wrapper {
-        padding: 35px;
-
-        background: var(--impact-white);
-
-        border:
-            1px solid
-            var(--impact-border);
-
-        border-radius: 20px;
-
-        box-shadow:
-            0 15px 35px
-            rgba(18, 59, 96, 0.05);
-    }
-
-    .impact-role-row {
-        margin-bottom: 27px;
-    }
-
-    .impact-role-row:last-child {
-        margin-bottom: 0;
-    }
-
-    .impact-role-header {
-        display: flex;
-
-        align-items: center;
-        justify-content: space-between;
-
-        gap: 20px;
-
-        margin-bottom: 9px;
-    }
-
-    .impact-role-name {
-        display: flex;
-
-        align-items: center;
-
-        gap: 10px;
-
-        color: var(--impact-primary);
-
-        font-size: 14px;
-        font-weight: 700;
-    }
-
-    .impact-role-name i {
-        width: 34px;
-        height: 34px;
-
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        border-radius: 9px;
-
-        background:
-            rgba(250, 188, 77, 0.17);
-
-        color: var(--impact-primary);
-    }
-
-    .impact-role-value {
-        color: var(--impact-primary);
-
-        font-size: 14px;
-        font-weight: 800;
-    }
-
-    .impact-role-progress {
-        height: 8px;
-
+    .impact-summary-wrapper {
         overflow: hidden;
 
-        border-radius: 50px;
-
-        background: #e8edf2;
-    }
-
-    .impact-role-progress-bar {
-        height: 100%;
-
-        border-radius: 50px;
+        border-radius: 22px;
 
         background:
             linear-gradient(
-                90deg,
-                var(--impact-primary),
-                var(--impact-gold)
+                135deg,
+                var(--impact-primary-dark),
+                var(--impact-primary)
             );
 
-        transition: width 0.8s ease;
+        box-shadow:
+            0 20px 50px
+            rgba(18, 59, 96, .15);
     }
 
 
-    /* =========================================================
-       SHARING PROCESS
-    ========================================================= */
-
-    .impact-process-card {
+    .impact-summary-content {
         height: 100%;
 
-        padding: 34px 25px;
+        padding: 45px 40px;
+    }
 
-        background: var(--impact-white);
+
+    .impact-summary-content .impact-section-label {
+        color:
+            var(--impact-gold);
+    }
+
+
+    .impact-summary-content h2 {
+        margin-bottom: 15px;
+
+        color:
+            var(--impact-white);
+
+        font-size:
+            clamp(28px, 4vw, 38px);
+
+        font-weight: 800;
+
+        line-height: 1.2;
+    }
+
+
+    .impact-summary-content > p {
+        margin-bottom: 0;
+
+        color:
+            rgba(255, 255, 255, .70);
+
+        font-size: 14px;
+
+        line-height: 1.8;
+    }
+
+
+    .impact-summary-stats {
+        height: 100%;
+
+        padding: 30px;
+
+        background:
+            rgba(255, 255, 255, .055);
+    }
+
+
+    .impact-summary-item {
+        height: 100%;
+
+        padding: 22px;
 
         border:
             1px solid
-            var(--impact-border);
+            rgba(255, 255, 255, .10);
 
-        border-radius: 18px;
+        border-radius: 15px;
 
-        text-align: center;
-
-        transition: 0.35s ease;
+        background:
+            rgba(255, 255, 255, .06);
     }
 
-    .impact-process-card:hover {
-        transform: translateY(-6px);
 
-        box-shadow:
-            0 18px 40px
-            rgba(18, 59, 96, 0.09);
-    }
-
-    .impact-process-number {
-        width: 55px;
-        height: 55px;
-
-        margin:
-            0 auto 20px;
+    .impact-summary-icon {
+        width: 42px;
+        height: 42px;
 
         display: flex;
         align-items: center;
         justify-content: center;
 
-        border-radius: 16px;
+        margin-bottom: 15px;
 
-        background: var(--impact-primary);
+        border-radius: 11px;
 
-        color: var(--impact-gold);
+        background:
+            var(--impact-gold);
 
-        font-size: 17px;
+        color:
+            var(--impact-primary-dark);
+
+        font-size: 16px;
+    }
+
+
+    .impact-summary-number {
+        display: block;
+
+        margin-bottom: 5px;
+
+        color:
+            var(--impact-white);
+
+        font-size: 31px;
+
         font-weight: 800;
+
+        line-height: 1;
     }
 
-    .impact-process-card h5 {
-        margin-bottom: 11px;
 
-        color: var(--impact-primary);
-
-        font-size: 17px;
-        font-weight: 750;
-    }
-
-    .impact-process-card p {
-        margin: 0;
-
-        color: var(--impact-muted);
+    .impact-summary-title {
+        color:
+            var(--impact-gold);
 
         font-size: 13px;
-        line-height: 1.75;
+
+        font-weight: 700;
     }
+
 
 
     /* =========================================================
@@ -637,477 +870,238 @@
     .impact-area-card {
         height: 100%;
 
-        padding: 35px 30px;
-
-        background: var(--impact-white);
+        padding: 30px 27px;
 
         border:
             1px solid
             var(--impact-border);
 
-        border-radius: 18px;
+        border-radius: 17px;
 
-        transition: 0.35s ease;
+        background:
+            var(--impact-white);
+
+        transition:
+            .35s ease;
     }
 
-    .impact-area-card:hover {
-        transform: translateY(-7px);
 
-        border-color: var(--impact-gold);
+    .impact-area-card:hover {
+        transform:
+            translateY(-6px);
+
+        border-color:
+            var(--impact-gold);
 
         box-shadow:
             0 18px 38px
-            rgba(18, 59, 96, 0.09);
+            rgba(18, 59, 96, .08);
     }
 
+
     .impact-area-icon {
-        width: 58px;
-        height: 58px;
+        width: 54px;
+        height: 54px;
 
         display: flex;
         align-items: center;
         justify-content: center;
 
-        margin-bottom: 22px;
+        margin-bottom: 20px;
 
-        border-radius: 15px;
+        border-radius: 14px;
 
         background:
-            rgba(250, 188, 77, 0.17);
+            rgba(250, 188, 77, .17);
 
-        color: var(--impact-primary);
+        color:
+            var(--impact-primary);
 
-        font-size: 23px;
+        font-size: 20px;
     }
 
+
     .impact-area-card h5 {
-        margin-bottom: 12px;
+        margin-bottom: 10px;
 
-        color: var(--impact-primary);
+        color:
+            var(--impact-primary);
 
-        font-size: 18px;
+        font-size: 17px;
+
         font-weight: 750;
     }
 
+
     .impact-area-card p {
-        margin-bottom: 0;
-
-        color: var(--impact-muted);
-
-        font-size: 14px;
-        line-height: 1.8;
-    }
-
-
-    /* =========================================================
-       TRUST SECTION
-    ========================================================= */
-
-    .impact-trust-section {
-        position: relative;
-
-        overflow: hidden;
-
-        padding: 95px 0;
-
-        background:
-            linear-gradient(
-                135deg,
-                var(--impact-primary-dark),
-                var(--impact-primary)
-            );
-    }
-
-    .impact-trust-section::before {
-        content: "";
-
-        position: absolute;
-
-        width: 380px;
-        height: 380px;
-
-        right: -140px;
-        top: -160px;
-
-        border:
-            65px solid
-            rgba(250, 188, 77, 0.06);
-
-        border-radius: 50%;
-    }
-
-    .impact-trust-content {
-        position: relative;
-
-        z-index: 2;
-    }
-
-    .impact-trust-content h2 {
-        margin-bottom: 18px;
-
-        color: var(--impact-white);
-
-        font-size:
-            clamp(29px, 4vw, 40px);
-
-        font-weight: 800;
-
-        line-height: 1.2;
-    }
-
-    .impact-trust-content > p {
-        color:
-            rgba(255, 255, 255, 0.72);
-
-        line-height: 1.85;
-    }
-
-    .impact-trust-card {
-        position: relative;
-
-        z-index: 2;
-
-        height: 100%;
-
-        display: flex;
-
-        gap: 15px;
-
-        padding: 23px;
-
-        border:
-            1px solid
-            rgba(255, 255, 255, 0.11);
-
-        border-radius: 15px;
-
-        background:
-            rgba(255, 255, 255, 0.07);
-    }
-
-    .impact-trust-icon {
-        flex: 0 0 42px;
-
-        width: 42px;
-        height: 42px;
-
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        border-radius: 12px;
-
-        background: var(--impact-gold);
-
-        color: var(--impact-primary-dark);
-    }
-
-    .impact-trust-card h6 {
-        margin-bottom: 5px;
-
-        color: var(--impact-white);
-
-        font-weight: 700;
-    }
-
-    .impact-trust-card p {
-        margin-bottom: 0;
+        margin: 0;
 
         color:
-            rgba(255, 255, 255, 0.68);
+            var(--impact-muted);
 
         font-size: 13px;
-        line-height: 1.65;
+
+        line-height: 1.75;
     }
 
-
-    /* =========================================================
-       DONOR / BENEFICIARY
-    ========================================================= */
-
-    .impact-community-card {
-        position: relative;
-
-        overflow: hidden;
-
-        height: 100%;
-
-        padding: 42px;
-
-        border-radius: 22px;
-    }
-
-    .impact-community-card::after {
-        content: "";
-
-        position: absolute;
-
-        width: 180px;
-        height: 180px;
-
-        right: -90px;
-        bottom: -95px;
-
-        border-radius: 50%;
-    }
-
-    .impact-community-card.donor {
-        background: var(--impact-primary);
-
-        color: var(--impact-white);
-    }
-
-    .impact-community-card.donor::after {
-        background:
-            rgba(250, 188, 77, 0.10);
-    }
-
-    .impact-community-card.beneficiary {
-        background: var(--impact-gold);
-
-        color: var(--impact-primary-dark);
-    }
-
-    .impact-community-card.beneficiary::after {
-        background:
-            rgba(18, 59, 96, 0.08);
-    }
-
-    .impact-community-icon {
-        position: relative;
-
-        z-index: 2;
-
-        width: 62px;
-        height: 62px;
-
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        margin-bottom: 25px;
-
-        border-radius: 18px;
-
-        font-size: 25px;
-    }
-
-    .donor .impact-community-icon {
-        background:
-            rgba(255, 255, 255, 0.10);
-
-        color: var(--impact-gold);
-    }
-
-    .beneficiary .impact-community-icon {
-        background:
-            rgba(18, 59, 96, 0.11);
-
-        color: var(--impact-primary);
-    }
-
-    .impact-community-card h3 {
-        position: relative;
-
-        z-index: 2;
-
-        margin-bottom: 13px;
-
-        font-size: 26px;
-        font-weight: 800;
-    }
-
-    .impact-community-card p {
-        position: relative;
-
-        z-index: 2;
-
-        margin-bottom: 27px;
-
-        line-height: 1.8;
-    }
-
-    .donor p {
-        color:
-            rgba(255, 255, 255, 0.75);
-    }
-
-    .beneficiary p {
-        color:
-            rgba(8, 41, 68, 0.78);
-    }
-
-
-    /* =========================================================
-       BUTTONS
-    ========================================================= */
-
-    .impact-btn {
-        position: relative;
-
-        z-index: 2;
-
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-
-        gap: 9px;
-
-        padding: 13px 27px;
-
-        border-radius: 50px;
-
-        text-decoration: none;
-
-        font-size: 14px;
-        font-weight: 700;
-
-        transition: 0.3s ease;
-    }
-
-    .impact-btn-light {
-        background: var(--impact-white);
-
-        color: var(--impact-primary);
-    }
-
-    .impact-btn-light:hover {
-        background: var(--impact-gold);
-
-        color: var(--impact-primary-dark);
-    }
-
-    .impact-btn-dark {
-        background: var(--impact-primary);
-
-        color: var(--impact-white);
-    }
-
-    .impact-btn-dark:hover {
-        background: var(--impact-primary-dark);
-
-        color: var(--impact-gold);
-    }
 
 
     /* =========================================================
        FINAL CTA
     ========================================================= */
 
-    .impact-final-cta {
-        padding: 95px 0;
+    .impact-cta-section {
+        padding: 80px 0;
 
-        background: var(--impact-light);
+        background:
+            var(--impact-white);
     }
 
-    .impact-final-box {
+
+    .impact-cta-box {
         position: relative;
 
         overflow: hidden;
 
-        padding: 60px 40px;
+        padding: 52px 45px;
 
-        border-radius: 26px;
+        border-radius: 24px;
 
         background:
-            linear-gradient(
-                115deg,
-                rgba(8, 41, 68, 0.97),
-                rgba(18, 59, 96, 0.93)
-            );
-
-        text-align: center;
+            var(--impact-gold);
     }
 
-    .impact-final-box::after {
+
+    .impact-cta-box::before {
         content: "";
 
         position: absolute;
 
-        width: 220px;
-        height: 220px;
+        width: 230px;
+        height: 230px;
 
-        bottom: -130px;
-        right: -70px;
+        left: -130px;
+        top: -140px;
+
+        border:
+            40px solid
+            rgba(18, 59, 96, .07);
 
         border-radius: 50%;
-
-        background: var(--impact-gold);
-
-        opacity: 0.10;
     }
 
-    .impact-final-box h2 {
+
+    .impact-cta-box::after {
+        content: "";
+
+        position: absolute;
+
+        width: 300px;
+        height: 300px;
+
+        right: -130px;
+        bottom: -180px;
+
+        border:
+            50px solid
+            rgba(18, 59, 96, .08);
+
+        border-radius: 50%;
+    }
+
+
+    .impact-cta-content,
+    .impact-cta-action {
         position: relative;
 
         z-index: 2;
+    }
 
-        max-width: 800px;
 
-        margin:
-            0 auto 15px;
+    .impact-cta-label {
+        display: inline-block;
 
-        color: var(--impact-white);
+        margin-bottom: 8px;
+
+        color:
+            var(--impact-primary);
+
+        font-size: 11px;
+
+        font-weight: 800;
+
+        letter-spacing: 1.5px;
+
+        text-transform: uppercase;
+    }
+
+
+    .impact-cta-box h2 {
+        margin-bottom: 11px;
+
+        color:
+            var(--impact-primary-dark);
 
         font-size:
-            clamp(30px, 4vw, 43px);
+            clamp(27px, 4vw, 38px);
 
         font-weight: 800;
     }
 
-    .impact-final-box p {
-        position: relative;
 
-        z-index: 2;
+    .impact-cta-box p {
+        max-width: 650px;
 
-        max-width: 700px;
-
-        margin:
-            0 auto 30px;
+        margin: 0;
 
         color:
-            rgba(255, 255, 255, 0.72);
+            rgba(8, 41, 68, .76);
+
+        font-size: 14px;
+
+        line-height: 1.8;
     }
 
-    .impact-final-actions {
-        position: relative;
 
-        z-index: 2;
-
-        display: flex;
-
+    .impact-cta-btn {
+        display: inline-flex;
+        align-items: center;
         justify-content: center;
 
-        flex-wrap: wrap;
+        gap: 8px;
 
-        gap: 12px;
+        padding: 13px 26px;
+
+        border-radius: 50px;
+
+        background:
+            var(--impact-primary);
+
+        color:
+            var(--impact-white);
+
+        text-decoration: none;
+
+        font-size: 14px;
+
+        font-weight: 700;
+
+        transition:
+            .3s ease;
     }
 
-    .impact-btn-gold {
-        background: var(--impact-gold);
 
-        color: var(--impact-primary-dark);
+    .impact-cta-btn:hover {
+        background:
+            var(--impact-primary-dark);
+
+        color:
+            var(--impact-gold);
+
+        transform:
+            translateY(-2px);
     }
 
-    .impact-btn-gold:hover {
-        background: var(--impact-white);
-
-        color: var(--impact-primary);
-    }
-
-    .impact-btn-outline {
-        border:
-            1px solid
-            rgba(255, 255, 255, 0.45);
-
-        color: var(--impact-white);
-    }
-
-    .impact-btn-outline:hover {
-        background: var(--impact-white);
-
-        color: var(--impact-primary);
-    }
 
 
     /* =========================================================
@@ -1116,24 +1110,40 @@
 
     @media (max-width: 991.98px) {
 
-        .impact-section,
-        .impact-trust-section,
-        .impact-final-cta {
-            padding: 75px 0;
+        .impact-page-header {
+            min-height: 300px;
         }
 
-        .impact-first-section {
-            padding-top: 75px;
+
+        .impact-section {
+            padding: 70px 0;
         }
+
 
         .impact-intro-content {
-            padding-left: 0;
+            margin-top: 38px;
 
-            margin-top: 45px;
+            padding-left: 0;
         }
 
+
         .impact-intro-image {
-            min-height: 390px;
+            min-height: 370px;
+        }
+
+
+        .impact-summary-content {
+            padding: 38px 32px;
+        }
+
+
+        .impact-cta-section {
+            padding: 65px 0;
+        }
+
+
+        .impact-cta-box {
+            padding: 42px 35px;
         }
 
     }
@@ -1141,30 +1151,108 @@
 
     @media (max-width: 767.98px) {
 
-        .impact-section,
-        .impact-trust-section,
-        .impact-final-cta {
-            padding: 60px 0;
+        .impact-page-header {
+            min-height: 280px;
         }
 
-        .impact-first-section {
-            padding-top: 60px;
+
+        .impact-header-content {
+            padding: 38px 0;
         }
+
+
+        .impact-page-header h1 {
+            font-size: 33px;
+        }
+
+
+        .impact-section {
+            padding: 58px 0;
+        }
+
 
         .impact-section-heading {
-            margin-bottom: 38px;
+            margin-bottom: 34px;
         }
 
-        .impact-community-card {
+
+        .impact-mini-features {
+            grid-template-columns: 1fr;
+        }
+
+
+        .impact-intro-image {
+            min-height: 320px;
+        }
+
+
+        .impact-summary-content {
             padding: 32px 25px;
         }
 
-        .impact-final-box {
-            padding: 45px 22px;
+
+        .impact-summary-stats {
+            padding: 25px;
         }
 
-        .impact-role-wrapper {
-            padding: 25px 20px;
+
+        .impact-cta-box {
+            padding: 38px 26px;
+
+            text-align: center;
+        }
+
+
+        .impact-cta-box p {
+            margin: 0 auto;
+        }
+
+
+        .impact-cta-action {
+            margin-top: 22px;
+
+            text-align: center !important;
+        }
+
+    }
+
+
+    @media (max-width: 575.98px) {
+
+        .impact-header-nav {
+            flex-direction: column;
+            align-items: flex-start;
+
+            gap: 10px;
+        }
+
+
+        .impact-page-header h1 {
+            font-size: 29px;
+        }
+
+
+        .impact-page-header p {
+            font-size: 14px;
+        }
+
+
+        .impact-header-highlights {
+            flex-direction: column;
+            align-items: flex-start;
+
+            gap: 9px;
+        }
+
+
+        .impact-section-heading h2,
+        .impact-content-title {
+            font-size: 27px;
+        }
+
+
+        .impact-cta-btn {
+            width: 100%;
         }
 
     }
@@ -1182,16 +1270,139 @@
 
 
 {{-- ============================================================
+     PAGE HEADER
+============================================================ --}}
+
+<section class="impact-page-header">
+
+    <span class="impact-header-shape"></span>
+
+
+    <div class="container">
+
+        <div class="impact-header-content">
+
+
+            {{-- NAVIGATION --}}
+            <div class="impact-header-nav">
+
+                <a
+                    href="javascript:history.back()"
+                    class="impact-back-btn"
+                >
+
+                    <i class="fas fa-arrow-left"></i>
+
+                    Back
+
+                </a>
+
+
+                <div class="impact-breadcrumb">
+
+                    <a href="{{ url('/') }}">
+                        Home
+                    </a>
+
+                    <span class="impact-breadcrumb-divider">
+                        /
+                    </span>
+
+                    <span class="impact-breadcrumb-current">
+                        Our Impact
+                    </span>
+
+                </div>
+
+            </div>
+
+
+
+            {{-- LABEL --}}
+            <span class="impact-header-label">
+
+                <i class="fas fa-chart-line"></i>
+
+                NUST Sharing Network
+
+            </span>
+
+
+            {{-- TITLE --}}
+            <h1>
+
+                Our
+
+                <span>Impact</span>
+
+            </h1>
+
+
+            {{-- DESCRIPTION --}}
+            <p>
+
+                Discover how the NUST Sharing Network is building
+                a connected community of donors and beneficiaries
+                around responsible educational support.
+
+            </p>
+
+
+            {{-- HIGHLIGHTS --}}
+            <div class="impact-header-highlights">
+
+
+                <div class="impact-header-highlight">
+
+                    <i class="fas fa-users"></i>
+
+                    Community Driven
+
+                </div>
+
+
+                <div class="impact-header-highlight">
+
+                    <i class="fas fa-user-check"></i>
+
+                    Verified Participation
+
+                </div>
+
+
+                <div class="impact-header-highlight">
+
+                    <i class="fas fa-hand-holding-heart"></i>
+
+                    Educational Support
+
+                </div>
+
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+{{-- ============================================================
      INTRODUCTION
 ============================================================ --}}
 
-<section class="impact-section impact-first-section">
+<section class="impact-section">
 
     <div class="container">
+
 
         <div class="row align-items-center g-5">
 
 
+            {{-- IMAGE --}}
             <div class="col-lg-6">
 
                 <div class="impact-intro-image"></div>
@@ -1199,117 +1410,86 @@
             </div>
 
 
+            {{-- CONTENT --}}
             <div class="col-lg-6">
 
                 <div class="impact-intro-content">
 
 
                     <span class="impact-section-label">
-                        Why Our Work Matters
+                        Why It Matters
                     </span>
 
 
-                    <h1 class="impact-content-title mb-4">
+                    <h2 class="impact-content-title mb-3">
 
-                        Building a Community Around
-                        Responsible Sharing
+                        Sharing Resources.
+                        Supporting Students.
 
-                    </h1>
+                    </h2>
 
 
                     <p>
 
-                        Educational support becomes more meaningful
-                        when communities have a structured way to
-                        connect available resources with genuine
-                        student needs.
+                        NUST Sharing Network connects available
+                        educational resources with genuine student
+                        needs through a structured digital platform.
 
                     </p>
 
 
                     <p>
 
-                        NUST Sharing Network provides that connection
-                        by bringing donors and beneficiaries together
-                        within a transparent and accountable platform.
+                        The goal is simple: encourage responsible
+                        sharing while making participation more
+                        transparent, accessible and meaningful.
 
                     </p>
 
 
-                    <div class="impact-feature-list">
+                    <div class="impact-mini-features">
 
 
-                        <div class="impact-feature-item">
+                        <div class="impact-mini-feature">
 
-                            <div class="impact-feature-icon">
+                            <i class="fas fa-hand-holding-heart"></i>
 
-                                <i class="fas fa-hand-holding-heart"></i>
-
-                            </div>
-
-
-                            <div>
-
-                                <h6>
-                                    Meaningful Giving
-                                </h6>
-
-                                <p>
-                                    Donors become part of a structured
-                                    educational support community.
-                                </p>
-
-                            </div>
+                            <span>
+                                Responsible Giving
+                            </span>
 
                         </div>
 
 
-                        <div class="impact-feature-item">
+                        <div class="impact-mini-feature">
 
-                            <div class="impact-feature-icon">
+                            <i class="fas fa-user-graduate"></i>
 
-                                <i class="fas fa-user-graduate"></i>
-
-                            </div>
-
-
-                            <div>
-
-                                <h6>
-                                    Beneficiary Support
-                                </h6>
-
-                                <p>
-                                    Eligible students participate through
-                                    dedicated beneficiary accounts.
-                                </p>
-
-                            </div>
+                            <span>
+                                Student Support
+                            </span>
 
                         </div>
 
 
-                        <div class="impact-feature-item">
+                        <div class="impact-mini-feature">
 
-                            <div class="impact-feature-icon">
+                            <i class="fas fa-shield-alt"></i>
 
-                                <i class="fas fa-shield-alt"></i>
+                            <span>
+                                Structured Participation
+                            </span>
 
-                            </div>
+                        </div>
 
 
-                            <div>
+                        <div class="impact-mini-feature">
 
-                                <h6>
-                                    Responsible Participation
-                                </h6>
+                            <i class="fas fa-users"></i>
 
-                                <p>
-                                    Administrative oversight helps maintain
-                                    accountability across the Sharing Network.
-                                </p>
-
-                            </div>
+                            <span>
+                                Community Connection
+                            </span>
 
                         </div>
 
@@ -1324,6 +1504,7 @@
 
         </div>
 
+
     </div>
 
 </section>
@@ -1331,7 +1512,7 @@
 
 
 {{-- ============================================================
-     PRIMARY USER STATISTICS
+     COMMUNITY STATISTICS
 ============================================================ --}}
 
 <section class="impact-section impact-section-light">
@@ -1341,35 +1522,32 @@
 
         <div class="impact-section-heading">
 
-
             <span class="impact-section-label">
                 Community in Numbers
             </span>
 
 
             <h2>
-                The NUST Sharing Network Community
+                Growing Together Through Sharing
             </h2>
 
 
             <p>
 
-                Our platform brings together different participants
-                with one shared purpose: creating a responsible and
-                supportive educational sharing ecosystem.
+                A snapshot of the registered community currently
+                participating in the NUST Sharing Network.
 
             </p>
 
-
         </div>
+
 
 
         <div class="row g-4">
 
 
             {{-- TOTAL USERS --}}
-
-            <div class="col-xl-3 col-md-6">
+            <div class="col-lg-4 col-md-6">
 
                 <div class="impact-stat-card">
 
@@ -1396,8 +1574,8 @@
 
                     <p class="impact-stat-description">
 
-                        Total accounts registered across the
-                        NUST Sharing Network.
+                        Total registered participants across
+                        the Sharing Network.
 
                     </p>
 
@@ -1407,9 +1585,9 @@
             </div>
 
 
-            {{-- DONORS --}}
 
-            <div class="col-xl-3 col-md-6">
+            {{-- DONORS --}}
+            <div class="col-lg-4 col-md-6">
 
                 <div class="impact-stat-card">
 
@@ -1436,8 +1614,8 @@
 
                     <p class="impact-stat-description">
 
-                        Users registered as donors who can
-                        participate in educational resource sharing.
+                        Members participating as donors within
+                        the platform.
 
                     </p>
 
@@ -1447,9 +1625,9 @@
             </div>
 
 
-            {{-- BENEFICIARIES --}}
 
-            <div class="col-xl-3 col-md-6">
+            {{-- BENEFICIARIES --}}
+            <div class="col-lg-4 col-md-6">
 
                 <div class="impact-stat-card">
 
@@ -1476,48 +1654,8 @@
 
                     <p class="impact-stat-description">
 
-                        Students registered as beneficiaries
-                        within the Sharing Network.
-
-                    </p>
-
-
-                </div>
-
-            </div>
-
-
-            {{-- ADMINS --}}
-
-            <div class="col-xl-3 col-md-6">
-
-                <div class="impact-stat-card">
-
-
-                    <div class="impact-stat-icon">
-
-                        <i class="fas fa-user-shield"></i>
-
-                    </div>
-
-
-                    <span
-                        class="impact-stat-number impact-counter"
-                        data-target="{{ $totalAdmins ?? 0 }}"
-                    >
-                        0
-                    </span>
-
-
-                    <span class="impact-stat-title">
-                        Administrators
-                    </span>
-
-
-                    <p class="impact-stat-description">
-
-                        Administrative accounts responsible
-                        for platform oversight and management.
+                        Students registered to participate as
+                        beneficiaries.
 
                     </p>
 
@@ -1537,7 +1675,7 @@
 
 
 {{-- ============================================================
-     ACTIVE COMMUNITY
+     ACTIVE & VERIFIED COMMUNITY
 ============================================================ --}}
 
 <section class="impact-section">
@@ -1545,574 +1683,189 @@
     <div class="container">
 
 
-        <div class="impact-section-heading">
+        <div class="impact-summary-wrapper">
 
 
-            <span class="impact-section-label">
-                Active Community
-            </span>
+            <div class="row g-0 align-items-stretch">
 
 
-            <h2>
-                Active Participation Across the Network
-            </h2>
+                {{-- CONTENT --}}
+                <div class="col-lg-5">
+
+                    <div class="impact-summary-content">
 
 
-            <p>
-
-                These statistics represent active accounts
-                currently able to participate within the
-                NUST Sharing Network.
-
-            </p>
+                        <span class="impact-section-label">
+                            Active Community
+                        </span>
 
 
-        </div>
+                        <h2>
+
+                            Participation Built on
+                            Active & Verified Accounts
+
+                        </h2>
 
 
-        <div class="row g-4 justify-content-center">
+                        <p>
 
+                            Account status and email verification
+                            help strengthen responsible participation
+                            across the Sharing Network.
 
-            {{-- ACTIVE USERS --}}
+                        </p>
 
-            <div class="col-lg-4 col-md-6">
-
-                <div class="impact-active-card">
-
-
-                    <div class="impact-active-icon">
-
-                        <i class="fas fa-user-check"></i>
 
                     </div>
 
-
-                    <span
-                        class="impact-active-number impact-counter"
-                        data-target="{{ $activeUsers ?? 0 }}"
-                    >
-                        0
-                    </span>
-
-
-                    <span class="impact-active-title">
-                        Active Users
-                    </span>
-
-
-                    <p class="impact-active-description">
-
-                        Accounts currently marked as active
-                        within the Sharing Network.
-
-                    </p>
-
-
-                </div>
-
-            </div>
-
-
-            {{-- ACTIVE DONORS --}}
-
-            <div class="col-lg-4 col-md-6">
-
-                <div class="impact-active-card">
-
-
-                    <div class="impact-active-icon">
-
-                        <i class="fas fa-hands-helping"></i>
-
-                    </div>
-
-
-                    <span
-                        class="impact-active-number impact-counter"
-                        data-target="{{ $activeDonors ?? 0 }}"
-                    >
-                        0
-                    </span>
-
-
-                    <span class="impact-active-title">
-                        Active Donors
-                    </span>
-
-
-                    <p class="impact-active-description">
-
-                        Donor accounts currently active and
-                        eligible to participate on the platform.
-
-                    </p>
-
-
-                </div>
-
-            </div>
-
-
-            {{-- ACTIVE BENEFICIARIES --}}
-
-            <div class="col-lg-4 col-md-6">
-
-                <div class="impact-active-card">
-
-
-                    <div class="impact-active-icon">
-
-                        <i class="fas fa-graduation-cap"></i>
-
-                    </div>
-
-
-                    <span
-                        class="impact-active-number impact-counter"
-                        data-target="{{ $activeBeneficiaries ?? 0 }}"
-                    >
-                        0
-                    </span>
-
-
-                    <span class="impact-active-title">
-                        Active Beneficiaries
-                    </span>
-
-
-                    <p class="impact-active-description">
-
-                        Beneficiary accounts currently active
-                        within the Sharing Network.
-
-                    </p>
-
-
-                </div>
-
-            </div>
-
-
-        </div>
-
-
-    </div>
-
-</section>
-
-
-
-{{-- ============================================================
-     VERIFIED COMMUNITY
-============================================================ --}}
-
-<section class="impact-section impact-section-light">
-
-    <div class="container">
-
-
-        <div class="row align-items-center g-5">
-
-
-            <div class="col-lg-5">
-
-
-                <span class="impact-section-label">
-                    Verified Community
-                </span>
-
-
-                <h2 class="impact-content-title mb-3">
-
-                    Building Trust Through
-                    Verified Participation
-
-                </h2>
-
-
-                <p
-                    style="
-                        color:#6f7f90;
-                        line-height:1.85;
-                    "
-                >
-
-                    Email verification provides an additional layer
-                    of confidence by helping ensure that registered
-                    participants use verified email accounts within
-                    the platform.
-
-                </p>
-
-
-                <div class="impact-verified-number">
-
-
-                    <span
-                        class="impact-stat-number impact-counter"
-                        data-target="{{ $verifiedUsers ?? 0 }}"
-                    >
-                        0
-                    </span>
-
-
-                    <span class="impact-stat-title">
-                        Verified Accounts
-                    </span>
-
-
                 </div>
 
 
-            </div>
+
+                {{-- STATISTICS --}}
+                <div class="col-lg-7">
+
+                    <div class="impact-summary-stats">
 
 
-            <div class="col-lg-7">
+                        <div class="row g-3">
 
 
-                @php
+                            {{-- ACTIVE USERS --}}
+                            <div class="col-md-6">
 
-                    $donorPercentage =
-                        ($totalUsers ?? 0) > 0
-                            ? round(
-                                (($totalDonors ?? 0) / $totalUsers) * 100
-                            )
-                            : 0;
+                                <div class="impact-summary-item">
 
 
-                    $beneficiaryPercentage =
-                        ($totalUsers ?? 0) > 0
-                            ? round(
-                                (($totalBeneficiaries ?? 0) / $totalUsers) * 100
-                            )
-                            : 0;
+                                    <div class="impact-summary-icon">
+
+                                        <i class="fas fa-user-check"></i>
+
+                                    </div>
 
 
-                    $adminPercentage =
-                        ($totalUsers ?? 0) > 0
-                            ? round(
-                                (($totalAdmins ?? 0) / $totalUsers) * 100
-                            )
-                            : 0;
-
-                @endphp
+                                    <span
+                                        class="impact-summary-number impact-counter"
+                                        data-target="{{ $activeUsers ?? 0 }}"
+                                    >
+                                        0
+                                    </span>
 
 
-                <div class="impact-role-wrapper">
+                                    <span class="impact-summary-title">
+                                        Active Users
+                                    </span>
 
 
-                    {{-- DONORS --}}
+                                </div>
 
-                    <div class="impact-role-row">
-
-
-                        <div class="impact-role-header">
+                            </div>
 
 
-                            <span class="impact-role-name">
 
-                                <i class="fas fa-hand-holding-heart"></i>
+                            {{-- VERIFIED --}}
+                            <div class="col-md-6">
 
-                                Donors
-
-                            </span>
+                                <div class="impact-summary-item">
 
 
-                            <span class="impact-role-value">
+                                    <div class="impact-summary-icon">
 
-                                {{ $donorPercentage }}%
+                                        <i class="fas fa-envelope-open-text"></i>
 
-                            </span>
-
-
-                        </div>
+                                    </div>
 
 
-                        <div class="impact-role-progress">
+                                    <span
+                                        class="impact-summary-number impact-counter"
+                                        data-target="{{ $verifiedUsers ?? 0 }}"
+                                    >
+                                        0
+                                    </span>
 
-                            <div
-                                class="impact-role-progress-bar"
-                                style="width: {{ $donorPercentage }}%;"
-                            ></div>
+
+                                    <span class="impact-summary-title">
+                                        Verified Accounts
+                                    </span>
+
+
+                                </div>
+
+                            </div>
+
+
+
+                            {{-- ACTIVE DONORS --}}
+                            <div class="col-md-6">
+
+                                <div class="impact-summary-item">
+
+
+                                    <div class="impact-summary-icon">
+
+                                        <i class="fas fa-hands-helping"></i>
+
+                                    </div>
+
+
+                                    <span
+                                        class="impact-summary-number impact-counter"
+                                        data-target="{{ $activeDonors ?? 0 }}"
+                                    >
+                                        0
+                                    </span>
+
+
+                                    <span class="impact-summary-title">
+                                        Active Donors
+                                    </span>
+
+
+                                </div>
+
+                            </div>
+
+
+
+                            {{-- ACTIVE BENEFICIARIES --}}
+                            <div class="col-md-6">
+
+                                <div class="impact-summary-item">
+
+
+                                    <div class="impact-summary-icon">
+
+                                        <i class="fas fa-graduation-cap"></i>
+
+                                    </div>
+
+
+                                    <span
+                                        class="impact-summary-number impact-counter"
+                                        data-target="{{ $activeBeneficiaries ?? 0 }}"
+                                    >
+                                        0
+                                    </span>
+
+
+                                    <span class="impact-summary-title">
+                                        Active Beneficiaries
+                                    </span>
+
+
+                                </div>
+
+                            </div>
+
 
                         </div>
 
 
                     </div>
 
-
-                    {{-- BENEFICIARIES --}}
-
-                    <div class="impact-role-row">
-
-
-                        <div class="impact-role-header">
-
-
-                            <span class="impact-role-name">
-
-                                <i class="fas fa-user-graduate"></i>
-
-                                Beneficiaries
-
-                            </span>
-
-
-                            <span class="impact-role-value">
-
-                                {{ $beneficiaryPercentage }}%
-
-                            </span>
-
-
-                        </div>
-
-
-                        <div class="impact-role-progress">
-
-                            <div
-                                class="impact-role-progress-bar"
-                                style="width: {{ $beneficiaryPercentage }}%;"
-                            ></div>
-
-                        </div>
-
-
-                    </div>
-
-
-                    {{-- ADMINS --}}
-
-                    <div class="impact-role-row">
-
-
-                        <div class="impact-role-header">
-
-
-                            <span class="impact-role-name">
-
-                                <i class="fas fa-user-shield"></i>
-
-                                Administrators
-
-                            </span>
-
-
-                            <span class="impact-role-value">
-
-                                {{ $adminPercentage }}%
-
-                            </span>
-
-
-                        </div>
-
-
-                        <div class="impact-role-progress">
-
-                            <div
-                                class="impact-role-progress-bar"
-                                style="width: {{ $adminPercentage }}%;"
-                            ></div>
-
-                        </div>
-
-
-                    </div>
-
-
                 </div>
 
-
-            </div>
-
-
-        </div>
-
-
-    </div>
-
-</section>
-
-
-
-{{-- ============================================================
-     HOW SHARING NETWORK WORKS
-============================================================ --}}
-
-<section class="impact-section">
-
-    <div class="container">
-
-
-        <div class="impact-section-heading">
-
-
-            <span class="impact-section-label">
-                Sharing Journey
-            </span>
-
-
-            <h2>
-                How the NUST Sharing Network Works
-            </h2>
-
-
-            <p>
-
-                The platform provides a structured journey
-                connecting donors, beneficiaries and
-                administrators throughout the sharing process.
-
-            </p>
-
-
-        </div>
-
-
-        <div class="row g-4">
-
-
-            <div class="col-lg col-md-6">
-
-                <div class="impact-process-card">
-
-
-                    <div class="impact-process-number">
-                        01
-                    </div>
-
-
-                    <h5>
-                        Join the Network
-                    </h5>
-
-
-                    <p>
-
-                        Participants register on the platform
-                        according to their relevant donor or
-                        beneficiary role.
-
-                    </p>
-
-
-                </div>
-
-            </div>
-
-
-            <div class="col-lg col-md-6">
-
-                <div class="impact-process-card">
-
-
-                    <div class="impact-process-number">
-                        02
-                    </div>
-
-
-                    <h5>
-                        Account Verification
-                    </h5>
-
-
-                    <p>
-
-                        Email and account information support
-                        responsible participation within the
-                        Sharing Network.
-
-                    </p>
-
-
-                </div>
-
-            </div>
-
-
-            <div class="col-lg col-md-6">
-
-                <div class="impact-process-card">
-
-
-                    <div class="impact-process-number">
-                        03
-                    </div>
-
-
-                    <h5>
-                        Identify Needs
-                    </h5>
-
-
-                    <p>
-
-                        Beneficiaries identify educational needs
-                        while donors participate according to
-                        available resources.
-
-                    </p>
-
-
-                </div>
-
-            </div>
-
-
-            <div class="col-lg col-md-6">
-
-                <div class="impact-process-card">
-
-
-                    <div class="impact-process-number">
-                        04
-                    </div>
-
-
-                    <h5>
-                        Administrative Oversight
-                    </h5>
-
-
-                    <p>
-
-                        Administrators help manage platform
-                        participation and the required workflows.
-
-                    </p>
-
-
-                </div>
-
-            </div>
-
-
-            <div class="col-lg col-md-6">
-
-                <div class="impact-process-card">
-
-
-                    <div class="impact-process-number">
-                        05
-                    </div>
-
-
-                    <h5>
-                        Create Impact
-                    </h5>
-
-
-                    <p>
-
-                        Responsible community participation
-                        transforms sharing into meaningful
-                        educational support.
-
-                    </p>
-
-
-                </div>
 
             </div>
 
@@ -2144,16 +1897,15 @@
 
 
             <h2>
-                Creating Value Across the Community
+                Creating Value Beyond Resource Sharing
             </h2>
 
 
             <p>
 
-                The Sharing Network supports more than resource
-                exchange. It helps strengthen participation,
-                accessibility, responsibility and community
-                engagement.
+                The network supports access, participation and
+                responsible reuse while strengthening the connection
+                between the wider community and students.
 
             </p>
 
@@ -2161,41 +1913,12 @@
         </div>
 
 
+
         <div class="row g-4">
 
 
-            <div class="col-lg-4 col-md-6">
-
-                <div class="impact-area-card">
-
-
-                    <div class="impact-area-icon">
-
-                        <i class="fas fa-laptop"></i>
-
-                    </div>
-
-
-                    <h5>
-                        Digital Accessibility
-                    </h5>
-
-
-                    <p>
-
-                        Resource sharing can help students gain
-                        access to the technology required for
-                        coursework, research and digital learning.
-
-                    </p>
-
-
-                </div>
-
-            </div>
-
-
-            <div class="col-lg-4 col-md-6">
+            {{-- EDUCATIONAL ACCESS --}}
+            <div class="col-lg-3 col-md-6">
 
                 <div class="impact-area-card">
 
@@ -2208,15 +1931,14 @@
 
 
                     <h5>
-                        Academic Support
+                        Educational Access
                     </h5>
 
 
                     <p>
 
-                        Educational resources can support students
-                        across different academic requirements
-                        throughout their university journey.
+                        Helping connect students with useful
+                        academic and educational resources.
 
                     </p>
 
@@ -2226,7 +1948,9 @@
             </div>
 
 
-            <div class="col-lg-4 col-md-6">
+
+            {{-- STUDENT SUPPORT --}}
+            <div class="col-lg-3 col-md-6">
 
                 <div class="impact-area-card">
 
@@ -2239,15 +1963,14 @@
 
 
                     <h5>
-                        Student Empowerment
+                        Student Support
                     </h5>
 
 
                     <p>
 
-                        Beneficiaries become part of an organized
-                        network focused on supporting genuine
-                        educational needs.
+                        Building a structured platform around
+                        genuine educational needs.
 
                     </p>
 
@@ -2257,7 +1980,9 @@
             </div>
 
 
-            <div class="col-lg-4 col-md-6">
+
+            {{-- COMMUNITY --}}
+            <div class="col-lg-3 col-md-6">
 
                 <div class="impact-area-card">
 
@@ -2270,15 +1995,14 @@
 
 
                     <h5>
-                        Community Participation
+                        Community Engagement
                     </h5>
 
 
                     <p>
 
-                        Donors, beneficiaries and administrators
-                        contribute to a collaborative culture of
-                        responsible sharing.
+                        Encouraging donors and students to participate
+                        in a responsible sharing ecosystem.
 
                     </p>
 
@@ -2288,7 +2012,9 @@
             </div>
 
 
-            <div class="col-lg-4 col-md-6">
+
+            {{-- RESPONSIBLE REUSE --}}
+            <div class="col-lg-3 col-md-6">
 
                 <div class="impact-area-card">
 
@@ -2307,417 +2033,13 @@
 
                     <p>
 
-                        Reusing educational resources can extend
-                        their useful life while creating additional
-                        value for students.
+                        Extending the useful life of educational
+                        resources through meaningful reuse.
 
                     </p>
 
 
                 </div>
-
-            </div>
-
-
-            <div class="col-lg-4 col-md-6">
-
-                <div class="impact-area-card">
-
-
-                    <div class="impact-area-icon">
-
-                        <i class="fas fa-shield-alt"></i>
-
-                    </div>
-
-
-                    <h5>
-                        Transparent Participation
-                    </h5>
-
-
-                    <p>
-
-                        Structured accounts and administrative
-                        oversight help strengthen accountability
-                        across the Sharing Network.
-
-                    </p>
-
-
-                </div>
-
-            </div>
-
-
-        </div>
-
-
-    </div>
-
-</section>
-
-
-
-{{-- ============================================================
-     TRUST & ACCOUNTABILITY
-============================================================ --}}
-
-<section class="impact-trust-section">
-
-    <div class="container">
-
-
-        <div class="row align-items-center g-5">
-
-
-            <div class="col-lg-5">
-
-
-                <div class="impact-trust-content">
-
-
-                    <span
-                        class="impact-section-label"
-                        style="color:#fabc4d;"
-                    >
-                        Trust & Accountability
-                    </span>
-
-
-                    <h2>
-
-                        Building a Responsible
-                        Sharing Ecosystem
-
-                    </h2>
-
-
-                    <p>
-
-                        Trust is essential when bringing donors
-                        and beneficiaries together. The NUST
-                        Sharing Network uses structured accounts,
-                        role-based participation and administrative
-                        oversight to strengthen accountability.
-
-                    </p>
-
-
-                </div>
-
-
-            </div>
-
-
-            <div class="col-lg-7">
-
-
-                <div class="row g-3">
-
-
-                    <div class="col-md-6">
-
-                        <div class="impact-trust-card">
-
-
-                            <div class="impact-trust-icon">
-
-                                <i class="fas fa-user-check"></i>
-
-                            </div>
-
-
-                            <div>
-
-
-                                <h6>
-                                    Registered Participants
-                                </h6>
-
-
-                                <p>
-
-                                    Donors and beneficiaries participate
-                                    through dedicated user accounts.
-
-                                </p>
-
-
-                            </div>
-
-
-                        </div>
-
-                    </div>
-
-
-                    <div class="col-md-6">
-
-                        <div class="impact-trust-card">
-
-
-                            <div class="impact-trust-icon">
-
-                                <i class="fas fa-envelope-open-text"></i>
-
-                            </div>
-
-
-                            <div>
-
-
-                                <h6>
-                                    Email Verification
-                                </h6>
-
-
-                                <p>
-
-                                    Verified email accounts provide an
-                                    additional layer of account validation.
-
-                                </p>
-
-
-                            </div>
-
-
-                        </div>
-
-                    </div>
-
-
-                    <div class="col-md-6">
-
-                        <div class="impact-trust-card">
-
-
-                            <div class="impact-trust-icon">
-
-                                <i class="fas fa-user-shield"></i>
-
-                            </div>
-
-
-                            <div>
-
-
-                                <h6>
-                                    Administrative Oversight
-                                </h6>
-
-
-                                <p>
-
-                                    Administrators support responsible
-                                    platform management and participation.
-
-                                </p>
-
-
-                            </div>
-
-
-                        </div>
-
-                    </div>
-
-
-                    <div class="col-md-6">
-
-                        <div class="impact-trust-card">
-
-
-                            <div class="impact-trust-icon">
-
-                                <i class="fas fa-lock"></i>
-
-                            </div>
-
-
-                            <div>
-
-
-                                <h6>
-                                    Account Status Control
-                                </h6>
-
-
-                                <p>
-
-                                    Active, suspended and blocked account
-                                    statuses support platform governance.
-
-                                </p>
-
-
-                            </div>
-
-
-                        </div>
-
-                    </div>
-
-
-                </div>
-
-
-            </div>
-
-
-        </div>
-
-
-    </div>
-
-</section>
-
-
-
-{{-- ============================================================
-     DONORS & BENEFICIARIES
-============================================================ --}}
-
-<section class="impact-section">
-
-    <div class="container">
-
-
-        <div class="impact-section-heading">
-
-
-            <span class="impact-section-label">
-                Join the Network
-            </span>
-
-
-            <h2>
-                Two Communities. One Shared Purpose.
-            </h2>
-
-
-            <p>
-
-                Donors and beneficiaries form the core communities
-                of the Sharing Network, connected through a
-                responsible and transparent digital platform.
-
-            </p>
-
-
-        </div>
-
-
-        <div class="row g-4">
-
-
-            {{-- DONOR --}}
-
-            <div class="col-lg-6">
-
-                <div class="impact-community-card donor">
-
-
-                    <div class="impact-community-icon">
-
-                        <i class="fas fa-hand-holding-heart"></i>
-
-                    </div>
-
-
-                    <h3>
-                        For Donors
-                    </h3>
-
-
-                    <p>
-
-                        Join a growing community of donors and
-                        contribute educational resources that can
-                        support students throughout their academic
-                        journey.
-
-                    </p>
-
-
-                    @guest
-
-                        <a
-                            href="{{ route('register') }}"
-                            class="impact-btn impact-btn-light"
-                        >
-
-                            Become a Donor
-
-                            <i class="fas fa-arrow-right"></i>
-
-                        </a>
-
-                    @else
-
-                        <a
-                            href="{{ url('/dashboard') }}"
-                            class="impact-btn impact-btn-light"
-                        >
-
-                            Open Dashboard
-
-                            <i class="fas fa-arrow-right"></i>
-
-                        </a>
-
-                    @endguest
-
-
-                </div>
-
-
-            </div>
-
-
-            {{-- BENEFICIARY --}}
-
-            <div class="col-lg-6">
-
-                <div class="impact-community-card beneficiary">
-
-
-                    <div class="impact-community-icon">
-
-                        <i class="fas fa-graduation-cap"></i>
-
-                    </div>
-
-
-                    <h3>
-                        For Beneficiaries
-                    </h3>
-
-
-                    <p>
-
-                        Eligible students can join the Sharing
-                        Network as beneficiaries and participate
-                        within the educational support ecosystem.
-
-                    </p>
-
-
-                    <a
-                        href="{{ route('explore.needs') }}"
-                        class="impact-btn impact-btn-dark"
-                    >
-
-                        Explore Needs
-
-                        <i class="fas fa-arrow-right"></i>
-
-                    </a>
-
-
-                </div>
-
 
             </div>
 
@@ -2735,74 +2057,91 @@
      FINAL CTA
 ============================================================ --}}
 
-<section class="impact-final-cta">
+<section class="impact-cta-section">
 
     <div class="container">
 
 
-        <div class="impact-final-box">
+        <div class="impact-cta-box">
 
 
-            <span
-                class="impact-section-label"
-                style="color:#fabc4d;"
-            >
-                Make an Impact
-            </span>
+            <div class="row align-items-center g-4">
 
 
-            <h2>
-
-                Be Part of a Community Built Around
-                Educational Support
-
-            </h2>
+                {{-- CONTENT --}}
+                <div class="col-lg-8">
 
 
-            <p>
-
-                Join the NUST Sharing Network and become part of
-                a growing community of donors, beneficiaries and
-                responsible participants working together to create
-                meaningful educational impact.
-
-            </p>
+                    <div class="impact-cta-content">
 
 
-            <div class="impact-final-actions">
+                        <span class="impact-cta-label">
+                            Make an Impact
+                        </span>
 
 
-                <a
-                    href="{{ route('explore.needs') }}"
-                    class="impact-btn impact-btn-gold"
-                >
-
-                    Explore Needs
-
-                    <i class="fas fa-arrow-right"></i>
-
-                </a>
+                        <h2>
+                            Become Part of the Sharing Network
+                        </h2>
 
 
-                @guest
+                        <p>
 
-                    <a
-                        href="{{ route('register') }}"
-                        class="impact-btn impact-btn-outline"
-                    >
-                        Join Sharing Network
-                    </a>
+                            Explore educational needs or join the
+                            NUST Sharing Network to become part of
+                            a community focused on meaningful and
+                            responsible student support.
 
-                @else
+                        </p>
 
-                    <a
-                        href="{{ url('/dashboard') }}"
-                        class="impact-btn impact-btn-outline"
-                    >
-                        Go to Dashboard
-                    </a>
 
-                @endguest
+                    </div>
+
+
+                </div>
+
+
+
+                {{-- BUTTON --}}
+                <div class="col-lg-4 text-lg-end">
+
+
+                    <div class="impact-cta-action">
+
+
+                        @guest
+
+                            <a
+                                href="{{ route('register') }}"
+                                class="impact-cta-btn"
+                            >
+
+                                Join the Network
+
+                                <i class="fas fa-arrow-right"></i>
+
+                            </a>
+
+                        @else
+
+                            <a
+                                href="{{ route('explore.needs') }}"
+                                class="impact-cta-btn"
+                            >
+
+                                Explore Needs
+
+                                <i class="fas fa-arrow-right"></i>
+
+                            </a>
+
+                        @endguest
+
+
+                    </div>
+
+
+                </div>
 
 
             </div>
@@ -2829,118 +2168,121 @@
 
 <script>
 
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener(
+        'DOMContentLoaded',
+        function () {
 
-        const counters =
-            document.querySelectorAll('.impact-counter');
-
-
-        if (!counters.length) {
-            return;
-        }
-
-
-        const counterObserver =
-            new IntersectionObserver(
-
-                function (entries, observer) {
-
-                    entries.forEach(function (entry) {
-
-                        if (!entry.isIntersecting) {
-                            return;
-                        }
+            const counters =
+                document.querySelectorAll(
+                    '.impact-counter'
+                );
 
 
-                        const counter =
-                            entry.target;
+            if (!counters.length) {
+                return;
+            }
 
 
-                        const target =
-                            parseInt(
-                                counter.dataset.target
-                            ) || 0;
+            const observer =
+                new IntersectionObserver(
+
+                    function (entries, observerInstance) {
+
+                        entries.forEach(function (entry) {
+
+                            if (!entry.isIntersecting) {
+                                return;
+                            }
 
 
-                        const duration = 1300;
-
-                        const startTime =
-                            performance.now();
+                            const counter =
+                                entry.target;
 
 
-                        function animate(currentTime) {
-
-                            const progress =
-                                Math.min(
-
-                                    (
-                                        currentTime
-                                        -
-                                        startTime
-                                    )
-                                    /
-                                    duration,
-
-                                    1
-                                );
+                            const target =
+                                parseInt(
+                                    counter.dataset.target
+                                ) || 0;
 
 
-                            const currentValue =
-                                Math.floor(
-                                    target * progress
-                                );
+                            const duration =
+                                1200;
 
 
-                            counter.textContent =
-                                currentValue
-                                    .toLocaleString();
+                            const startTime =
+                                performance.now();
 
 
-                            if (progress < 1) {
+                            function animate(currentTime) {
 
-                                requestAnimationFrame(
-                                    animate
-                                );
+                                const progress =
+                                    Math.min(
+                                        (
+                                            currentTime -
+                                            startTime
+                                        ) / duration,
+                                        1
+                                    );
 
-                            } else {
+
+                                const currentValue =
+                                    Math.floor(
+                                        target * progress
+                                    );
+
 
                                 counter.textContent =
-                                    target
-                                        .toLocaleString();
+                                    currentValue.toLocaleString();
+
+
+                                if (progress < 1) {
+
+                                    requestAnimationFrame(
+                                        animate
+                                    );
+
+                                } else {
+
+                                    counter.textContent =
+                                        target.toLocaleString();
+
+                                }
 
                             }
 
-                        }
+
+                            requestAnimationFrame(
+                                animate
+                            );
 
 
-                        requestAnimationFrame(
-                            animate
-                        );
+                            observerInstance.unobserve(
+                                counter
+                            );
+
+                        });
+
+                    },
+
+                    {
+                        threshold: 0.25
+                    }
+
+                );
 
 
-                        observer.unobserve(
-                            counter
-                        );
+            counters.forEach(
+                function (counter) {
 
-                    });
+                    observer.observe(
+                        counter
+                    );
 
-                },
-
-                {
-                    threshold: 0.30
                 }
             );
 
-
-        counters.forEach(function (counter) {
-
-            counterObserver.observe(
-                counter
-            );
-
-        });
-
-    });
+        }
+    );
 
 </script>
 

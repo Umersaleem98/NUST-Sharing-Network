@@ -14,6 +14,7 @@
     {{-- @include('layouts.home.categories') --}}
     @include('layouts.home.how-it-works')
     @include('layouts.home.stories-section')
+    @include('layouts.home.contact')
 
 
     {{-- @include('layouts.home.testimonials') --}}

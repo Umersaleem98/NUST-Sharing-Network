@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminCategorytController;
+use App\Http\Controllers\Admin\AdminContactController;
 use App\Http\Controllers\Admin\AdminProductsController;
 use App\Http\Controllers\Admin\AdminRequestController;
 use App\Http\Controllers\Admin\AdminTrafficReportController;
@@ -18,6 +19,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OurImpectController;
 use Illuminate\Support\Facades\Route;
+
 
 
 
@@ -40,6 +42,7 @@ Route::fallback(function () {
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/explore-needs', [ExploreNeedController::class, 'index'])->name('explore.needs');
 Route::get('/our-impact', [OurImpectController::class, 'index'])->name('our.impact');
+Route::post('/contact', [HomeController::class, 'contactStore'])->name('contact.store');
 Route::post('/cookie-accept', [CookieConsentController::class, 'accept'])->middleware('throttle:10,1')->name('cookie.accept');
 Route::post('/cookie-reject', [CookieConsentController::class, 'reject'])->middleware('throttle:10,1')->name('cookie.reject');
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
@@ -56,13 +59,6 @@ Route::post('/register', [AuthController::class,'register'])->name('register.pos
     ])
         ->middleware('throttle:6,1')
         ->name('verification.send');
-
-
-/*
-|--------------------------------------------------------------------------
-| AUTH ROUTES
-|--------------------------------------------------------------------------
-*/
 
 
 Route::post('/donor/accept-terms', [DashboardController::class, 'acceptTerms'])
@@ -208,7 +204,69 @@ Route::middleware('auth')->group(function () {
         Route::get('/reports/traffic', [AdminTrafficReportController::class, 'index'])->name('reports.traffic');
     });
 
+Route::get(
+    '/admin/contact-messages',
+    [AdminContactController::class, 'index']
+)
+    ->middleware(['auth', 'role:admin'])
+    ->name('admin.contact.index');
 
+
+/*
+|--------------------------------------------------------------------------
+| Delete Selected Contact Messages
+|--------------------------------------------------------------------------
+*/
+
+Route::delete(
+    '/admin/contact-messages/delete-selected',
+    [AdminContactController::class, 'destroySelected']
+)
+    ->middleware(['auth', 'role:admin'])
+    ->name('admin.contact.destroy-selected');
+
+
+/*
+|--------------------------------------------------------------------------
+| Show Contact Message
+|--------------------------------------------------------------------------
+*/
+
+Route::get(
+    '/admin/contact-messages/{contact}',
+    [AdminContactController::class, 'show']
+)
+    ->middleware(['auth', 'role:admin'])
+    ->name('admin.contact.show');
+
+
+/*
+|--------------------------------------------------------------------------
+| Update Contact Status
+|--------------------------------------------------------------------------
+*/
+
+Route::patch(
+    '/admin/contact-messages/{contact}/status',
+    [AdminContactController::class, 'updateStatus']
+)
+    ->middleware(['auth', 'role:admin'])
+    ->name('admin.contact.status');
+
+
+/*
+|--------------------------------------------------------------------------
+| Delete Single Contact Message
+|--------------------------------------------------------------------------
+*/
+
+Route::delete(
+    '/admin/contact-messages/{contact}',
+    [AdminContactController::class, 'destroy']
+)
+    ->middleware(['auth', 'role:admin'])
+    ->name('admin.contact.destroy');
+    
 
     /*
     |--------------------------------------------------------------------------
@@ -234,6 +292,7 @@ Route::middleware('auth')->group(function () {
         Route::get('requests', [DonorRequestController::class, 'donorRequests'])->name('donor.requests');
         Route::post('request/{id}', [DonorRequestController::class, 'updateRequestStatus'])->name('donor.request.update');
     });
+
 
 
 

@@ -43,6 +43,15 @@
     <span class="nsn-label">All Requests</span>
 </a>
 
+<!-- Contact Messages -->
+<a
+    href="{{ route('admin.contact.index') }}"
+    class="nsn-nav-link {{ request()->routeIs('admin.contact.*') ? 'active' : '' }}"
+>
+    <i class="fa-solid fa-envelope-open-text"></i>
+    <span class="nsn-label">Contact Messages</span>
+</a>
+
 <!-- Traffic Reports -->
 <a
     href="{{ route('reports.traffic') }}"

@@ -3,7 +3,6 @@
 <title>Explore Needs | NUST Sharing Network</title>
 
 <style>
-
     /* =========================================================
        NUST SHARING NETWORK - EXPLORE NEEDS
     ========================================================= */
@@ -24,11 +23,9 @@
         --needs-muted: #6f7e8e;
     }
 
-
     html {
         scroll-behavior: smooth;
     }
-
 
     body {
         background: var(--needs-white);
@@ -37,25 +34,28 @@
 
 
     /* =========================================================
-       SHORT HERO BANNER
+       ATTRACTIVE PAGE HERO
     ========================================================= */
 
-    .needs-short-hero {
+    .needs-hero {
         position: relative;
 
-        min-height: 260px;
+        min-height: 320px;
 
         display: flex;
         align-items: center;
 
         overflow: hidden;
 
+        isolation: isolate;
+
         background:
             linear-gradient(
                 90deg,
-                rgba(8, 41, 68, .96) 0%,
-                rgba(18, 59, 96, .91) 55%,
-                rgba(18, 59, 96, .75) 100%
+                rgba(5, 30, 51, .97) 0%,
+                rgba(8, 41, 68, .94) 38%,
+                rgba(18, 59, 96, .88) 68%,
+                rgba(18, 59, 96, .76) 100%
             ),
             url('{{ asset("templates/assets/sliders/slider1.png") }}');
 
@@ -65,156 +65,449 @@
     }
 
 
-    .needs-short-hero::before {
+    /* dark overlay */
+    .needs-hero::before {
+        content: "";
+
+        position: absolute;
+        inset: 0;
+
+        z-index: -3;
+
+        background:
+            linear-gradient(
+                180deg,
+                rgba(0, 0, 0, .05),
+                rgba(0, 0, 0, .18)
+            );
+    }
+
+
+    /* gold decorative glow */
+    .needs-hero::after {
         content: "";
 
         position: absolute;
 
-        width: 280px;
-        height: 280px;
+        width: 420px;
+        height: 420px;
 
-        right: -120px;
-        top: -150px;
+        right: -160px;
+        top: -210px;
 
-        border: 45px solid rgba(250, 188, 77, .08);
+        z-index: -2;
 
         border-radius: 50%;
+
+        border:
+            70px solid
+            rgba(250, 188, 77, .08);
+
+        box-shadow:
+            0 0 80px
+            rgba(250, 188, 77, .05);
     }
 
 
-    .needs-short-hero::after {
-        content: "";
-
+    .needs-hero-shape-left {
         position: absolute;
 
-        width: 180px;
-        height: 180px;
+        width: 260px;
+        height: 260px;
 
-        left: -70px;
-        bottom: -120px;
+        left: -130px;
+        bottom: -160px;
+
+        z-index: -1;
 
         border-radius: 50%;
 
-        background: rgba(250, 188, 77, .05);
+        background:
+            rgba(250, 188, 77, .06);
     }
 
 
-    .needs-short-hero-content {
+    .needs-hero-shape-right {
+        position: absolute;
+
+        width: 110px;
+        height: 110px;
+
+        right: 9%;
+        bottom: 40px;
+
+        z-index: -1;
+
+        border:
+            1px solid
+            rgba(255, 255, 255, .08);
+
+        border-radius: 28px;
+
+        transform: rotate(24deg);
+
+        background:
+            rgba(255, 255, 255, .025);
+
+        backdrop-filter: blur(6px);
+    }
+
+
+    /* =========================================================
+       HERO INNER LAYOUT
+    ========================================================= */
+
+    .needs-hero-inner {
+        position: relative;
+        z-index: 5;
+
+        width: 100%;
+    }
+
+
+    .needs-hero-content {
         position: relative;
 
-        z-index: 2;
+        max-width: 820px;
+
+        padding: 52px 0;
+    }
+
+
+    .needs-hero-panel {
+        position: relative;
 
         max-width: 760px;
 
-        padding: 48px 0;
+        padding: 28px 30px;
+
+        border:
+            1px solid
+            rgba(255, 255, 255, .10);
+
+        border-radius: 22px;
+
+        background:
+            linear-gradient(
+                135deg,
+                rgba(255, 255, 255, .075),
+                rgba(255, 255, 255, .025)
+            );
+
+        backdrop-filter: blur(7px);
+
+        box-shadow:
+            0 20px 55px
+            rgba(0, 0, 0, .14);
     }
 
 
-    .needs-short-breadcrumb {
+    .needs-hero-panel::before {
+        content: "";
+
+        position: absolute;
+
+        top: 22px;
+        left: 0;
+
+        width: 4px;
+        height: 65px;
+
+        border-radius: 0 5px 5px 0;
+
+        background:
+            var(--needs-gold);
+    }
+
+
+    /* =========================================================
+       HERO TOP NAV
+    ========================================================= */
+
+    .needs-hero-nav {
         display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+
+        gap: 16px;
+
+        margin-bottom: 20px;
+    }
+
+
+    .needs-back-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        gap: 8px;
+
+        min-height: 38px;
+
+        padding: 8px 16px;
+
+        border:
+            1px solid
+            rgba(255, 255, 255, .18);
+
+        border-radius: 50px;
+
+        background:
+            rgba(255, 255, 255, .07);
+
+        color:
+            rgba(255, 255, 255, .92);
+
+        text-decoration: none;
+
+        font-size: 12px;
+        font-weight: 700;
+
+        transition: all .3s ease;
+    }
+
+
+    .needs-back-btn i {
+        font-size: 11px;
+
+        transition:
+            transform .3s ease;
+    }
+
+
+    .needs-back-btn:hover {
+        border-color:
+            var(--needs-gold);
+
+        background:
+            var(--needs-gold);
+
+        color:
+            var(--needs-primary-dark);
+
+        box-shadow:
+            0 8px 20px
+            rgba(250, 188, 77, .18);
+    }
+
+
+    .needs-back-btn:hover i {
+        transform: translateX(-3px);
+    }
+
+
+    /* =========================================================
+       BREADCRUMB
+    ========================================================= */
+
+    .needs-breadcrumb {
+        display: inline-flex;
         align-items: center;
         flex-wrap: wrap;
 
         gap: 8px;
 
-        margin-bottom: 13px;
+        margin: 0;
 
-        font-size: 13px;
+        font-size: 12px;
     }
 
 
-    .needs-short-breadcrumb a {
-        color: rgba(255, 255, 255, .68);
+    .needs-breadcrumb a {
+        color:
+            rgba(255, 255, 255, .62);
 
         text-decoration: none;
 
-        transition: .3s ease;
+        transition:
+            color .3s ease;
     }
 
 
-    .needs-short-breadcrumb a:hover {
-        color: var(--needs-gold);
+    .needs-breadcrumb a:hover {
+        color:
+            var(--needs-gold);
     }
 
 
-    .needs-short-breadcrumb span {
-        color: var(--needs-gold);
+    .needs-breadcrumb-divider {
+        color:
+            rgba(255, 255, 255, .35);
     }
 
 
-    .needs-short-label {
+    .needs-breadcrumb-current {
+        color:
+            rgba(255, 255, 255, .88);
+    }
+
+
+    /* =========================================================
+       HERO LABEL
+    ========================================================= */
+
+    .needs-label {
         display: inline-flex;
         align-items: center;
 
-        gap: 7px;
+        gap: 8px;
 
         margin-bottom: 12px;
 
-        color: var(--needs-gold);
+        padding: 7px 12px;
 
-        font-size: 11px;
+        border:
+            1px solid
+            rgba(250, 188, 77, .20);
+
+        border-radius: 50px;
+
+        background:
+            rgba(250, 188, 77, .08);
+
+        color:
+            var(--needs-gold);
+
+        font-size: 10px;
         font-weight: 800;
 
-        letter-spacing: 1.5px;
+        letter-spacing: 1.6px;
 
         text-transform: uppercase;
     }
 
 
-    .needs-short-hero h1 {
-        margin-bottom: 12px;
-
-        color: var(--needs-white);
-
-        font-size: clamp(30px, 4vw, 46px);
-
-        font-weight: 800;
-
-        line-height: 1.15;
-    }
-
-
-    .needs-short-hero h1 span {
-        color: var(--needs-gold);
-    }
-
-
-    .needs-short-hero p {
-        max-width: 680px;
-
-        margin: 0;
-
-        color: rgba(255, 255, 255, .76);
-
-        font-size: 15px;
-
-        line-height: 1.75;
+    .needs-label i {
+        font-size: 11px;
     }
 
 
     /* =========================================================
-       SECTION HEADINGS
+       HERO HEADING
     ========================================================= */
 
-    .needs-section {
-        padding: 90px 0;
+    .needs-hero h1 {
+        margin-bottom: 13px;
+
+        color:
+            var(--needs-white);
+
+        font-size:
+            clamp(34px, 5vw, 50px);
+
+        font-weight: 800;
+
+        letter-spacing: -.7px;
+
+        line-height: 1.10;
     }
 
 
-    .needs-first-section {
-        padding-top: 80px;
+    .needs-hero h1 span {
+        position: relative;
+
+        color:
+            var(--needs-gold);
     }
 
 
-    .needs-section-light {
+    .needs-hero h1 span::after {
+        content: "";
+
+        position: absolute;
+
+        left: 2px;
+        bottom: -5px;
+
+        width: 70%;
+        height: 3px;
+
+        border-radius: 50px;
+
+        background:
+            var(--needs-gold);
+
+        opacity: .75;
+    }
+
+
+    .needs-hero p {
+        max-width: 640px;
+
+        margin: 0;
+
+        color:
+            rgba(255, 255, 255, .72);
+
+        font-size: 14px;
+
+        line-height: 1.8;
+    }
+
+
+    /* =========================================================
+       HERO MINI INFO
+    ========================================================= */
+
+    .needs-hero-info {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+
+        gap: 18px;
+
+        margin-top: 20px;
+    }
+
+
+    .needs-hero-info-item {
+        display: inline-flex;
+        align-items: center;
+
+        gap: 8px;
+
+        color:
+            rgba(255, 255, 255, .68);
+
+        font-size: 12px;
+    }
+
+
+    .needs-hero-info-item i {
+        width: 27px;
+        height: 27px;
+
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        border-radius: 50%;
+
+        background:
+            rgba(250, 188, 77, .12);
+
+        color:
+            var(--needs-gold);
+
+        font-size: 10px;
+    }
+
+
+    /* =========================================================
+       CATEGORY SECTION
+    ========================================================= */
+
+    .needs-categories-section {
+        padding: 80px 0;
+
         background: var(--needs-light);
     }
 
 
     .needs-section-heading {
-        max-width: 760px;
+        max-width: 700px;
 
-        margin: 0 auto 50px;
+        margin: 0 auto 40px;
 
         text-align: center;
     }
@@ -223,27 +516,27 @@
     .needs-section-label {
         display: inline-block;
 
-        margin-bottom: 10px;
+        margin-bottom: 8px;
 
         color: var(--needs-gold-dark);
 
-        font-size: 12px;
+        font-size: 11px;
 
         font-weight: 800;
 
-        letter-spacing: 1.7px;
+        letter-spacing: 1.6px;
 
         text-transform: uppercase;
     }
 
 
-    .needs-section-heading h1,
     .needs-section-heading h2 {
-        margin-bottom: 15px;
+        margin-bottom: 12px;
 
         color: var(--needs-primary);
 
-        font-size: clamp(28px, 4vw, 40px);
+        font-size:
+            clamp(27px, 4vw, 38px);
 
         font-weight: 800;
 
@@ -252,126 +545,9 @@
 
 
     .needs-section-heading p {
-        max-width: 680px;
+        max-width: 620px;
 
         margin: auto;
-
-        color: var(--needs-muted);
-
-        font-size: 15px;
-
-        line-height: 1.8;
-    }
-
-
-    /* =========================================================
-       INTRODUCTION
-    ========================================================= */
-
-    .needs-intro-card {
-        position: relative;
-
-        height: 100%;
-
-        overflow: hidden;
-
-        padding: 32px 28px;
-
-        border: 1px solid var(--needs-border);
-
-        border-radius: 18px;
-
-        background: var(--needs-white);
-
-        transition: all .35s ease;
-    }
-
-
-    .needs-intro-card::before {
-        content: "";
-
-        position: absolute;
-
-        width: 100px;
-        height: 100px;
-
-        top: -60px;
-        right: -60px;
-
-        border-radius: 50%;
-
-        background: rgba(250, 188, 77, .12);
-    }
-
-
-    .needs-intro-card:hover {
-        transform: translateY(-6px);
-
-        border-color:
-            rgba(250, 188, 77, .7);
-
-        box-shadow:
-            0 18px 40px
-            rgba(18, 59, 96, .08);
-    }
-
-
-    .needs-intro-icon {
-        position: relative;
-
-        z-index: 2;
-
-        width: 55px;
-        height: 55px;
-
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        margin-bottom: 20px;
-
-        border-radius: 15px;
-
-        background:
-            rgba(250, 188, 77, .17);
-
-        color: var(--needs-primary);
-
-        font-size: 21px;
-
-        transition: .3s ease;
-    }
-
-
-    .needs-intro-card:hover
-    .needs-intro-icon {
-        background: var(--needs-primary);
-
-        color: var(--needs-gold);
-    }
-
-
-    .needs-intro-card h5 {
-        position: relative;
-
-        z-index: 2;
-
-        margin-bottom: 10px;
-
-        color: var(--needs-primary);
-
-        font-size: 18px;
-
-        font-weight: 750;
-    }
-
-
-    .needs-intro-card p {
-        position: relative;
-
-        z-index: 2;
-
-        margin: 0;
 
         color: var(--needs-muted);
 
@@ -382,21 +558,11 @@
 
 
     /* =========================================================
-       CATEGORY SECTION
+       CATEGORY COUNT
     ========================================================= */
 
-    .needs-categories-section {
-        padding: 95px 0;
-
-        background: var(--needs-light);
-    }
-
-
-    .needs-category-count-box {
-        max-width: 500px;
-
-        margin:
-            -20px auto 45px;
+    .needs-category-count-wrapper {
+        margin-bottom: 35px;
 
         text-align: center;
     }
@@ -404,12 +570,11 @@
 
     .needs-category-count {
         display: inline-flex;
-
         align-items: center;
 
-        gap: 9px;
+        gap: 8px;
 
-        padding: 10px 20px;
+        padding: 9px 18px;
 
         border:
             1px solid
@@ -417,25 +582,29 @@
 
         border-radius: 50px;
 
-        background: var(--needs-white);
+        background:
+            var(--needs-white);
 
-        color: var(--needs-muted);
+        color:
+            var(--needs-muted);
 
         font-size: 13px;
 
         box-shadow:
-            0 8px 25px
+            0 7px 20px
             rgba(18, 59, 96, .04);
     }
 
 
-    .needs-category-count strong {
-        color: var(--needs-primary);
+    .needs-category-count i {
+        color:
+            var(--needs-gold-dark);
     }
 
 
-    .needs-category-count i {
-        color: var(--needs-gold-dark);
+    .needs-category-count strong {
+        color:
+            var(--needs-primary);
     }
 
 
@@ -448,27 +617,29 @@
 
         height: 100%;
 
-        min-height: 245px;
+        min-height: 225px;
 
         display: flex;
-
         flex-direction: column;
-
         justify-content: space-between;
 
         overflow: hidden;
 
-        padding: 30px;
+        padding: 27px;
 
         border:
             1px solid
             var(--needs-border);
 
-        border-radius: 20px;
+        border-radius: 18px;
 
-        background: var(--needs-white);
+        background:
+            var(--needs-white);
 
-        transition: .35s ease;
+        transition:
+            transform .3s ease,
+            box-shadow .3s ease,
+            border-color .3s ease;
     }
 
 
@@ -477,54 +648,38 @@
 
         position: absolute;
 
-        width: 150px;
-        height: 150px;
+        width: 140px;
+        height: 140px;
 
-        right: -85px;
-        top: -85px;
-
-        border-radius: 50%;
-
-        background:
-            rgba(250, 188, 77, .16);
-
-        transition: .4s ease;
-    }
-
-
-    .needs-category-card::after {
-        content: "";
-
-        position: absolute;
-
-        width: 80px;
-        height: 80px;
-
-        right: -45px;
-        bottom: -45px;
+        right: -80px;
+        top: -80px;
 
         border-radius: 50%;
 
         background:
-            rgba(18, 59, 96, .05);
+            rgba(250, 188, 77, .15);
+
+        transition:
+            .35s ease;
     }
 
 
     .needs-category-card:hover {
         transform:
-            translateY(-8px);
+            translateY(-7px);
 
         border-color:
             rgba(250, 188, 77, .85);
 
         box-shadow:
-            0 20px 45px
-            rgba(18, 59, 96, .11);
+            0 20px 42px
+            rgba(18, 59, 96, .10);
     }
 
 
     .needs-category-card:hover::before {
-        transform: scale(1.15);
+        transform:
+            scale(1.15);
     }
 
 
@@ -533,35 +688,40 @@
 
         z-index: 2;
 
-        width: 62px;
-        height: 62px;
+        width: 58px;
+        height: 58px;
 
         display: flex;
-
         align-items: center;
         justify-content: center;
 
-        margin-bottom: 28px;
+        margin-bottom: 22px;
 
-        border-radius: 17px;
+        border-radius: 15px;
 
-        background: var(--needs-primary);
+        background:
+            var(--needs-primary);
 
-        color: var(--needs-gold);
+        color:
+            var(--needs-gold);
 
-        font-size: 24px;
+        font-size: 22px;
 
-        transition: .3s ease;
+        transition:
+            all .3s ease;
     }
 
 
     .needs-category-card:hover
     .needs-category-icon {
-        background: var(--needs-gold);
+        background:
+            var(--needs-gold);
 
-        color: var(--needs-primary-dark);
+        color:
+            var(--needs-primary-dark);
 
-        transform: rotate(-5deg);
+        transform:
+            rotate(-4deg);
     }
 
 
@@ -572,29 +732,13 @@
     }
 
 
-    .needs-category-number {
-        display: block;
-
-        margin-bottom: 7px;
-
-        color: var(--needs-gold-dark);
-
-        font-size: 11px;
-
-        font-weight: 800;
-
-        letter-spacing: 1px;
-
-        text-transform: uppercase;
-    }
-
-
     .needs-category-card h4 {
         margin-bottom: 8px;
 
-        color: var(--needs-primary);
+        color:
+            var(--needs-primary);
 
-        font-size: 20px;
+        font-size: 19px;
 
         font-weight: 750;
 
@@ -603,9 +747,10 @@
 
 
     .needs-category-card p {
-        margin-bottom: 0;
+        margin: 0;
 
-        color: var(--needs-muted);
+        color:
+            var(--needs-muted);
 
         font-size: 13px;
 
@@ -619,16 +764,16 @@
         z-index: 2;
 
         display: flex;
-
-        justify-content: space-between;
         align-items: center;
+        justify-content: space-between;
 
-        margin-top: 24px;
+        margin-top: 21px;
 
-        padding-top: 17px;
+        padding-top: 15px;
 
         border-top:
-            1px solid #edf0f3;
+            1px solid
+            #edf0f3;
     }
 
 
@@ -637,13 +782,14 @@
 
         overflow: hidden;
 
-        color: #9aa6b1;
+        color:
+            #9aa6b1;
+
+        font-size: 11px;
 
         text-overflow: ellipsis;
 
         white-space: nowrap;
-
-        font-size: 11px;
     }
 
 
@@ -652,7 +798,6 @@
         height: 34px;
 
         display: flex;
-
         align-items: center;
         justify-content: center;
 
@@ -661,186 +806,116 @@
         background:
             rgba(250, 188, 77, .16);
 
-        color: var(--needs-primary);
+        color:
+            var(--needs-primary);
 
-        font-size: 12px;
+        font-size: 11px;
 
-        transition: .3s;
+        transition:
+            .3s ease;
     }
 
 
     .needs-category-card:hover
     .needs-category-arrow {
-        background: var(--needs-primary);
+        background:
+            var(--needs-primary);
 
-        color: var(--needs-gold);
+        color:
+            var(--needs-gold);
 
-        transform: translateX(3px);
+        transform:
+            translateX(3px);
     }
 
 
     /* =========================================================
-       EMPTY CATEGORY STATE
+       EMPTY STATE
     ========================================================= */
 
     .needs-empty-state {
-        padding: 70px 30px;
+        padding: 60px 30px;
 
         border:
-            1px dashed #cad4de;
+            1px dashed
+            #cbd5df;
 
-        border-radius: 20px;
+        border-radius: 18px;
 
-        background: var(--needs-white);
+        background:
+            var(--needs-white);
 
         text-align: center;
     }
 
 
     .needs-empty-icon {
-        width: 75px;
-        height: 75px;
+        width: 70px;
+        height: 70px;
 
         display: flex;
         align-items: center;
         justify-content: center;
 
         margin:
-            0 auto 20px;
+            0 auto 18px;
 
         border-radius: 50%;
 
         background:
             rgba(250, 188, 77, .17);
 
-        color: var(--needs-primary);
+        color:
+            var(--needs-primary);
 
-        font-size: 28px;
+        font-size: 26px;
     }
 
 
     .needs-empty-state h4 {
-        color: var(--needs-primary);
+        margin-bottom: 8px;
+
+        color:
+            var(--needs-primary);
 
         font-weight: 750;
     }
 
 
     .needs-empty-state p {
-        max-width: 550px;
+        max-width: 520px;
 
-        margin:
-            10px auto 0;
+        margin: auto;
 
-        color: var(--needs-muted);
+        color:
+            var(--needs-muted);
+
+        font-size: 14px;
+
+        line-height: 1.7;
     }
 
 
     /* =========================================================
-       HOW SHARING WORKS
+       CTA
     ========================================================= */
 
-    .needs-process-card {
-        position: relative;
+    .needs-cta-section {
+        padding: 75px 0;
 
-        height: 100%;
-
-        overflow: hidden;
-
-        padding: 32px 24px;
-
-        border:
-            1px solid
-            var(--needs-border);
-
-        border-radius: 18px;
-
-        background: var(--needs-white);
-
-        text-align: center;
-
-        transition: .35s ease;
+        background:
+            var(--needs-white);
     }
 
 
-    .needs-process-card:hover {
-        transform:
-            translateY(-6px);
-
-        border-color:
-            rgba(250, 188, 77, .6);
-
-        box-shadow:
-            0 18px 40px
-            rgba(18, 59, 96, .08);
-    }
-
-
-    .needs-process-number {
-        width: 55px;
-        height: 55px;
-
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        margin:
-            0 auto 20px;
-
-        border-radius: 15px;
-
-        background: var(--needs-primary);
-
-        color: var(--needs-gold);
-
-        font-size: 17px;
-
-        font-weight: 800;
-
-        transition: .3s ease;
-    }
-
-
-    .needs-process-card:hover
-    .needs-process-number {
-        background: var(--needs-gold);
-
-        color: var(--needs-primary-dark);
-    }
-
-
-    .needs-process-card h5 {
-        margin-bottom: 10px;
-
-        color: var(--needs-primary);
-
-        font-size: 17px;
-
-        font-weight: 750;
-    }
-
-
-    .needs-process-card p {
-        margin-bottom: 0;
-
-        color: var(--needs-muted);
-
-        font-size: 13px;
-
-        line-height: 1.75;
-    }
-
-
-    /* =========================================================
-       RESPONSIBLE SHARING
-    ========================================================= */
-
-    .needs-responsible-section {
+    .needs-cta-box {
         position: relative;
 
         overflow: hidden;
 
-        padding: 95px 0;
+        padding: 48px 42px;
+
+        border-radius: 22px;
 
         background:
             linear-gradient(
@@ -851,279 +926,116 @@
     }
 
 
-    .needs-responsible-section::before {
-        content: "";
-
-        position: absolute;
-
-        width: 380px;
-        height: 380px;
-
-        top: -170px;
-        right: -130px;
-
-        border:
-            65px solid
-            rgba(250, 188, 77, .06);
-
-        border-radius: 50%;
-    }
-
-
-    .needs-responsible-section::after {
-        content: "";
-
-        position: absolute;
-
-        width: 260px;
-        height: 260px;
-
-        bottom: -180px;
-        left: -80px;
-
-        border-radius: 50%;
-
-        background:
-            rgba(250, 188, 77, .04);
-    }
-
-
-    .needs-responsible-content {
-        position: relative;
-
-        z-index: 2;
-    }
-
-
-    .needs-responsible-content h2 {
-        margin-bottom: 18px;
-
-        color: var(--needs-white);
-
-        font-size:
-            clamp(29px, 4vw, 40px);
-
-        font-weight: 800;
-
-        line-height: 1.2;
-    }
-
-
-    .needs-responsible-content > p {
-        color:
-            rgba(255, 255, 255, .72);
-
-        line-height: 1.85;
-    }
-
-
-    .needs-responsible-card {
-        position: relative;
-
-        z-index: 2;
-
-        height: 100%;
-
-        display: flex;
-
-        align-items: flex-start;
-
-        gap: 14px;
-
-        padding: 22px;
-
-        border:
-            1px solid
-            rgba(255, 255, 255, .1);
-
-        border-radius: 14px;
-
-        background:
-            rgba(255, 255, 255, .07);
-
-        transition: .3s ease;
-    }
-
-
-    .needs-responsible-card:hover {
-        transform: translateY(-4px);
-
-        border-color:
-            rgba(250, 188, 77, .35);
-
-        background:
-            rgba(255, 255, 255, .10);
-    }
-
-
-    .needs-responsible-icon {
-        flex: 0 0 42px;
-
-        width: 42px;
-        height: 42px;
-
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        border-radius: 11px;
-
-        background: var(--needs-gold);
-
-        color: var(--needs-primary-dark);
-    }
-
-
-    .needs-responsible-card h6 {
-        margin-bottom: 5px;
-
-        color: white;
-
-        font-weight: 700;
-    }
-
-
-    .needs-responsible-card p {
-        margin: 0;
-
-        color:
-            rgba(255, 255, 255, .67);
-
-        font-size: 12px;
-
-        line-height: 1.65;
-    }
-
-
-    /* =========================================================
-       FINAL CTA
-    ========================================================= */
-
-    .needs-cta-section {
-        padding: 95px 0;
-
-        background: var(--needs-light);
-    }
-
-
-    .needs-cta-box {
-        position: relative;
-
-        overflow: hidden;
-
-        padding: 60px 45px;
-
-        border-radius: 25px;
-
-        background: var(--needs-gold);
-    }
-
-
     .needs-cta-box::before {
         content: "";
 
         position: absolute;
 
-        width: 180px;
-        height: 180px;
-
-        left: -110px;
-        top: -110px;
-
-        border-radius: 50%;
-
-        border:
-            35px solid
-            rgba(18, 59, 96, .06);
-    }
-
-
-    .needs-cta-box::after {
-        content: "";
-
-        position: absolute;
-
-        width: 280px;
-        height: 280px;
+        width: 230px;
+        height: 230px;
 
         right: -100px;
-        bottom: -150px;
+        top: -130px;
 
         border:
-            50px solid
-            rgba(18, 59, 96, .08);
+            40px solid
+            rgba(250, 188, 77, .08);
 
         border-radius: 50%;
     }
 
 
-    .needs-cta-content {
+    .needs-cta-content,
+    .needs-cta-action {
         position: relative;
 
         z-index: 2;
     }
 
 
-    .needs-cta-box h2 {
-        margin-bottom: 12px;
+    .needs-cta-label {
+        display: inline-block;
 
-        color: var(--needs-primary-dark);
+        margin-bottom: 9px;
+
+        color:
+            var(--needs-gold);
+
+        font-size: 11px;
+
+        font-weight: 800;
+
+        letter-spacing: 1.5px;
+
+        text-transform: uppercase;
+    }
+
+
+    .needs-cta-box h2 {
+        margin-bottom: 10px;
+
+        color:
+            var(--needs-white);
 
         font-size:
-            clamp(28px, 4vw, 40px);
+            clamp(25px, 4vw, 34px);
 
         font-weight: 800;
     }
 
 
     .needs-cta-box p {
-        max-width: 700px;
+        max-width: 650px;
 
-        margin-bottom: 0;
+        margin: 0;
 
         color:
-            rgba(8, 41, 68, .76);
+            rgba(255, 255, 255, .72);
 
-        line-height: 1.8;
+        font-size: 14px;
+
+        line-height: 1.75;
     }
 
 
     .needs-cta-btn {
-        position: relative;
-
-        z-index: 2;
-
         display: inline-flex;
-
         align-items: center;
         justify-content: center;
 
-        gap: 9px;
+        gap: 8px;
 
-        padding: 14px 28px;
+        padding:
+            13px 25px;
 
         border-radius: 50px;
 
-        background: var(--needs-primary);
+        background:
+            var(--needs-gold);
 
-        color: white;
+        color:
+            var(--needs-primary-dark);
 
         text-decoration: none;
 
         font-size: 14px;
 
-        font-weight: 700;
+        font-weight: 750;
 
-        transition: .3s ease;
+        transition:
+            .3s ease;
     }
 
 
     .needs-cta-btn:hover {
-        background: var(--needs-primary-dark);
+        background:
+            var(--needs-white);
 
-        color: var(--needs-gold);
+        color:
+            var(--needs-primary);
 
-        transform: translateY(-2px);
+        transform:
+            translateY(-2px);
     }
 
 
@@ -1133,21 +1045,27 @@
 
     @media (max-width: 991.98px) {
 
-        .needs-section,
-        .needs-categories-section,
-        .needs-responsible-section,
+        .needs-hero {
+            min-height: 300px;
+        }
+
+        .needs-hero-panel {
+            max-width: 720px;
+        }
+
+        .needs-categories-section {
+            padding:
+                65px 0;
+        }
+
         .needs-cta-section {
-            padding: 70px 0;
+            padding:
+                60px 0;
         }
-
-
-        .needs-first-section {
-            padding-top: 70px;
-        }
-
 
         .needs-cta-box {
-            padding: 45px 35px;
+            padding:
+                40px 32px;
         }
 
     }
@@ -1155,53 +1073,81 @@
 
     @media (max-width: 767.98px) {
 
-        .needs-short-hero {
-            min-height: 230px;
+        .needs-hero {
+            min-height: 290px;
         }
 
-
-        .needs-short-hero-content {
-            padding: 38px 0;
+        .needs-hero-content {
+            padding:
+                38px 0;
         }
 
+        .needs-hero-panel {
+            padding:
+                24px 22px;
 
-        .needs-short-hero h1 {
-            font-size: 31px;
+            border-radius:
+                18px;
         }
 
+        .needs-hero-nav {
+            gap: 12px;
 
-        .needs-short-hero p {
-            font-size: 14px;
+            margin-bottom: 17px;
         }
 
-
-        .needs-section,
-        .needs-categories-section,
-        .needs-responsible-section,
-        .needs-cta-section {
-            padding: 60px 0;
+        .needs-hero h1 {
+            font-size:
+                32px;
         }
 
-
-        .needs-first-section {
-            padding-top: 60px;
+        .needs-hero p {
+            font-size:
+                14px;
         }
 
+        .needs-hero-info {
+            gap:
+                12px;
+        }
+
+        .needs-categories-section {
+            padding:
+                55px 0;
+        }
 
         .needs-section-heading {
-            margin-bottom: 38px;
+            margin-bottom:
+                32px;
         }
-
 
         .needs-category-card {
-            min-height: auto;
+            min-height:
+                auto;
 
-            padding: 27px 24px;
+            padding:
+                24px;
         }
 
-
         .needs-cta-box {
-            padding: 40px 25px;
+            padding:
+                35px 25px;
+
+            text-align:
+                center;
+        }
+
+        .needs-cta-box p {
+            margin:
+                0 auto;
+        }
+
+        .needs-cta-action {
+            margin-top:
+                22px;
+
+            text-align:
+                center !important;
         }
 
     }
@@ -1209,262 +1155,216 @@
 
     @media (max-width: 575.98px) {
 
-        .needs-short-hero {
-            min-height: 220px;
+        .needs-hero {
+            min-height:
+                auto;
         }
 
-
-        .needs-short-breadcrumb {
-            font-size: 12px;
+        .needs-hero-content {
+            padding:
+                32px 0;
         }
 
-
-        .needs-short-hero h1 {
-            font-size: 28px;
+        .needs-hero-panel {
+            padding:
+                22px 18px;
         }
 
+        .needs-hero-panel::before {
+            height:
+                55px;
+        }
 
-        .needs-section-heading h1,
+        .needs-hero-nav {
+            align-items:
+                flex-start;
+
+            flex-direction:
+                column;
+        }
+
+        .needs-back-btn {
+            margin-bottom:
+                0;
+        }
+
+        .needs-hero h1 {
+            font-size:
+                29px;
+        }
+
+        .needs-hero-info {
+            flex-direction:
+                column;
+
+            align-items:
+                flex-start;
+
+            gap:
+                9px;
+        }
+
         .needs-section-heading h2 {
-            font-size: 28px;
+            font-size:
+                27px;
         }
-
 
         .needs-category-card {
-            border-radius: 16px;
+            border-radius:
+                15px;
         }
 
-
         .needs-cta-btn {
-            width: 100%;
+            width:
+                100%;
         }
 
     }
-
 </style>
 
 
 <body>
-
 
 {{-- @include('layouts.home.preloader') --}}
 
 @include('layouts.home.header')
 
 
-
 {{-- ============================================================
-     SHORT HERO BANNER
+     ATTRACTIVE HERO
 ============================================================ --}}
 
-<section class="needs-short-hero">
+<section class="needs-hero">
 
-    <div class="container">
+    {{-- DECORATIVE SHAPES --}}
+    <span class="needs-hero-shape-left"></span>
+    <span class="needs-hero-shape-right"></span>
 
-        <div class="needs-short-hero-content">
+
+    <div class="container needs-hero-inner">
+
+        <div class="needs-hero-content">
+
+            <div class="needs-hero-panel">
 
 
-            <div class="needs-short-breadcrumb">
+                {{-- ==================================================
+                     TOP NAVIGATION
+                =================================================== --}}
 
-                <a href="{{ url('/') }}">
-                    Home
-                </a>
+                <div class="needs-hero-nav">
 
-                <span>
-                    /
+                    <a
+                        href="javascript:history.back()"
+                        class="needs-back-btn"
+                    >
+                        <i class="fas fa-arrow-left"></i>
+
+                        Back
+                    </a>
+
+
+                    <div class="needs-breadcrumb">
+
+                        <a href="{{ url('/') }}">
+                            Home
+                        </a>
+
+                        <span class="needs-breadcrumb-divider">
+                            /
+                        </span>
+
+                        <span class="needs-breadcrumb-current">
+                            Explore Needs
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                {{-- ==================================================
+                     LABEL
+                =================================================== --}}
+
+                <span class="needs-label">
+
+                    <i class="fas fa-hand-holding-heart"></i>
+
+                    NUST Sharing Network
+
                 </span>
 
-                <span>
-                    Explore Needs
-                </span>
 
-            </div>
+                {{-- ==================================================
+                     TITLE
+                =================================================== --}}
 
+                <h1>
 
-            <span class="needs-short-label">
+                    Explore Educational
+                    <span>Needs</span>
 
-                <i class="fas fa-hand-holding-heart"></i>
-
-                NUST Sharing Network
-
-            </span>
+                </h1>
 
 
-            <h1>
+                {{-- ==================================================
+                     DESCRIPTION
+                =================================================== --}}
 
-                Explore Educational
-                <span>Needs</span>
+                <p>
 
-            </h1>
+                    Discover educational support categories and
+                    explore where meaningful contributions can
+                    support students across the NUST community.
 
-
-            <p>
-
-                Discover the different areas where educational
-                support can make a meaningful difference. Explore
-                available need categories and become part of a
-                responsible community built around sharing and
-                student support.
-
-            </p>
+                </p>
 
 
-        </div>
+                {{-- ==================================================
+                     SMALL INFO ITEMS
+                =================================================== --}}
 
-    </div>
+                <div class="needs-hero-info">
 
-</section>
-
-
-
-{{-- ============================================================
-     INTRODUCTION
-============================================================ --}}
-
-<section class="needs-section needs-first-section">
-
-    <div class="container">
-
-
-        <div class="needs-section-heading">
-
-
-            <span class="needs-section-label">
-                Sharing With Purpose
-            </span>
-
-
-            <h2>
-                Understanding Educational Needs
-            </h2>
-
-
-            <p>
-
-                Different students may require different forms of
-                educational support. The NUST Sharing Network organizes
-                these needs into clear categories, helping create a
-                more structured connection between donors and
-                beneficiaries.
-
-            </p>
-
-
-        </div>
-
-
-        <div class="row g-4">
-
-
-            {{-- ORGANIZED CATEGORIES --}}
-
-            <div class="col-lg-4 col-md-6">
-
-
-                <div class="needs-intro-card">
-
-
-                    <div class="needs-intro-icon">
+                    <div class="needs-hero-info-item">
 
                         <i class="fas fa-layer-group"></i>
 
+                        <span>
+                            Multiple Need Categories
+                        </span>
+
                     </div>
 
 
-                    <h5>
-                        Organized Categories
-                    </h5>
+                    <div class="needs-hero-info-item">
+
+                        <i class="fas fa-shield-alt"></i>
+
+                        <span>
+                            Responsible Sharing
+                        </span>
+
+                    </div>
 
 
-                    <p>
-
-                        Educational needs are organized into categories
-                        so visitors can easily understand the different
-                        areas supported by the Sharing Network.
-
-                    </p>
-
-
-                </div>
-
-
-            </div>
-
-
-
-            {{-- STUDENT-CENTERED SUPPORT --}}
-
-            <div class="col-lg-4 col-md-6">
-
-
-                <div class="needs-intro-card">
-
-
-                    <div class="needs-intro-icon">
+                    <div class="needs-hero-info-item">
 
                         <i class="fas fa-user-graduate"></i>
 
+                        <span>
+                            Student Focused
+                        </span>
+
                     </div>
-
-
-                    <h5>
-                        Student-Centered Support
-                    </h5>
-
-
-                    <p>
-
-                        Each category represents a potential area where
-                        educational support can contribute to a student's
-                        academic journey.
-
-                    </p>
-
 
                 </div>
 
 
             </div>
-
-
-
-            {{-- MEANINGFUL CONNECTIONS --}}
-
-            <div class="col-lg-4 col-md-6">
-
-
-                <div class="needs-intro-card">
-
-
-                    <div class="needs-intro-icon">
-
-                        <i class="fas fa-handshake"></i>
-
-                    </div>
-
-
-                    <h5>
-                        Meaningful Connections
-                    </h5>
-
-
-                    <p>
-
-                        The Sharing Network provides a structured
-                        pathway for donors and eligible beneficiaries
-                        to connect responsibly.
-
-                    </p>
-
-
-                </div>
-
-
-            </div>
-
 
         </div>
-
 
     </div>
 
@@ -1473,7 +1373,7 @@
 
 
 {{-- ============================================================
-     DATABASE CATEGORIES
+     CATEGORY SECTION
 ============================================================ --}}
 
 <section
@@ -1484,92 +1384,68 @@
     <div class="container">
 
 
+        {{-- SECTION HEADING --}}
         <div class="needs-section-heading">
-
 
             <span class="needs-section-label">
                 Explore Needs
             </span>
 
-
             <h2>
                 Educational Need Categories
             </h2>
 
-
             <p>
-
-                Explore all categories currently available through
-                the NUST Sharing Network. Categories are managed
-                dynamically and automatically appear here when
-                added to the platform.
-
+                Select a category to understand the different
+                educational resources required by students.
             </p>
-
 
         </div>
 
 
 
-        {{-- TOTAL CATEGORIES --}}
-
-        <div class="needs-category-count-box">
-
+        {{-- CATEGORY COUNT --}}
+        <div class="needs-category-count-wrapper">
 
             <div class="needs-category-count">
 
-
                 <i class="fas fa-layer-group"></i>
-
 
                 <span>
 
-
                     <strong>
-
                         {{ number_format($totalCategories ?? 0) }}
-
                     </strong>
 
-
                     {{
-
                         ($totalCategories ?? 0) == 1
-                            ? 'category'
-                            : 'categories'
-
+                            ? 'category available'
+                            : 'categories available'
                     }}
-
-                    available
-
 
                 </span>
 
-
             </div>
-
 
         </div>
 
 
 
-        {{-- CATEGORY GRID --}}
+        {{-- ====================================================
+             CATEGORY GRID
+        ===================================================== --}}
 
         <div class="row g-4">
 
-
-            @forelse($categories as $index => $category)
-
+            @forelse($categories as $category)
 
                 <div class="col-xl-3 col-lg-4 col-md-6">
 
-
                     <div class="needs-category-card">
-
 
                         <div>
 
-
+                            {{-- ICON --}}
                             <div class="needs-category-icon">
 
                                 <i class="fas fa-folder-open"></i>
@@ -1577,50 +1453,26 @@
                             </div>
 
 
+                            {{-- CONTENT --}}
                             <div class="needs-category-content">
 
-
-                                <span class="needs-category-number">
-
-
-                                    Category
-
-
-                                    {{ str_pad(
-                                        $index + 1,
-                                        2,
-                                        '0',
-                                        STR_PAD_LEFT
-                                    ) }}
-
-
-                                </span>
-
-
                                 <h4>
-
                                     {{ $category->name }}
-
                                 </h4>
 
-
                                 <p>
-
-                                    Educational support category
-                                    available through the NUST
-                                    Sharing Network.
-
+                                    Explore educational resources
+                                    and support opportunities available
+                                    under this category.
                                 </p>
 
-
                             </div>
-
 
                         </div>
 
 
+                        {{-- FOOTER --}}
                         <div class="needs-category-footer">
-
 
                             <span class="needs-category-slug">
 
@@ -1628,31 +1480,24 @@
 
                             </span>
 
-
                             <span class="needs-category-arrow">
 
                                 <i class="fas fa-arrow-right"></i>
 
                             </span>
 
-
                         </div>
 
-
                     </div>
-
 
                 </div>
 
 
             @empty
 
-
                 <div class="col-12">
 
-
                     <div class="needs-empty-state">
-
 
                         <div class="needs-empty-icon">
 
@@ -1660,33 +1505,23 @@
 
                         </div>
 
-
                         <h4>
                             No Categories Available
                         </h4>
 
-
                         <p>
-
-                            No educational need categories have been
-                            added yet. Categories created from the
-                            administration panel will automatically
-                            appear on this page.
-
+                            Educational need categories are not
+                            available at the moment. Please check
+                            again later.
                         </p>
-
 
                     </div>
 
-
                 </div>
-
 
             @endforelse
 
-
         </div>
-
 
     </div>
 
@@ -1695,500 +1530,59 @@
 
 
 {{-- ============================================================
-     HOW THE NETWORK WORKS
-============================================================ --}}
-
-<section class="needs-section">
-
-    <div class="container">
-
-
-        <div class="needs-section-heading">
-
-
-            <span class="needs-section-label">
-
-                How It Works
-
-            </span>
-
-
-            <h2>
-
-                From Educational Need to Meaningful Support
-
-            </h2>
-
-
-            <p>
-
-                NUST Sharing Network provides a structured process
-                that connects educational needs with responsible
-                community sharing.
-
-            </p>
-
-
-        </div>
-
-
-        <div class="row g-4">
-
-
-            <div class="col-lg-3 col-md-6">
-
-
-                <div class="needs-process-card">
-
-
-                    <div class="needs-process-number">
-
-                        01
-
-                    </div>
-
-
-                    <h5>
-
-                        Identify the Need
-
-                    </h5>
-
-
-                    <p>
-
-                        Educational needs are organized into
-                        appropriate categories on the Sharing
-                        Network.
-
-                    </p>
-
-
-                </div>
-
-
-            </div>
-
-
-
-            <div class="col-lg-3 col-md-6">
-
-
-                <div class="needs-process-card">
-
-
-                    <div class="needs-process-number">
-
-                        02
-
-                    </div>
-
-
-                    <h5>
-
-                        Community Sharing
-
-                    </h5>
-
-
-                    <p>
-
-                        Donors can contribute useful educational
-                        resources according to student needs.
-
-                    </p>
-
-
-                </div>
-
-
-            </div>
-
-
-
-            <div class="col-lg-3 col-md-6">
-
-
-                <div class="needs-process-card">
-
-
-                    <div class="needs-process-number">
-
-                        03
-
-                    </div>
-
-
-                    <h5>
-
-                        Verification
-
-                    </h5>
-
-
-                    <p>
-
-                        Beneficiary participation and requests
-                        move through the required verification
-                        process.
-
-                    </p>
-
-
-                </div>
-
-
-            </div>
-
-
-
-            <div class="col-lg-3 col-md-6">
-
-
-                <div class="needs-process-card">
-
-
-                    <div class="needs-process-number">
-
-                        04
-
-                    </div>
-
-
-                    <h5>
-
-                        Create Impact
-
-                    </h5>
-
-
-                    <p>
-
-                        Successful sharing helps transform
-                        available resources into meaningful
-                        educational support.
-
-                    </p>
-
-
-                </div>
-
-
-            </div>
-
-
-        </div>
-
-
-    </div>
-
-</section>
-
-
-
-{{-- ============================================================
-     RESPONSIBLE SHARING
-============================================================ --}}
-
-<section class="needs-responsible-section">
-
-    <div class="container">
-
-
-        <div class="row align-items-center g-5">
-
-
-            <div class="col-lg-5">
-
-
-                <div class="needs-responsible-content">
-
-
-                    <span
-                        class="needs-section-label"
-                        style="color:#fabc4d;"
-                    >
-
-                        Responsible Sharing
-
-                    </span>
-
-
-                    <h2>
-
-                        Building a Trusted Sharing Community
-
-                    </h2>
-
-
-                    <p>
-
-                        NUST Sharing Network is designed to encourage
-                        responsible participation, transparency and
-                        meaningful educational support between donors
-                        and beneficiaries.
-
-                    </p>
-
-
-                </div>
-
-
-            </div>
-
-
-            <div class="col-lg-7">
-
-
-                <div class="row g-3">
-
-
-                    <div class="col-md-6">
-
-
-                        <div class="needs-responsible-card">
-
-
-                            <div class="needs-responsible-icon">
-
-                                <i class="fas fa-user-check"></i>
-
-                            </div>
-
-
-                            <div>
-
-
-                                <h6>
-                                    Registered Participants
-                                </h6>
-
-
-                                <p>
-
-                                    Donors and beneficiaries participate
-                                    through dedicated accounts.
-
-                                </p>
-
-
-                            </div>
-
-
-                        </div>
-
-
-                    </div>
-
-
-
-                    <div class="col-md-6">
-
-
-                        <div class="needs-responsible-card">
-
-
-                            <div class="needs-responsible-icon">
-
-                                <i class="fas fa-clipboard-check"></i>
-
-                            </div>
-
-
-                            <div>
-
-
-                                <h6>
-                                    Structured Process
-                                </h6>
-
-
-                                <p>
-
-                                    Sharing activities move through
-                                    clear administrative workflows.
-
-                                </p>
-
-
-                            </div>
-
-
-                        </div>
-
-
-                    </div>
-
-
-
-                    <div class="col-md-6">
-
-
-                        <div class="needs-responsible-card">
-
-
-                            <div class="needs-responsible-icon">
-
-                                <i class="fas fa-shield-alt"></i>
-
-                            </div>
-
-
-                            <div>
-
-
-                                <h6>
-                                    Accountability
-                                </h6>
-
-
-                                <p>
-
-                                    Digital records support transparency
-                                    throughout the Sharing Network.
-
-                                </p>
-
-
-                            </div>
-
-
-                        </div>
-
-
-                    </div>
-
-
-
-                    <div class="col-md-6">
-
-
-                        <div class="needs-responsible-card">
-
-
-                            <div class="needs-responsible-icon">
-
-                                <i class="fas fa-handshake"></i>
-
-                            </div>
-
-
-                            <div>
-
-
-                                <h6>
-                                    Meaningful Connections
-                                </h6>
-
-
-                                <p>
-
-                                    The network connects community
-                                    generosity with genuine educational
-                                    needs.
-
-                                </p>
-
-
-                            </div>
-
-
-                        </div>
-
-
-                    </div>
-
-
-                </div>
-
-
-            </div>
-
-
-        </div>
-
-
-    </div>
-
-</section>
-
-
-
-{{-- ============================================================
-     FINAL CTA
+     CTA
 ============================================================ --}}
 
 <section class="needs-cta-section">
 
     <div class="container">
 
-
         <div class="needs-cta-box">
-
 
             <div class="row align-items-center g-4">
 
 
+                {{-- CONTENT --}}
                 <div class="col-lg-8">
-
 
                     <div class="needs-cta-content">
 
-
-                        <span
-                            class="needs-section-label"
-                            style="color:#123b60;"
-                        >
-
-                            Join the Network
-
+                        <span class="needs-cta-label">
+                            NUST Sharing Network
                         </span>
 
-
                         <h2>
-
-                            Be Part of the NUST Sharing Network
-
+                            Ready to Make a Difference?
                         </h2>
 
-
                         <p>
-
-                            Whether you want to support educational
-                            needs as a donor or participate as an
-                            eligible beneficiary, join a community
-                            built around responsible sharing and
-                            meaningful educational impact.
-
+                            Join the NUST Sharing Network and help
+                            connect useful resources with genuine
+                            educational needs.
                         </p>
 
-
                     </div>
-
 
                 </div>
 
 
-                <div class="col-lg-4 text-lg-end">
-
+                {{-- BUTTON --}}
+                <div class="col-lg-4 text-lg-end needs-cta-action">
 
                     @guest
-
 
                         <a
                             href="{{ route('register') }}"
                             class="needs-cta-btn"
                         >
 
-                            Join Sharing Network
+                            Join the Network
 
                             <i class="fas fa-arrow-right"></i>
 
                         </a>
 
-
                     @else
-
 
                         <a
                             href="{{ url('/dashboard') }}"
@@ -2201,18 +1595,14 @@
 
                         </a>
 
-
                     @endguest
-
 
                 </div>
 
 
             </div>
 
-
         </div>
-
 
     </div>
 
@@ -2223,6 +1613,5 @@
 @include('layouts.home.footer')
 
 @include('layouts.home.script')
-
 
 </body>

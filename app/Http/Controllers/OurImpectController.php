@@ -10,40 +10,20 @@ class OurImpectController extends Controller
     {
         /*
         |--------------------------------------------------------------------------
-        | Overall Users
+        | Overall Community Statistics
         |--------------------------------------------------------------------------
         */
 
         $totalUsers = User::count();
 
+        $totalDonors = User::where('role', 'donor')->count();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Users by Role
-        |--------------------------------------------------------------------------
-        */
-
-        $totalDonors = User::where(
-            'role',
-            'donor'
-        )->count();
-
-
-        $totalBeneficiaries = User::where(
-            'role',
-            'beneficiary'
-        )->count();
-
-
-        $totalAdmins = User::where(
-            'role',
-            'admin'
-        )->count();
+        $totalBeneficiaries = User::where('role', 'beneficiary')->count();
 
 
         /*
         |--------------------------------------------------------------------------
-        | Active Accounts
+        | Active Community
         |--------------------------------------------------------------------------
         */
 
@@ -52,32 +32,18 @@ class OurImpectController extends Controller
             'active'
         )->count();
 
+        $activeDonors = User::where('role', 'donor')
+            ->where('account_status', 'active')
+            ->count();
 
-        $activeDonors = User::where(
-            'role',
-            'donor'
-        )
-        ->where(
-            'account_status',
-            'active'
-        )
-        ->count();
-
-
-        $activeBeneficiaries = User::where(
-            'role',
-            'beneficiary'
-        )
-        ->where(
-            'account_status',
-            'active'
-        )
-        ->count();
+        $activeBeneficiaries = User::where('role', 'beneficiary')
+            ->where('account_status', 'active')
+            ->count();
 
 
         /*
         |--------------------------------------------------------------------------
-        | Verified Accounts
+        | Verified Community
         |--------------------------------------------------------------------------
         */
 
@@ -98,7 +64,6 @@ class OurImpectController extends Controller
                 'totalUsers',
                 'totalDonors',
                 'totalBeneficiaries',
-                'totalAdmins',
                 'activeUsers',
                 'activeDonors',
                 'activeBeneficiaries',

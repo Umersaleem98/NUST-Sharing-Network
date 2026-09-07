@@ -8,15 +8,7 @@ class ExploreNeedController extends Controller
 {
     public function index()
     {
-        /*
-        |--------------------------------------------------------------------------
-        | Get All Categories
-        |--------------------------------------------------------------------------
-        |
-        | Every category created from the admin panel/database will
-        | automatically appear on the Explore Needs page.
-        |
-        */
+        
 
         $categories = Category::query()
             ->orderBy('name', 'asc')
