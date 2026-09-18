@@ -5,8 +5,8 @@ namespace App\Imports;
 use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\ToCollection;
@@ -14,12 +14,6 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
 class UsersImport implements ToCollection, WithHeadingRow, SkipsEmptyRows
 {
-    /*
-    |--------------------------------------------------------------------------
-    | Import results
-    |--------------------------------------------------------------------------
-    */
-
     private int $importedCount = 0;
     private int $updatedCount = 0;
     private int $skippedCount = 0;
@@ -27,39 +21,105 @@ class UsersImport implements ToCollection, WithHeadingRow, SkipsEmptyRows
     private array $duplicates = [];
     private array $failures = [];
 
-    /*
-    |--------------------------------------------------------------------------
-    | Adjustable import settings
-    |--------------------------------------------------------------------------
-    */
+    private array $existingUsersByEmail = [];
+    private array $existingQalamIds = [];
+
+    private array $processedEmails = [];
+    private array $processedQalamIds = [];
+
+    private string $defaultPasswordHash;
 
     public function __construct(
         private readonly bool $updateExisting = false,
         private readonly ?int $importedBy = null
     ) {
+        /*
+        |--------------------------------------------------------------------------
+        | Hash default password only once
+        |--------------------------------------------------------------------------
+        |
+        | Users whose Excel password column is empty will use:
+        |
+        | 12345678
+        |
+        */
+
+        $this->defaultPasswordHash = Hash::make('12345678');
     }
 
     /*
     |--------------------------------------------------------------------------
-    | Import collection
+    | Import Excel rows
     |--------------------------------------------------------------------------
     */
 
     public function collection(Collection $rows): void
     {
+        set_time_limit(300);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Load existing users once
+        |--------------------------------------------------------------------------
+        */
+
+        $existingUsers = User::query()
+            ->select([
+                'id',
+                'name',
+                'email',
+                'phone',
+                'role',
+                'qalam_id',
+                'account_status',
+            ])
+            ->get();
+
+        foreach ($existingUsers as $user) {
+
+            if (! empty($user->email)) {
+                $this->existingUsersByEmail[
+                    strtolower(trim($user->email))
+                ] = $user;
+            }
+
+            if (! empty($user->qalam_id)) {
+                $this->existingQalamIds[
+                    trim((string) $user->qalam_id)
+                ] = $user->id;
+            }
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Prepare new records for bulk insertion
+        |--------------------------------------------------------------------------
+        */
+
+        $newUsers = [];
+
         foreach ($rows as $index => $row) {
-            /*
-             * Because row 1 contains headings, actual Excel data begins
-             * from row number 2.
-             */
+
             $rowNumber = $index + 2;
 
             $data = $this->prepareRow($row);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Skip empty rows
+            |--------------------------------------------------------------------------
+            */
 
             if ($this->isCompletelyEmpty($data)) {
                 $this->skippedCount++;
                 continue;
             }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Validate row
+            |--------------------------------------------------------------------------
+            */
 
             $validator = Validator::make(
                 $data,
@@ -68,6 +128,7 @@ class UsersImport implements ToCollection, WithHeadingRow, SkipsEmptyRows
             );
 
             if ($validator->fails()) {
+
                 $this->addFailure(
                     $rowNumber,
                     $data,
@@ -78,17 +139,82 @@ class UsersImport implements ToCollection, WithHeadingRow, SkipsEmptyRows
             }
 
             /*
-             * Qalam ID is only applicable to beneficiaries.
-             */
+            |--------------------------------------------------------------------------
+            | Qalam ID only belongs to beneficiaries
+            |--------------------------------------------------------------------------
+            */
+
             if ($data['role'] !== 'beneficiary') {
                 $data['qalam_id'] = null;
             }
 
-            $existingUser = User::query()
-                ->where('email', $data['email'])
-                ->first();
+            $emailKey = strtolower($data['email']);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Duplicate email inside uploaded Excel
+            |--------------------------------------------------------------------------
+            */
+
+            if (isset($this->processedEmails[$emailKey])) {
+
+                $this->duplicates[] = [
+                    'row' => $rowNumber,
+                    'name' => $data['name'],
+                    'email' => $data['email'],
+                    'reason' => 'Duplicate email exists in the Excel file.',
+                ];
+
+                $this->skippedCount++;
+
+                continue;
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Duplicate Qalam ID inside Excel
+            |--------------------------------------------------------------------------
+            */
+
+            if (
+                $data['role'] === 'beneficiary'
+                && ! empty($data['qalam_id'])
+            ) {
+                $qalamKey = (string) $data['qalam_id'];
+
+                if (isset($this->processedQalamIds[$qalamKey])) {
+
+                    $this->duplicates[] = [
+                        'row' => $rowNumber,
+                        'name' => $data['name'],
+                        'email' => $data['email'],
+                        'reason' => 'Duplicate Qalam ID exists in the Excel file.',
+                    ];
+
+                    $this->skippedCount++;
+
+                    continue;
+                }
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Check existing database user
+            |--------------------------------------------------------------------------
+            */
+
+            $existingUser =
+                $this->existingUsersByEmail[$emailKey]
+                ?? null;
+
+            /*
+            |--------------------------------------------------------------------------
+            | Existing email
+            |--------------------------------------------------------------------------
+            */
 
             if ($existingUser && ! $this->updateExisting) {
+
                 $this->duplicates[] = [
                     'row' => $rowNumber,
                     'name' => $data['name'],
@@ -97,138 +223,295 @@ class UsersImport implements ToCollection, WithHeadingRow, SkipsEmptyRows
                 ];
 
                 $this->skippedCount++;
+
                 continue;
             }
 
-            try {
-                DB::transaction(function () use (
-                    $existingUser,
-                    $data
-                ): void {
-                    if ($existingUser) {
-                        $this->updateUser($existingUser, $data);
-                        $this->updatedCount++;
+            /*
+            |--------------------------------------------------------------------------
+            | Qalam ID database duplicate
+            |--------------------------------------------------------------------------
+            */
 
-                        return;
+            if (
+                $data['role'] === 'beneficiary'
+                && ! empty($data['qalam_id'])
+            ) {
+
+                $qalamKey = (string) $data['qalam_id'];
+
+                $ownerId =
+                    $this->existingQalamIds[$qalamKey]
+                    ?? null;
+
+                if (
+                    $ownerId !== null
+                    && (
+                        ! $existingUser
+                        || $ownerId !== $existingUser->id
+                    )
+                ) {
+
+                    $this->duplicates[] = [
+                        'row' => $rowNumber,
+                        'name' => $data['name'],
+                        'email' => $data['email'],
+                        'reason' => 'Qalam ID already belongs to another user.',
+                    ];
+
+                    $this->skippedCount++;
+
+                    continue;
+                }
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Update existing user
+            |--------------------------------------------------------------------------
+            */
+
+            if ($existingUser) {
+
+                try {
+
+                    $updateData = [
+                        'name' => $data['name'],
+                        'phone' => $data['phone'],
+                        'role' => $data['role'],
+                        'qalam_id' => $data['qalam_id'],
+                        'account_status' => $data['account_status'],
+                        'status_reason' => $data['status_reason'],
+                        'status_changed_by' => $this->importedBy,
+                        'status_changed_at' =>
+                            $data['account_status'] !== 'active'
+                                ? now()
+                                : null,
+                        'updated_at' => now(),
+                    ];
+
+                    /*
+                     * Only update password when Excel contains one.
+                     */
+                    if (! empty($data['password'])) {
+                        $updateData['password'] =
+                            Hash::make($data['password']);
                     }
 
-                    $this->createUser($data);
-                    $this->importedCount++;
-                });
-            } catch (\Throwable $exception) {
-                report($exception);
+                    DB::table('users')
+                        ->where('id', $existingUser->id)
+                        ->update($updateData);
 
-                $this->addFailure(
-                    $rowNumber,
-                    $data,
-                    [
-                        'The row could not be imported because of a database error.',
-                    ]
-                );
+                    $this->updatedCount++;
+
+                } catch (\Throwable $exception) {
+
+                    report($exception);
+
+                    $this->addFailure(
+                        $rowNumber,
+                        $data,
+                        [
+                            'The existing user could not be updated.',
+                        ]
+                    );
+
+                    continue;
+                }
+
+            } else {
+
+                /*
+                |--------------------------------------------------------------------------
+                | Password
+                |--------------------------------------------------------------------------
+                */
+
+                if (! empty($data['password'])) {
+
+                    /*
+                     * Custom password supplied in Excel.
+                     */
+                    $passwordHash =
+                        Hash::make($data['password']);
+
+                } else {
+
+                    /*
+                     * Reuse the same already-generated hash.
+                     */
+                    $passwordHash =
+                        $this->defaultPasswordHash;
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | Add new user
+                |--------------------------------------------------------------------------
+                */
+
+                $newUsers[] = [
+                    'name' => $data['name'],
+                    'email' => $data['email'],
+
+                    /*
+                     * Schema allows NULL.
+                     */
+                    'email_verified_at' => null,
+
+                    'phone' => $data['phone'],
+
+                    /*
+                     * Already hashed.
+                     */
+                    'password' => $passwordHash,
+
+                    'image' => null,
+
+                    'role' => $data['role'],
+
+                    'account_status' =>
+                        $data['account_status'],
+
+                    'status_reason' =>
+                        $data['status_reason'],
+
+                    'status_changed_at' =>
+                        $data['account_status'] !== 'active'
+                            ? now()
+                            : null,
+
+                    'status_changed_by' =>
+                        $this->importedBy,
+
+                    'qalam_id' =>
+                        $data['qalam_id'],
+
+                    'created_at' => now(),
+                    'updated_at' => now(),
+
+                    /*
+                     * Schema allows NULL.
+                     */
+                    'remember_token' => null,
+                ];
+
+                $this->importedCount++;
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Track processed values
+            |--------------------------------------------------------------------------
+            */
+
+            $this->processedEmails[$emailKey] = true;
+
+            if (
+                $data['role'] === 'beneficiary'
+                && ! empty($data['qalam_id'])
+            ) {
+                $this->processedQalamIds[
+                    (string) $data['qalam_id']
+                ] = true;
+            }
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Bulk insert new users
+        |--------------------------------------------------------------------------
+        |
+        | Instead of 500 individual insert queries, insert in groups.
+        |
+        */
+
+        if (! empty($newUsers)) {
+
+            foreach (array_chunk($newUsers, 200) as $chunk) {
+                DB::table('users')->insert($chunk);
             }
         }
     }
 
     /*
     |--------------------------------------------------------------------------
-    | Prepare one Excel row
+    | Prepare row
     |--------------------------------------------------------------------------
     */
 
     private function prepareRow(Collection $row): array
     {
-        $role = $this->nullableString($row->get('role'));
+        $role = $this->nullableString(
+            $row->get('role')
+        );
 
         $accountStatus = $this->nullableString(
             $row->get('account_status')
         );
 
         return [
-            'name' => $this->nullableString($row->get('name')),
+            'name' =>
+                $this->nullableString(
+                    $row->get('name')
+                ),
 
-            'email' => $this->normalizeEmail(
-                $row->get('email')
-            ),
+            'email' =>
+                $this->normalizeEmail(
+                    $row->get('email')
+                ),
 
-            'phone' => $this->normalizePhone(
-                $row->get('phone')
-            ),
+            'phone' =>
+                $this->normalizePhone(
+                    $row->get('phone')
+                ),
 
-            'password' => $this->nullableString(
-                $row->get('password')
-            ),
+            'password' =>
+                $this->nullableString(
+                    $row->get('password')
+                ),
 
-            /*
-             * Change these defaults to null if your database columns
-             * are nullable and you do not want default values.
-             */
-            'role' => $role
-                ? strtolower($role)
-                : 'beneficiary',
+            'role' =>
+                $role
+                    ? strtolower($role)
+                    : 'beneficiary',
 
-            'qalam_id' => $this->nullableString(
-                $row->get('qalam_id')
-            ),
+            'account_status' =>
+                $accountStatus
+                    ? strtolower($accountStatus)
+                    : 'active',
 
-            'account_status' => $accountStatus
-                ? strtolower($accountStatus)
-                : 'active',
+            'status_reason' =>
+                $this->nullableString(
+                    $row->get('status_reason')
+                ),
 
-            'status_reason' => $this->nullableString(
-                $row->get('status_reason')
-            ),
+            'qalam_id' =>
+                $this->nullableString(
+                    $row->get('qalam_id')
+                ),
         ];
     }
 
     /*
     |--------------------------------------------------------------------------
-    | Validation
+    | Validation rules
     |--------------------------------------------------------------------------
     */
 
     private function rules(array $data): array
     {
-        $emailRules = [
-            'required',
-            'email:rfc',
-            'max:255',
-        ];
-
-        /*
-         * A new email must be unique. When update mode is enabled,
-         * the existing record with the same email is allowed.
-         */
-        if (! $this->updateExisting) {
-            $emailRules[] = Rule::unique('users', 'email');
-        }
-
         $qalamRules = [
             'nullable',
             'string',
-            'max:100',
+            'max:255',
         ];
 
-        if ($data['role'] === 'beneficiary') {
-            /*
-             * Remove "required" below if beneficiary Qalam ID
-             * is optional in your application.
-             */
+        if (
+            ($data['role'] ?? null)
+            === 'beneficiary'
+        ) {
             $qalamRules[] = 'required';
-
-            $existingUser = ! empty($data['email'])
-                ? User::where('email', $data['email'])->first()
-                : null;
-
-            $uniqueQalamId = Rule::unique(
-                'users',
-                'qalam_id'
-            );
-
-            if ($existingUser && $this->updateExisting) {
-                $uniqueQalamId->ignore($existingUser->id);
-            }
-
-            $qalamRules[] = $uniqueQalamId;
         }
 
         return [
@@ -238,24 +521,24 @@ class UsersImport implements ToCollection, WithHeadingRow, SkipsEmptyRows
                 'max:255',
             ],
 
-            'email' => $emailRules,
+            'email' => [
+                'required',
+                'email:rfc',
+                'max:255',
+            ],
 
             'phone' => [
                 'nullable',
                 'string',
-                'max:30',
+                'max:255',
                 'regex:/^[0-9+\-\s()]+$/',
             ],
 
-            /*
-             * Password is optional in the sheet. A secure generated
-             * password will be used for new users when it is empty.
-             */
             'password' => [
                 'nullable',
                 'string',
                 'min:8',
-                'max:100',
+                'max:255',
             ],
 
             'role' => [
@@ -266,8 +549,6 @@ class UsersImport implements ToCollection, WithHeadingRow, SkipsEmptyRows
                     'beneficiary',
                 ]),
             ],
-
-            'qalam_id' => $qalamRules,
 
             'account_status' => [
                 'required',
@@ -281,94 +562,51 @@ class UsersImport implements ToCollection, WithHeadingRow, SkipsEmptyRows
             'status_reason' => [
                 'nullable',
                 'string',
-                'max:1000',
             ],
+
+            'qalam_id' =>
+                $qalamRules,
         ];
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Validation messages
+    |--------------------------------------------------------------------------
+    */
 
     private function messages(): array
     {
         return [
-            'name.required' => 'The user name is required.',
-            'email.required' => 'The email address is required.',
-            'email.email' => 'The email address is invalid.',
-            'email.unique' => 'The email address already exists.',
-            'password.min' => 'The password must contain at least 8 characters.',
-            'role.in' => 'Role must be admin, donor, or beneficiary.',
-            'qalam_id.required' => 'Qalam ID is required for beneficiaries.',
-            'qalam_id.unique' => 'The Qalam ID already exists.',
-            'account_status.in' => 'Account status must be active, suspended, or blocked.',
-            'phone.regex' => 'The phone number contains invalid characters.',
+            'name.required' =>
+                'The user name is required.',
+
+            'email.required' =>
+                'The email address is required.',
+
+            'email.email' =>
+                'The email address is invalid.',
+
+            'password.min' =>
+                'Password must contain at least 8 characters.',
+
+            'role.in' =>
+                'Role must be admin, donor, or beneficiary.',
+
+            'account_status.in' =>
+                'Account status must be active, suspended, or blocked.',
+
+            'qalam_id.required' =>
+                'Qalam ID is required for beneficiaries.',
+
+            'phone.regex' =>
+                'The phone number contains invalid characters.',
         ];
     }
 
     /*
     |--------------------------------------------------------------------------
-    | Create user
-    |--------------------------------------------------------------------------
-    */
-
-    private function createUser(array $data): User
-    {
-        /*
-         * The User model has a "hashed" password cast, so assigning
-         * a plain password here stores it as a secure hash.
-         *
-         * A random password is used when the Excel password is empty.
-         */
-        $password = $data['password'] ?: Str::password(12);
-
-        return User::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'phone' => $data['phone'],
-            'password' => $password,
-            'image' => null,
-            'role' => $data['role'],
-            'qalam_id' => $data['qalam_id'],
-            'account_status' => $data['account_status'],
-            'status_reason' => $data['status_reason'],
-
-            'status_changed_at' => $data['account_status'] !== 'active'
-                ? now()
-                : null,
-
-            'status_changed_by' => $this->importedBy,
-        ]);
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Update existing user
-    |--------------------------------------------------------------------------
-    */
-
-    private function updateUser(User $user, array $data): void
-    {
-        $updateData = [
-            'name' => $data['name'],
-            'phone' => $data['phone'],
-            'role' => $data['role'],
-            'qalam_id' => $data['qalam_id'],
-            'account_status' => $data['account_status'],
-            'status_reason' => $data['status_reason'],
-            'status_changed_by' => $this->importedBy,
-            'status_changed_at' => now(),
-        ];
-
-        /*
-         * Keep the existing password when the Excel password is empty.
-         */
-        if (! empty($data['password'])) {
-            $updateData['password'] = $data['password'];
-        }
-
-        $user->update($updateData);
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Normalization helpers
+    | Helpers
     |--------------------------------------------------------------------------
     */
 
@@ -380,14 +618,18 @@ class UsersImport implements ToCollection, WithHeadingRow, SkipsEmptyRows
 
         $value = trim((string) $value);
 
-        return $value === '' ? null : $value;
+        return $value === ''
+            ? null
+            : $value;
     }
 
     private function normalizeEmail(mixed $value): ?string
     {
         $email = $this->nullableString($value);
 
-        return $email ? strtolower($email) : null;
+        return $email
+            ? strtolower($email)
+            : null;
     }
 
     private function normalizePhone(mixed $value): ?string
@@ -399,10 +641,16 @@ class UsersImport implements ToCollection, WithHeadingRow, SkipsEmptyRows
         }
 
         /*
-         * Excel sometimes changes numeric values to decimal strings.
+         * Excel sometimes converts numbers to:
+         *
+         * 923001234567.0
          */
         if (preg_match('/^\d+\.0$/', $phone)) {
-            $phone = strstr($phone, '.', true);
+            $phone = strstr(
+                $phone,
+                '.',
+                true
+            );
         }
 
         return $phone;
@@ -418,16 +666,29 @@ class UsersImport implements ToCollection, WithHeadingRow, SkipsEmptyRows
             && empty($data['status_reason']);
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Failure handling
+    |--------------------------------------------------------------------------
+    */
+
     private function addFailure(
         int $rowNumber,
         array $data,
         array $errors
     ): void {
         $this->failures[] = [
-            'row' => $rowNumber,
-            'name' => $data['name'] ?? null,
-            'email' => $data['email'] ?? null,
-            'errors' => $errors,
+            'row' =>
+                $rowNumber,
+
+            'name' =>
+                $data['name'] ?? null,
+
+            'email' =>
+                $data['email'] ?? null,
+
+            'errors' =>
+                $errors,
         ];
 
         $this->skippedCount++;
@@ -435,7 +696,7 @@ class UsersImport implements ToCollection, WithHeadingRow, SkipsEmptyRows
 
     /*
     |--------------------------------------------------------------------------
-    | Import result getters
+    | Results
     |--------------------------------------------------------------------------
     */
 
