@@ -4,70 +4,148 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\ProductRequest;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
+use Throwable;
 
 class AdminRequestController extends Controller
 {
-    // 📌 SHOW ALL REQUESTS
-    public function index()
+    /*
+    |--------------------------------------------------------------------------
+    | Request Management
+    |--------------------------------------------------------------------------
+    */
+    public function index(): View
     {
-        $requests = ProductRequest::with([
-            'product',
-            'beneficiary.beneficiaryProfile',
-            'donor.donorProfile',
-        ])
-        ->latest()
-        ->paginate(10);
+        $requests = ProductRequest::query()
+            ->with([
+                'product.category',
+                'beneficiary.beneficiaryProfile',
+                'donor.donorProfile',
+            ])
+            ->latest()
+            ->paginate(10);
 
-        return view('pages.admin.requests.index', compact('requests'));
+        $requestStats = [
+            'total' => ProductRequest::query()->count(),
+
+            'pending' => ProductRequest::query()
+                ->where('admin_status', 'pending')
+                ->count(),
+
+            'approved' => ProductRequest::query()
+                ->where('admin_status', 'approved')
+                ->count(),
+
+            'rejected' => ProductRequest::query()
+                ->where('admin_status', 'rejected')
+                ->count(),
+        ];
+
+        return view(
+            'pages.admin.requests.index',
+            compact(
+                'requests',
+                'requestStats'
+            )
+        );
     }
 
-    // 📌 ADMIN APPROVE / REJECT
-   public function update(Request $request, $id)
-{
-    $request->validate([
-        'admin_status' => 'required|in:approved,rejected',
-    ]);
 
-    $req = ProductRequest::findOrFail($id);
+    /*
+    |--------------------------------------------------------------------------
+    | Update Request Status
+    |--------------------------------------------------------------------------
+    */
+    public function update(
+        Request $request,
+        int $id
+    ): RedirectResponse {
+        $validated = $request->validate(
+            [
+                'admin_status' => [
+                    'required',
+                    'in:approved,rejected',
+                ],
+            ],
+            [
+                'admin_status.required' =>
+                    'Please select a request decision.',
 
-    /**
-     * ============================
-     * ALLOW STATUS SWITCHING
-     * ============================
-     * admin can change:
-     * pending → approved → rejected → approved (any time)
-     */
+                'admin_status.in' =>
+                    'The selected request decision is invalid.',
+            ]
+        );
 
-    $newStatus = $request->admin_status;
+        $productRequest = ProductRequest::query()
+            ->findOrFail($id);
 
-    // If status is same, no need to update
-    if ($req->admin_status === $newStatus) {
-        return back()->with('info', 'No changes made.');
-    }
+        $newStatus =
+            $validated['admin_status'];
 
-    // ================= UPDATE ADMIN STATUS =================
-    $req->admin_status = $newStatus;
+        if (
+            $productRequest->admin_status ===
+            $newStatus
+        ) {
+            return back()->with(
+                'info',
+                'No changes were made because the request already has this status.'
+            );
+        }
 
-    /**
-     * ================= BUSINESS RULES =================
-     */
+        try {
+            $productRequest->admin_status =
+                $newStatus;
 
-    if ($newStatus === 'rejected') {
+            /*
+            |--------------------------------------------------------------------------
+            | Donor Decision Rule
+            |--------------------------------------------------------------------------
+            |
+            | Rejected by admin:
+            | Always reset donor status to pending.
+            |
+            | Approved by admin:
+            | Keep accepted/rejected donor decisions if they already exist.
+            | Otherwise keep/reset donor status to pending.
+            |
+            */
+            if ($newStatus === 'rejected') {
+                $productRequest->donor_status =
+                    'pending';
+            }
 
-        // reset donor decision when admin rejects
-        $req->donor_status = 'pending';
+            if ($newStatus === 'approved') {
+                if (
+                    ! in_array(
+                        $productRequest->donor_status,
+                        [
+                            'accepted',
+                            'rejected',
+                        ],
+                        true
+                    )
+                ) {
+                    $productRequest->donor_status =
+                        'pending';
+                }
+            }
 
-    } elseif ($newStatus === 'approved') {
+            $productRequest->save();
 
-        // allow donor to decide again only if not already decided
-        if (!in_array($req->donor_status, ['accepted', 'rejected'])) {
-            $req->donor_status = 'pending';
+            return back()->with(
+                'success',
+                'Request status updated successfully.'
+            );
+
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return back()->with(
+                'error',
+                'Request status could not be updated. Please try again.'
+            );
         }
     }
-
-    $req->save();
-
-    return back()->with('success', 'Request status updated successfully.');
-}
 }

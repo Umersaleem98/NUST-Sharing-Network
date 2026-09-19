@@ -581,12 +581,12 @@
 
 <body>
 
-    <main class="auth-page">
 
+    <main class="auth-page">
         {{-- ================================================= --}}
         {{-- LEFT INFORMATION PANEL --}}
         {{-- ================================================= --}}
-        <section class="auth-information">
+        <section class="auth-information mt-5">
 
             <div class="information-content">
 

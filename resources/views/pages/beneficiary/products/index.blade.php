@@ -1,234 +1,508 @@
 @include('layouts.admin.head')
 
-<title>All Products</title>
+<title>Available Products</title>
 
 <style>
     :root {
-        --product-primary: #0d6efd;
-        --product-primary-dark: #084298;
-        --product-text: #182230;
-        --product-muted: #667085;
-        --product-border: #e7ebf0;
-        --product-surface: #ffffff;
+        --catalog-primary: #0d6efd;
+        --catalog-primary-dark: #0a4fa3;
+        --catalog-success: #198754;
+        --catalog-text: #172033;
+        --catalog-muted: #667085;
+        --catalog-border: #e6eaf0;
+        --catalog-surface: #ffffff;
+        --catalog-soft: #f7f9fc;
+        --catalog-shadow: 0 10px 30px rgba(16, 24, 40, 0.07);
+        --catalog-shadow-hover: 0 20px 45px rgba(16, 24, 40, 0.13);
     }
 
-    .product-page-header {
-        padding: 1.25rem 1.35rem;
-        background: linear-gradient(135deg, #ffffff 0%, #f4f8ff 100%);
-        border: 1px solid var(--product-border);
+    .catalog-page-header {
+        position: relative;
+        overflow: hidden;
+        padding: 1.5rem;
+        border: 1px solid var(--catalog-border);
+        border-radius: 1.25rem;
+        background:
+            radial-gradient(
+                circle at top right,
+                rgba(13, 110, 253, 0.11),
+                transparent 32%
+            ),
+            linear-gradient(
+                135deg,
+                #ffffff 0%,
+                #f7faff 100%
+            );
+        box-shadow: 0 8px 28px rgba(16, 24, 40, 0.04);
+    }
+
+    .catalog-page-header::after {
+        content: "";
+        position: absolute;
+        width: 180px;
+        height: 180px;
+        right: -75px;
+        bottom: -110px;
+        border-radius: 50%;
+        background: rgba(13, 110, 253, 0.055);
+        pointer-events: none;
+    }
+
+    .catalog-header-icon {
+        width: 52px;
+        height: 52px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
         border-radius: 1rem;
+        color: var(--catalog-primary);
+        background: rgba(13, 110, 253, 0.09);
+        font-size: 1.35rem;
     }
 
-    .product-filter-card {
-        border: 1px solid var(--product-border) !important;
-        box-shadow: 0 8px 28px rgba(16, 24, 40, .06) !important;
+    .catalog-total-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.65rem 0.9rem;
+        border: 1px solid #dce8ff;
+        border-radius: 999px;
+        background: #eef5ff;
+        color: var(--catalog-primary-dark);
+        font-size: 0.8rem;
+        font-weight: 700;
+        white-space: nowrap;
     }
 
-    .product-filter-card .form-control,
-    .product-filter-card .form-select,
-    .product-filter-card .input-group-text {
-        min-height: 46px;
-        border-color: #dfe4ea;
+    .catalog-filter-card {
+        border: 1px solid var(--catalog-border) !important;
+        border-radius: 1.15rem !important;
+        box-shadow: var(--catalog-shadow) !important;
     }
 
-    .product-filter-card .form-control:focus,
-    .product-filter-card .form-select:focus {
-        border-color: #86b7fe;
-        box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .12);
+    .catalog-filter-icon {
+        width: 42px;
+        height: 42px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        border-radius: 0.85rem;
+        color: var(--catalog-primary);
+        background: rgba(13, 110, 253, 0.08);
+    }
+
+    .catalog-filter-card .form-control,
+    .catalog-filter-card .form-select,
+    .catalog-filter-card .input-group-text {
+        min-height: 47px;
+        border-color: #dfe4eb;
+    }
+
+    .catalog-filter-card .form-control,
+    .catalog-filter-card .form-select {
+        background-color: #fff;
+    }
+
+    .catalog-filter-card .form-control:focus,
+    .catalog-filter-card .form-select:focus {
+        border-color: #8ab6fb;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.10);
+    }
+
+    .catalog-filter-card .input-group-text {
+        color: #748094;
+        background: #f8fafc;
+    }
+
+    .catalog-filter-btn {
+        min-height: 47px;
+        border-radius: 0.75rem;
+        font-weight: 600;
+    }
+
+    .catalog-active-filters {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.55rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .catalog-filter-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        max-width: 100%;
+        padding: 0.48rem 0.75rem;
+        border: 1px solid #dce8ff;
+        border-radius: 999px;
+        color: var(--catalog-primary-dark);
+        background: #f2f7ff;
+        font-size: 0.76rem;
+        font-weight: 600;
+    }
+
+    .catalog-results-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-bottom: 1rem;
+    }
+
+    .catalog-results-title {
+        color: var(--catalog-text);
+        font-size: 1rem;
+        font-weight: 700;
+    }
+
+    .catalog-results-meta {
+        color: var(--catalog-muted);
+        font-size: 0.8rem;
     }
 
     .products-grid {
         display: grid;
-        grid-template-columns: repeat(5, minmax(0, 1fr));
-        gap: 1.1rem;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 1.25rem;
     }
 
-    .product-card {
+    .catalog-product-card {
+        position: relative;
         min-width: 0;
-        background: var(--product-surface);
-        border: 1px solid var(--product-border) !important;
-        border-radius: 1rem;
         overflow: hidden;
-        box-shadow: 0 5px 20px rgba(16, 24, 40, .055);
-        transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+        border: 1px solid var(--catalog-border) !important;
+        border-radius: 1.15rem !important;
+        background: var(--catalog-surface);
+        box-shadow: 0 6px 22px rgba(16, 24, 40, 0.055);
+        transition:
+            transform 0.25s ease,
+            box-shadow 0.25s ease,
+            border-color 0.25s ease;
     }
 
-    .product-card:hover {
+    .catalog-product-card:hover {
         transform: translateY(-6px);
-        border-color: #c9dcff !important;
-        box-shadow: 0 16px 35px rgba(16, 24, 40, .12);
+        border-color: #cbdcff !important;
+        box-shadow: var(--catalog-shadow-hover);
     }
 
-    .product-image-wrap {
+    .catalog-image-wrap {
         position: relative;
         aspect-ratio: 4 / 3;
         overflow: hidden;
-        background: #f2f4f7;
+        background:
+            linear-gradient(
+                135deg,
+                #f3f6fa,
+                #eef2f7
+            );
     }
 
-    .product-image {
+    .catalog-product-image {
         width: 100%;
         height: 100%;
+        display: block;
         object-fit: cover;
-        transition: transform .45s ease;
+        transition: transform 0.45s ease;
     }
 
-    .product-card:hover .product-image { transform: scale(1.055); }
+    .catalog-product-card:hover .catalog-product-image {
+        transform: scale(1.045);
+    }
 
-    .available-badge {
+    .catalog-image-overlay {
         position: absolute;
-        top: .7rem;
-        right: .7rem;
-        padding: .42rem .65rem;
-        background: rgba(25, 135, 84, .94);
-        color: #fff;
-        border: 1px solid rgba(255,255,255,.35);
+        inset: 0;
+        background:
+            linear-gradient(
+                to top,
+                rgba(15, 23, 42, 0.34) 0%,
+                rgba(15, 23, 42, 0) 42%
+            );
+        pointer-events: none;
+    }
+
+    .catalog-status-badge {
+        position: absolute;
+        top: 0.75rem;
+        right: 0.75rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.42rem 0.65rem;
+        border: 1px solid rgba(255, 255, 255, 0.45);
         border-radius: 999px;
-        font-size: .7rem;
-        font-weight: 700;
-        backdrop-filter: blur(6px);
-    }
-
-    .image-count-badge {
-        position: absolute;
-        left: .7rem;
-        bottom: .7rem;
-        padding: .38rem .55rem;
-        background: rgba(16, 24, 40, .78);
         color: #fff;
-        border-radius: .55rem;
-        font-size: .7rem;
-        backdrop-filter: blur(6px);
+        background: rgba(25, 135, 84, 0.94);
+        font-size: 0.7rem;
+        font-weight: 700;
+        line-height: 1;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
     }
 
-    .product-card-body {
+    .catalog-status-badge.is-inactive {
+        background: rgba(108, 117, 125, 0.92);
+    }
+
+    .catalog-photo-count {
+        position: absolute;
+        left: 0.75rem;
+        bottom: 0.75rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.4rem 0.58rem;
+        border-radius: 0.55rem;
+        color: #fff;
+        background: rgba(15, 23, 42, 0.78);
+        font-size: 0.7rem;
+        font-weight: 600;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+    }
+
+    .catalog-product-body {
         display: flex;
         flex: 1 1 auto;
         flex-direction: column;
-        padding: 1rem;
+        padding: 1.1rem 1.1rem 0.9rem;
     }
 
-    .product-category {
+    .catalog-product-topline {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .catalog-category {
         display: inline-flex;
         align-items: center;
-        align-self: flex-start;
+        gap: 0.3rem;
         max-width: 100%;
-        padding: .35rem .6rem;
-        margin-bottom: .75rem;
-        color: var(--product-primary-dark);
-        background: #eaf2ff;
+        padding: 0.37rem 0.62rem;
         border-radius: 999px;
-        font-size: .7rem;
+        color: var(--catalog-primary-dark);
+        background: #edf4ff;
+        font-size: 0.7rem;
         font-weight: 700;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
     }
 
-    .product-title {
-        color: var(--product-text);
-        font-size: .98rem;
-        font-weight: 700;
-        line-height: 1.35;
+    .catalog-date {
+        flex-shrink: 0;
+        color: #98a2b3;
+        font-size: 0.68rem;
+        white-space: nowrap;
+    }
+
+    .catalog-product-title {
+        margin-bottom: 0.55rem;
+        color: var(--catalog-text);
+        font-size: 1rem;
+        font-weight: 750;
+        line-height: 1.4;
         display: -webkit-box;
         -webkit-box-orient: vertical;
         -webkit-line-clamp: 2;
         overflow: hidden;
-        min-height: 2.65rem;
+        min-height: 2.8rem;
     }
 
-    .product-description {
-        color: var(--product-muted);
-        font-size: .78rem;
-        line-height: 1.55;
+    .catalog-product-description {
+        margin-bottom: 0;
+        color: var(--catalog-muted);
+        font-size: 0.79rem;
+        line-height: 1.62;
         display: -webkit-box;
         -webkit-box-orient: vertical;
         -webkit-line-clamp: 3;
         overflow: hidden;
-        min-height: 3.65rem;
+        min-height: 3.85rem;
     }
 
-    .product-card-footer {
-        padding: 0 1rem 1rem;
-        background: #fff;
+    .catalog-product-footer {
+        padding: 0 1.1rem 1.1rem;
         border: 0;
+        background: #fff;
     }
 
-    .product-detail-btn {
-        min-height: 40px;
-        border-radius: .7rem;
-        font-size: .78rem;
+    .catalog-product-action {
+        min-height: 42px;
+        border-radius: 0.78rem;
+        font-size: 0.8rem;
         font-weight: 700;
-        transition: all .2s ease;
+        transition:
+            transform 0.2s ease,
+            box-shadow 0.2s ease;
     }
 
-    .empty-products { grid-column: 1 / -1; }
+    .catalog-product-action:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 7px 16px rgba(13, 110, 253, 0.2);
+    }
+
+    .catalog-empty {
+        grid-column: 1 / -1;
+    }
+
+    .catalog-empty-card {
+        border: 1px dashed #d8dee8 !important;
+        border-radius: 1.15rem !important;
+        background:
+            linear-gradient(
+                180deg,
+                #ffffff 0%,
+                #fbfcfe 100%
+            );
+    }
+
+    .catalog-empty-icon {
+        width: 78px;
+        height: 78px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        color: #7b8798;
+        background: #f1f4f8;
+        font-size: 2rem;
+    }
+
+    .catalog-pagination-card {
+        border: 1px solid var(--catalog-border) !important;
+        border-radius: 1rem !important;
+        box-shadow: 0 5px 18px rgba(16, 24, 40, 0.045) !important;
+    }
 
     @media (max-width: 1399.98px) {
-        .products-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        .products-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
     }
 
-    @media (max-width: 1199.98px) {
-        .products-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    @media (max-width: 991.98px) {
+        .products-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
     }
 
     @media (max-width: 767.98px) {
-        .products-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .85rem; }
-        .product-page-header { padding: 1rem; }
+        .catalog-page-header {
+            padding: 1.15rem;
+        }
+
+        .catalog-header-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 0.85rem;
+        }
+
+        .products-grid {
+            gap: 1rem;
+        }
     }
 
-    @media (max-width: 479.98px) {
-        .products-grid { grid-template-columns: 1fr; }
+    @media (max-width: 575.98px) {
+        .products-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .catalog-results-bar {
+            align-items: flex-start;
+        }
+
+        .catalog-product-title {
+            min-height: auto;
+        }
+
+        .catalog-product-description {
+            min-height: auto;
+        }
     }
 </style>
 
 <body>
 
     @php
-        $fallbackImage = asset('admins/asset/dummy/dummy.jpg');
+        $fallbackImage =
+            asset('admins/asset/dummy/dummy.jpg');
     @endphp
 
 
-    {{-- New Sidebar --}}
     @include('layouts.admin.sidebar')
 
 
-    {{-- Main Content --}}
     <div class="nsn-main">
 
-        {{-- New Topbar --}}
         @include('layouts.admin.header')
 
 
         <main class="nsn-content">
 
-            {{-- Page Header --}}
-            <div class="product-page-header d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+            {{-- =========================================================
+                PAGE HEADER
+            ========================================================== --}}
+            <section class="catalog-page-header mb-4">
 
-                <div>
-                    <h3 class="fw-bold text-dark mb-1">
-                        Available Products
-                    </h3>
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
 
-                    <p class="text-secondary small mb-0">
-                        Browse products shared by donors in the NUST community.
-                    </p>
+                    <div class="d-flex align-items-center gap-3">
+
+                        <span class="catalog-header-icon">
+                            <i class="bi bi-grid-3x3-gap"></i>
+                        </span>
+
+                        <div>
+                            <h3 class="fw-bold text-dark mb-1">
+                                Available Products
+                            </h3>
+
+                            <p class="text-secondary small mb-0">
+                                Explore products shared by donors for the NUST community.
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <span class="catalog-total-badge">
+                        <i class="bi bi-box-seam"></i>
+
+                        {{ number_format($products->total()) }}
+
+                        {{
+                            $products->total() === 1
+                                ? 'product'
+                                : 'products'
+                        }}
+                    </span>
+
                 </div>
 
-                <span class="badge rounded-pill bg-primary-subtle text-primary px-3 py-2">
-                    <i class="bi bi-box-seam me-1"></i>
-                    {{ $products->total() }} products
-                </span>
-
-            </div>
+            </section>
 
 
-            {{-- Breadcrumb --}}
-            <nav aria-label="breadcrumb" class="mb-4">
+            {{-- =========================================================
+                BREADCRUMB
+            ========================================================== --}}
+            <nav
+                aria-label="breadcrumb"
+                class="mb-4"
+            >
 
                 <ol class="breadcrumb small mb-0">
 
                     <li class="breadcrumb-item">
+
                         <a
                             href="{{ route('dashboard') }}"
                             class="text-decoration-none"
@@ -236,7 +510,9 @@
                             <i class="bi bi-house-door me-1"></i>
                             Dashboard
                         </a>
+
                     </li>
+
 
                     <li
                         class="breadcrumb-item active"
@@ -250,14 +526,39 @@
             </nav>
 
 
-            {{-- Alert Messages --}}
+            {{-- =========================================================
+                ALERT MESSAGES
+            ========================================================== --}}
             @include('layouts.admin.alert')
 
 
-            {{-- ================================================= --}}
-            {{-- FILTER SECTION --}}
-            {{-- ================================================= --}}
-            <div class="card product-filter-card border-0 shadow-sm rounded-4 mb-4">
+            {{-- =========================================================
+                FILTERS
+            ========================================================== --}}
+            <section class="card catalog-filter-card border-0 mb-4">
+
+                <div class="card-header bg-white border-bottom px-4 py-3">
+
+                    <div class="d-flex align-items-center gap-3">
+
+                        <span class="catalog-filter-icon">
+                            <i class="bi bi-funnel"></i>
+                        </span>
+
+                        <div>
+                            <h5 class="fw-semibold text-dark mb-1">
+                                Find a Product
+                            </h5>
+
+                            <p class="text-secondary small mb-0">
+                                Search by product name or browse a specific category.
+                            </p>
+                        </div>
+
+                    </div>
+
+                </div>
+
 
                 <div class="card-body p-4">
 
@@ -265,16 +566,49 @@
                         method="GET"
                         action="{{ route('beneficiary.products.index') }}"
                     >
+
                         <div class="row g-3 align-items-end">
 
+                            {{-- Search --}}
+                            <div class="col-12 col-lg-5">
+
+                                <label
+                                    for="productSearch"
+                                    class="form-label fw-semibold small"
+                                >
+                                    Search Product
+                                </label>
+
+
+                                <div class="input-group">
+
+                                    <span class="input-group-text">
+                                        <i class="bi bi-search"></i>
+                                    </span>
+
+                                    <input
+                                        type="search"
+                                        id="productSearch"
+                                        name="search"
+                                        value="{{ request('search') }}"
+                                        class="form-control"
+                                        placeholder="Search by product name..."
+                                        autocomplete="off"
+                                    >
+
+                                </div>
+
+                            </div>
+
+
                             {{-- Category --}}
-                            <div class="col-12 col-md-5 col-xl-4">
+                            <div class="col-12 col-md-7 col-lg-4">
 
                                 <label
                                     for="categoryFilter"
                                     class="form-label fw-semibold small"
                                 >
-                                    Category
+                                    Product Category
                                 </label>
 
                                 <select
@@ -282,6 +616,7 @@
                                     id="categoryFilter"
                                     class="form-select"
                                 >
+
                                     <option value="">
                                         All Categories
                                     </option>
@@ -291,7 +626,9 @@
                                         <option
                                             value="{{ $category->id }}"
                                             @selected(
-                                                request('category_id') == $category->id
+                                                (string) request('category_id')
+                                                ===
+                                                (string) $category->id
                                             )
                                         >
                                             {{ $category->name }}
@@ -304,113 +641,96 @@
                             </div>
 
 
-                            {{-- Search --}}
-                            <div class="col-12 col-md-7 col-xl-5">
-
-                                <label
-                                    for="productSearch"
-                                    class="form-label fw-semibold small"
-                                >
-                                    Search Product
-                                </label>
-
-                                <div class="input-group">
-
-                                    <span class="input-group-text bg-light">
-                                        <i class="bi bi-search"></i>
-                                    </span>
-
-                                    <input
-                                        type="search"
-                                        id="productSearch"
-                                        name="search"
-                                        value="{{ request('search') }}"
-                                        class="form-control"
-                                        placeholder="Search by product name..."
-                                    >
-
-                                </div>
-
-                            </div>
-
-
-                            {{-- Filter Button --}}
-                            <div class="col-12 col-sm-6 col-xl">
+                            {{-- Apply --}}
+                            <div class="col-12 col-sm-6 col-md-3 col-lg">
 
                                 <button
                                     type="submit"
-                                    class="btn btn-primary w-100"
+                                    class="btn btn-primary catalog-filter-btn w-100"
                                 >
-                                    {{-- <i class="bi bi-funnel me-1"></i> --}}
-                                    Apply Filter
+                                    <i class="bi bi-funnel me-1"></i>
+                                    Apply
                                 </button>
 
                             </div>
 
 
-                            {{-- Reset Button --}}
-                            <div class="col-12 col-sm-6 col-xl-auto">
+                            {{-- Reset --}}
+                            <div class="col-12 col-sm-6 col-md-2 col-lg-auto">
 
                                 <a
                                     href="{{ route('beneficiary.products.index') }}"
-                                    class="btn btn-light border w-100"
+                                    class="btn btn-light border catalog-filter-btn w-100 px-lg-4"
                                 >
-                                    {{-- <i class="bi bi-arrow-counterclockwise me-1"></i> --}}
+                                    <i class="bi bi-arrow-counterclockwise me-1"></i>
                                     Reset
                                 </a>
 
                             </div>
 
                         </div>
+
                     </form>
 
                 </div>
 
-            </div>
+            </section>
 
 
-            {{-- Active Filters --}}
-            @if (request()->filled('search') || request()->filled('category_id'))
+            {{-- =========================================================
+                ACTIVE FILTERS
+            ========================================================== --}}
+            @if (
+                request()->filled('search')
+                || request()->filled('category_id')
+            )
 
-                <div class="d-flex flex-wrap align-items-center gap-2 mb-4">
+                @php
+                    $selectedCategory =
+                        request()->filled('category_id')
+                            ? $categories->firstWhere(
+                                'id',
+                                request('category_id')
+                            )
+                            : null;
+                @endphp
 
-                    <span class="text-secondary small">
+
+                <div class="catalog-active-filters">
+
+                    <span class="text-secondary small fw-semibold">
                         Active filters:
                     </span>
 
+
                     @if (request()->filled('search'))
 
-                        <span class="badge rounded-pill bg-primary-subtle text-primary px-3 py-2">
-                            <i class="bi bi-search me-1"></i>
-                            “{{ request('search') }}”
+                        <span class="catalog-filter-chip">
+                            <i class="bi bi-search"></i>
+
+                            <span class="text-truncate">
+                                {{ request('search') }}
+                            </span>
                         </span>
 
                     @endif
 
 
-                    @if (request()->filled('category_id'))
+                    @if ($selectedCategory)
 
-                        @php
-                            $selectedCategory = $categories->firstWhere(
-                                'id',
-                                request('category_id')
-                            );
-                        @endphp
-
-                        @if ($selectedCategory)
-                            <span class="badge rounded-pill bg-info-subtle text-info-emphasis px-3 py-2">
-                                <i class="bi bi-tag me-1"></i>
-                                {{ $selectedCategory->name }}
-                            </span>
-                        @endif
+                        <span class="catalog-filter-chip">
+                            <i class="bi bi-tag"></i>
+                            {{ $selectedCategory->name }}
+                        </span>
 
                     @endif
 
 
                     <a
                         href="{{ route('beneficiary.products.index') }}"
-                        class="small text-danger text-decoration-none"
+                        class="small text-danger fw-semibold text-decoration-none ms-1"
                     >
+                        <i class="bi bi-x-circle me-1"></i>
                         Clear all
                     </a>
 
@@ -419,151 +739,277 @@
             @endif
 
 
-            {{-- ================================================= --}}
-            {{-- PRODUCTS GRID --}}
-            {{-- ================================================= --}}
-            <div class="products-grid">
+            {{-- =========================================================
+                RESULT SUMMARY
+            ========================================================== --}}
+            <div class="catalog-results-bar">
+
+                <div>
+
+                    <div class="catalog-results-title">
+                        Product Catalogue
+                    </div>
+
+                    <div class="catalog-results-meta">
+                        @if ($products->total() > 0)
+
+                            Showing
+                            {{ $products->firstItem() }}
+                            -
+                            {{ $products->lastItem() }}
+                            of
+                            {{ $products->total() }}
+                            products
+
+                        @else
+
+                            No products are currently available.
+
+                        @endif
+                    </div>
+
+                </div>
+
+
+                @if (
+                    request()->filled('search')
+                    || request()->filled('category_id')
+                )
+
+                    <span class="badge rounded-pill bg-light text-secondary border px-3 py-2">
+                        <i class="bi bi-filter-circle me-1"></i>
+                        Filtered results
+                    </span>
+
+                @endif
+
+            </div>
+
+
+            {{-- =========================================================
+                PRODUCT GRID
+            ========================================================== --}}
+            <section class="products-grid">
 
                 @forelse ($products as $product)
 
                     @php
-                        $productImages = is_array($product->images)
-                            ? $product->images
-                            : json_decode($product->images, true);
+                        $productImages =
+                            is_array($product->images)
+                                ? $product->images
+                                : json_decode(
+                                    $product->images,
+                                    true
+                                );
 
-                        $productImages = is_array($productImages)
-                            ? $productImages
-                            : [];
+                        $productImages =
+                            is_array($productImages)
+                                ? array_values(
+                                    array_filter(
+                                        $productImages
+                                    )
+                                )
+                                : [];
 
-                        $productImage = !empty($productImages)
-                            ? asset('admins/products/' . $productImages[0])
-                            : $fallbackImage;
+                        $productImage =
+                            ! empty($productImages)
+                                ? asset(
+                                    'admins/products/'
+                                    . basename($productImages[0])
+                                )
+                                : $fallbackImage;
+
+                        $categoryName =
+                            optional($product->category)->name
+                            ?? 'Uncategorized';
+
+                        $isActive =
+                            ($product->status ?? 'active')
+                            === 'active';
                     @endphp
 
 
-                    <article class="product-card card h-100">
+                    <article class="catalog-product-card card h-100">
 
-                            {{-- Product Image --}}
-                            <div class="product-image-wrap">
+                        {{-- Product Image --}}
+                        <div class="catalog-image-wrap">
 
-                                <img
-                                    src="{{ $productImage }}"
-                                    alt="{{ $product->name }}"
-                                    width="420"
-                                    height="315"
-                                    class="product-image"
-                                    loading="lazy"
-                                    decoding="async"
-                                    onerror="this.onerror=null;this.src='{{ $fallbackImage }}';"
-                                >
+                            <img
+                                src="{{ $productImage }}"
+                                alt="{{ $product->name }}"
+                                width="600"
+                                height="450"
+                                class="catalog-product-image"
+                                loading="lazy"
+                                decoding="async"
+                                onerror="this.onerror=null;this.src='{{ $fallbackImage }}';"
+                            >
+
+                            <div class="catalog-image-overlay"></div>
 
 
-                                {{-- Status --}}
-                                <span class="available-badge">
-                                    <i class="bi bi-check-circle me-1"></i>
+                            <span class="catalog-status-badge {{ $isActive ? '' : 'is-inactive' }}">
+
+                                @if ($isActive)
+                                    <i class="bi bi-check-circle"></i>
                                     Available
+                                @else
+                                    <i class="bi bi-pause-circle"></i>
+                                    Unavailable
+                                @endif
+
+                            </span>
+
+
+                            @if (count($productImages) > 1)
+
+                                <span class="catalog-photo-count">
+                                    <i class="bi bi-images"></i>
+
+                                    {{ count($productImages) }}
+
+                                    {{
+                                        count($productImages) === 1
+                                            ? 'photo'
+                                            : 'photos'
+                                    }}
                                 </span>
 
-                                @if (count($productImages) > 1)
-                                    <span class="image-count-badge">
-                                        <i class="bi bi-images me-1"></i>
-                                        {{ count($productImages) }} photos
-                                    </span>
-                                @endif
+                            @endif
 
-                            </div>
+                        </div>
 
 
-                            {{-- Product Body --}}
-                            <div class="product-card-body card-body">
+                        {{-- Card Body --}}
+                        <div class="catalog-product-body card-body">
 
-                                    <span class="product-category" title="{{ optional($product->category)->name ?? 'Uncategorized' }}">
-                                        <i class="bi bi-tag me-1"></i>
-                                        {{ optional($product->category)->name ?? 'Uncategorized' }}
-                                    </span>
+                            <div class="catalog-product-topline">
 
-                                <h2 class="product-title mb-2">
-                                    {{ $product->name }}
-                                </h2>
-
-
-                                @if ($product->description)
-
-                                    <p class="product-description mb-0">
-                                        {{ \Illuminate\Support\Str::limit(
-                                            $product->description,
-                                            105
-                                        ) }}
-                                    </p>
-
-                                @else
-
-                                    <p class="product-description mb-0">
-                                        No product description is available.
-                                    </p>
-
-                                @endif
-
-                            </div>
-
-
-                            {{-- Product Footer --}}
-                            <div class="product-card-footer card-footer">
-
-                                <a
-                                    href="{{ route('beneficiary.products.detail.show', $product->id) }}"
-                                    class="product-detail-btn btn btn-primary d-flex align-items-center justify-content-center w-100"
-                                    aria-label="View details for {{ $product->name }}"
+                                <span
+                                    class="catalog-category"
+                                    title="{{ $categoryName }}"
                                 >
-                                    View Details
-                                    <i class="bi bi-arrow-right ms-1"></i>
-                                </a>
+                                    <i class="bi bi-tag"></i>
+                                    {{ $categoryName }}
+                                </span>
+
+
+                                @if ($product->created_at)
+
+                                    <span
+                                        class="catalog-date"
+                                        title="{{ $product->created_at->format('d M Y, h:i A') }}"
+                                    >
+                                        <i class="bi bi-calendar3 me-1"></i>
+                                        {{ $product->created_at->format('d M Y') }}
+                                    </span>
+
+                                @endif
 
                             </div>
+
+
+                            <h2
+                                class="catalog-product-title"
+                                title="{{ $product->name }}"
+                            >
+                                {{ $product->name }}
+                            </h2>
+
+
+                            @if ($product->description)
+
+                                <p class="catalog-product-description">
+                                    {{
+                                        \Illuminate\Support\Str::limit(
+                                            strip_tags($product->description),
+                                            125
+                                        )
+                                    }}
+                                </p>
+
+                            @else
+
+                                <p class="catalog-product-description">
+                                    No description has been provided for this product.
+                                </p>
+
+                            @endif
+
+                        </div>
+
+
+                        {{-- Card Footer --}}
+                        <div class="catalog-product-footer card-footer">
+
+                            <a
+                                href="{{ route('beneficiary.products.detail.show', $product->id) }}"
+                                class="catalog-product-action btn btn-primary d-flex align-items-center justify-content-center gap-2 w-100"
+                                aria-label="View details for {{ $product->name }}"
+                            >
+                                <span>
+                                    View Product
+                                </span>
+
+                                <i class="bi bi-arrow-right"></i>
+                            </a>
+
+                        </div>
 
                     </article>
 
+
                 @empty
 
-                    <div class="empty-products">
+                    <div class="catalog-empty">
 
-                        <div class="card border-0 shadow-sm rounded-4">
+                        <div class="card catalog-empty-card border-0">
 
-                            <div class="card-body text-center py-5">
+                            <div class="card-body text-center py-5 px-4">
 
-                                <span
-                                    class="d-inline-flex align-items-center justify-content-center rounded-circle bg-light text-secondary mb-3"
-                                    style="width: 72px; height: 72px;"
-                                >
-                                    <i class="bi bi-search fs-2"></i>
+                                <span class="catalog-empty-icon mb-3">
+                                    <i class="bi bi-search"></i>
                                 </span>
 
-                                <h5 class="fw-semibold text-dark mb-2">
-                                    No products found
-                                </h5>
 
-                                <p class="text-secondary small mb-3">
+                                <h5 class="fw-bold text-dark mb-2">
 
                                     @if (
-                                        request()->filled('search') ||
-                                        request()->filled('category_id')
+                                        request()->filled('search')
+                                        || request()->filled('category_id')
                                     )
-                                        No products match your selected filters.
+                                        No matching products
                                     @else
-                                        There are currently no products available.
+                                        No products available
+                                    @endif
+
+                                </h5>
+
+
+                                <p class="text-secondary small mb-4">
+
+                                    @if (
+                                        request()->filled('search')
+                                        || request()->filled('category_id')
+                                    )
+                                        We could not find any products matching your current filters.
+                                        Try another search term or category.
+                                    @else
+                                        There are currently no products available for beneficiaries.
+                                        Please check again later.
                                     @endif
 
                                 </p>
 
 
                                 @if (
-                                    request()->filled('search') ||
-                                    request()->filled('category_id')
+                                    request()->filled('search')
+                                    || request()->filled('category_id')
                                 )
 
                                     <a
                                         href="{{ route('beneficiary.products.index') }}"
-                                        class="btn btn-primary btn-sm"
+                                        class="btn btn-primary btn-sm px-4"
                                     >
                                         <i class="bi bi-arrow-counterclockwise me-1"></i>
                                         Clear Filters
@@ -579,35 +1025,44 @@
 
                 @endforelse
 
-            </div>
+            </section>
 
 
-            {{-- ================================================= --}}
-            {{-- PAGINATION --}}
-            {{-- ================================================= --}}
+            {{-- =========================================================
+                PAGINATION
+            ========================================================== --}}
             @if ($products->hasPages())
 
-                <div class="card border-0 shadow-sm rounded-4 mt-4">
+                <section class="card catalog-pagination-card border-0 mt-4">
 
                     <div class="card-body px-4 py-3">
 
                         <div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
 
                             <p class="text-secondary small mb-0">
+
                                 Showing
+
                                 <span class="fw-semibold text-dark">
                                     {{ $products->firstItem() }}
                                 </span>
+
                                 to
+
                                 <span class="fw-semibold text-dark">
                                     {{ $products->lastItem() }}
                                 </span>
+
                                 of
+
                                 <span class="fw-semibold text-dark">
                                     {{ $products->total() }}
                                 </span>
+
                                 products
+
                             </p>
+
 
                             <div>
                                 {{ $products->withQueryString()->links() }}
@@ -617,7 +1072,7 @@
 
                     </div>
 
-                </div>
+                </section>
 
             @endif
 

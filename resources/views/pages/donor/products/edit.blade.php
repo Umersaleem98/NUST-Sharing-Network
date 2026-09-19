@@ -472,7 +472,7 @@
 
                                             <div class="form-text">
                                                 Leave empty to keep existing images.
-                                                Maximum size is 1 MB per image.
+                                                Maximum size is 200 KB per image.
                                             </div>
 
                                         </div>
@@ -487,7 +487,8 @@
 
                                             <ul class="text-secondary small ps-3 mb-0">
                                                 <li>JPG, JPEG, PNG or WebP</li>
-                                                <li>Maximum 1 MB per image</li>
+                                                <li>Maximum 200 KB per image</li>
+                                                <li>Maximum 5 images per product</li>
                                                 <li>Multiple images are allowed</li>
                                             </ul>
 
@@ -589,7 +590,8 @@
             const updateButton =
                 document.getElementById('updateProductButton');
 
-            const maximumImageSize = 1024 * 1024;
+            const maximumImageSize = 200 * 1024;
+            const maximumImageCount = 5;
 
             const validImageTypes = [
                 'image/jpeg',
@@ -619,6 +621,21 @@
                 const files = Array.from(this.files);
                 const validationErrors = [];
 
+                if (files.length > maximumImageCount) {
+                    imageError.textContent =
+                        'You can upload a maximum of 5 product images.';
+
+                    imageError.classList.remove('d-none');
+                    this.value = '';
+                    imagePreview.innerHTML = '';
+
+                    if (updateButton) {
+                        updateButton.disabled = true;
+                    }
+
+                    return;
+                }
+
 
                 files.forEach(function (file) {
                     if (!validImageTypes.includes(file.type)) {
@@ -631,7 +648,7 @@
 
                     if (file.size > maximumImageSize) {
                         validationErrors.push(
-                            file.name + ' is larger than 1 MB.'
+                            file.name + ' is larger than 200 KB.'
                         );
 
                         return;
@@ -685,16 +702,30 @@
 
 
                 if (validationErrors.length > 0) {
-                    imageError.innerHTML =
-                        '<strong>Image upload error:</strong>' +
-                        '<ul class="mb-0 mt-1 ps-3">' +
-                        validationErrors
-                            .map(function (message) {
-                                return '<li>' + message + '</li>';
-                            })
-                            .join('') +
-                        '</ul>';
+                    imageError.innerHTML = '';
 
+                    const errorTitle =
+                        document.createElement('strong');
+
+                    errorTitle.textContent =
+                        'Image upload error:';
+
+                    const errorList =
+                        document.createElement('ul');
+
+                    errorList.className =
+                        'mb-0 mt-1 ps-3';
+
+                    validationErrors.forEach(function (message) {
+                        const item =
+                            document.createElement('li');
+
+                        item.textContent = message;
+                        errorList.appendChild(item);
+                    });
+
+                    imageError.appendChild(errorTitle);
+                    imageError.appendChild(errorList);
                     imageError.classList.remove('d-none');
 
                     this.value = '';

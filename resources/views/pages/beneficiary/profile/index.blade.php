@@ -1291,6 +1291,10 @@
 
                                         </div>
 
+                                        <div class="form-text">
+                                            Enter your current password first to enable the new password fields.
+                                        </div>
+
                                     </div>
 
 
@@ -1317,12 +1321,14 @@
                                                 class="form-control @error('password') is-invalid @enderror"
                                                 placeholder="Enter a new password"
                                                 autocomplete="new-password"
+                                                disabled
                                             >
 
                                             <button
                                                 type="button"
                                                 class="btn btn-outline-secondary password-toggle"
                                                 data-target="newPassword"
+                                                disabled
                                             >
                                                 <i class="bi bi-eye"></i>
                                             </button>
@@ -1363,12 +1369,14 @@
                                                 class="form-control"
                                                 placeholder="Confirm new password"
                                                 autocomplete="new-password"
+                                                disabled
                                             >
 
                                             <button
                                                 type="button"
                                                 class="btn btn-outline-secondary password-toggle"
                                                 data-target="passwordConfirmation"
+                                                disabled
                                             >
                                                 <i class="bi bi-eye"></i>
                                             </button>
@@ -1488,7 +1496,7 @@
                                 @enderror
 
                                 <div class="form-text">
-                                    Accepted formats: JPG, PNG and WebP.
+                                    Accepted formats: JPG, JPEG, PNG and WebP. Maximum size: 200 KB.
                                 </div>
 
 
@@ -2195,7 +2203,7 @@
 
             /*
             |--------------------------------------------------------------------------
-            | PROFILE IMAGE PREVIEW
+            | PROFILE IMAGE PREVIEW + 200 KB VALIDATION
             |--------------------------------------------------------------------------
             */
 
@@ -2208,78 +2216,162 @@
             const defaultAvatar =
                 document.getElementById('defaultAvatar');
 
+            const maximumProfileImageSize =
+                200 * 1024;
+
+            const validProfileImageTypes = [
+                'image/jpeg',
+                'image/png',
+                'image/webp'
+            ];
+
 
             if (
                 profileImage &&
                 profilePreview &&
                 defaultAvatar
             ) {
-
                 profileImage.addEventListener(
                     'change',
                     function () {
-
                         const selectedFile =
                             this.files[0];
-
 
                         if (!selectedFile) {
                             return;
                         }
 
-
                         if (
-                            !selectedFile.type.startsWith('image/')
+                            !validProfileImageTypes.includes(
+                                selectedFile.type
+                            )
                         ) {
-
                             this.value = '';
 
                             alert(
-                                'Please select a valid image file.'
+                                'Profile image must be JPG, JPEG, PNG or WebP.'
                             );
 
                             return;
-
                         }
 
+                        if (
+                            selectedFile.size >
+                            maximumProfileImageSize
+                        ) {
+                            this.value = '';
+
+                            alert(
+                                'Profile image must not exceed 200 KB.'
+                            );
+
+                            return;
+                        }
 
                         const reader =
                             new FileReader();
 
-
                         reader.addEventListener(
                             'load',
                             function (event) {
-
                                 profilePreview.src =
                                     event.target.result;
-
 
                                 profilePreview.classList.remove(
                                     'd-none'
                                 );
 
-
                                 defaultAvatar.classList.add(
                                     'd-none'
                                 );
 
-
                                 defaultAvatar.classList.remove(
                                     'd-inline-flex'
                                 );
-
                             }
                         );
-
 
                         reader.readAsDataURL(
                             selectedFile
                         );
-
                     }
                 );
+            }
 
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | PASSWORD FIELD CONTROL
+            |--------------------------------------------------------------------------
+            */
+
+            const currentPasswordField =
+                document.getElementById('currentPassword');
+
+            const newPasswordField =
+                document.getElementById('newPassword');
+
+            const passwordConfirmationField =
+                document.getElementById('passwordConfirmation');
+
+            const newPasswordToggle =
+                document.querySelector(
+                    '[data-target="newPassword"]'
+                );
+
+            const passwordConfirmationToggle =
+                document.querySelector(
+                    '[data-target="passwordConfirmation"]'
+                );
+
+
+            if (
+                currentPasswordField &&
+                newPasswordField &&
+                passwordConfirmationField
+            ) {
+                const updatePasswordFieldState =
+                    function () {
+                        const hasCurrentPassword =
+                            currentPasswordField.value
+                                .trim()
+                                .length > 0;
+
+                        newPasswordField.disabled =
+                            !hasCurrentPassword;
+
+                        passwordConfirmationField.disabled =
+                            !hasCurrentPassword;
+
+                        if (newPasswordToggle) {
+                            newPasswordToggle.disabled =
+                                !hasCurrentPassword;
+                        }
+
+                        if (passwordConfirmationToggle) {
+                            passwordConfirmationToggle.disabled =
+                                !hasCurrentPassword;
+                        }
+
+                        if (!hasCurrentPassword) {
+                            newPasswordField.value = '';
+                            passwordConfirmationField.value = '';
+
+                            newPasswordField.type =
+                                'password';
+
+                            passwordConfirmationField.type =
+                                'password';
+                        }
+                    };
+
+                currentPasswordField.addEventListener(
+                    'input',
+                    updatePasswordFieldState
+                );
+
+                updatePasswordFieldState();
             }
 
 

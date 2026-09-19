@@ -404,7 +404,8 @@
 
                                             <ul class="text-secondary small ps-3 mb-0">
                                                 <li>JPG, JPEG, PNG or WebP</li>
-                                                <li>Maximum 100 KB per image</li>
+                                                <li>Maximum 200 KB per image</li>
+                                                <li>Maximum 5 images per product</li>
                                                 <li>Multiple images are allowed</li>
                                                 <li>Use clear and well-lit images</li>
                                             </ul>
@@ -506,7 +507,8 @@
             const submitButton =
                 document.getElementById('submitProductButton');
 
-            const maximumImageSize = 100 * 1024;
+            const maximumImageSize = 200 * 1024;
+            const maximumImageCount = 5;
 
 
             if (
@@ -530,6 +532,21 @@
                 const files = Array.from(this.files);
                 const invalidFiles = [];
 
+                if (files.length > maximumImageCount) {
+                    imageError.textContent =
+                        'You can upload a maximum of 5 product images.';
+
+                    imageError.classList.remove('d-none');
+                    this.value = '';
+                    imagePreview.innerHTML = '';
+
+                    if (submitButton) {
+                        submitButton.disabled = true;
+                    }
+
+                    return;
+                }
+
 
                 files.forEach(function (file) {
                     const validImageTypes = [
@@ -548,7 +565,7 @@
 
                     if (file.size > maximumImageSize) {
                         invalidFiles.push(
-                            file.name + ' is larger than 100 KB.'
+                            file.name + ' is larger than 200 KB.'
                         );
 
                         return;
@@ -602,15 +619,30 @@
 
 
                 if (invalidFiles.length > 0) {
-                    imageError.innerHTML =
-                        '<strong>Image upload error:</strong><ul class="mb-0 mt-1 ps-3">' +
-                        invalidFiles
-                            .map(function (message) {
-                                return '<li>' + message + '</li>';
-                            })
-                            .join('') +
-                        '</ul>';
+                    imageError.innerHTML = '';
 
+                    const errorTitle =
+                        document.createElement('strong');
+
+                    errorTitle.textContent =
+                        'Image upload error:';
+
+                    const errorList =
+                        document.createElement('ul');
+
+                    errorList.className =
+                        'mb-0 mt-1 ps-3';
+
+                    invalidFiles.forEach(function (message) {
+                        const item =
+                            document.createElement('li');
+
+                        item.textContent = message;
+                        errorList.appendChild(item);
+                    });
+
+                    imageError.appendChild(errorTitle);
+                    imageError.appendChild(errorList);
                     imageError.classList.remove('d-none');
 
                     this.value = '';

@@ -2,84 +2,359 @@
 
 <title>My Requests</title>
 
+<style>
+    :root {
+        --br-primary: #0d6efd;
+        --br-primary-dark: #0a4fa3;
+        --br-success: #198754;
+        --br-warning: #f59f00;
+        --br-danger: #dc3545;
+        --br-info: #0dcaf0;
+        --br-text: #172033;
+        --br-muted: #667085;
+        --br-border: #e6eaf0;
+        --br-surface: #ffffff;
+        --br-soft: #f7f9fc;
+        --br-shadow: 0 9px 28px rgba(16, 24, 40, 0.06);
+    }
+
+    .br-page-header {
+        position: relative;
+        overflow: hidden;
+        padding: 1.45rem;
+        border: 1px solid var(--br-border);
+        border-radius: 1.2rem;
+        background:
+            radial-gradient(
+                circle at top right,
+                rgba(13, 110, 253, 0.11),
+                transparent 34%
+            ),
+            linear-gradient(
+                135deg,
+                #ffffff 0%,
+                #f7faff 100%
+            );
+        box-shadow: 0 8px 26px rgba(16, 24, 40, 0.04);
+    }
+
+    .br-header-icon {
+        width: 50px;
+        height: 50px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        border-radius: 1rem;
+        color: var(--br-primary);
+        background: rgba(13, 110, 253, 0.09);
+        font-size: 1.3rem;
+    }
+
+    .br-browse-btn {
+        min-height: 43px;
+        border-radius: 0.75rem;
+        font-weight: 650;
+    }
+
+    .br-summary-grid {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 0.9rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .br-stat-card {
+        border: 1px solid var(--br-border) !important;
+        border-radius: 1rem !important;
+        box-shadow: 0 5px 18px rgba(16, 24, 40, 0.045) !important;
+    }
+
+    .br-stat-icon {
+        width: 44px;
+        height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        border-radius: 0.85rem;
+        font-size: 1.05rem;
+    }
+
+    .br-stat-label {
+        color: var(--br-muted);
+        font-size: 0.74rem;
+        font-weight: 650;
+    }
+
+    .br-stat-value {
+        margin-bottom: 0;
+        color: var(--br-text);
+        font-size: 1.65rem;
+        font-weight: 800;
+        line-height: 1.1;
+    }
+
+    .br-history-card {
+        overflow: hidden;
+        border: 1px solid var(--br-border) !important;
+        border-radius: 1.15rem !important;
+        box-shadow: var(--br-shadow) !important;
+    }
+
+    .br-table th {
+        white-space: nowrap;
+        color: #667085 !important;
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+
+    .br-table td {
+        vertical-align: middle;
+    }
+
+    .br-product-image {
+        width: 58px;
+        height: 58px;
+        object-fit: cover;
+        flex-shrink: 0;
+        border: 1px solid var(--br-border);
+        border-radius: 0.75rem;
+        background: #f2f4f7;
+    }
+
+    .br-product-name {
+        max-width: 220px;
+        color: var(--br-text);
+        font-size: 0.86rem;
+        font-weight: 700;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    .br-status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.32rem;
+        padding: 0.48rem 0.72rem;
+        border-radius: 999px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .br-status-note {
+        display: block;
+        margin-top: 0.3rem;
+        color: var(--br-muted);
+        font-size: 0.7rem;
+        line-height: 1.35;
+    }
+
+    .br-contact-state {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.55rem;
+        max-width: 245px;
+        font-size: 0.76rem;
+        line-height: 1.4;
+    }
+
+    .br-action-btn {
+        min-height: 36px;
+        border-radius: 0.65rem;
+        font-size: 0.74rem;
+        font-weight: 650;
+    }
+
+    .br-empty-icon {
+        width: 72px;
+        height: 72px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        color: #7c8798;
+        background: #f2f4f7;
+        font-size: 1.8rem;
+    }
+
+    .br-modal-icon {
+        width: 44px;
+        height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        border-radius: 0.85rem;
+    }
+
+    .br-profile-row {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.9rem 1rem;
+        border-bottom: 1px solid #edf0f4;
+    }
+
+    .br-profile-row:last-child {
+        border-bottom: 0;
+    }
+
+    .br-profile-row > span {
+        flex: 0 0 40%;
+        color: var(--br-muted);
+        font-size: 0.8rem;
+    }
+
+    .br-profile-row > strong {
+        flex: 1;
+        color: var(--br-text);
+        font-size: 0.8rem;
+        font-weight: 650;
+        text-align: right;
+        overflow-wrap: anywhere;
+    }
+
+    .br-message-box {
+        padding: 1rem;
+        border: 1px solid #dbe7f7;
+        border-radius: 0.85rem;
+        color: #344054;
+        background: #f8fbff;
+        line-height: 1.7;
+    }
+
+    .object-fit-cover {
+        object-fit: cover;
+    }
+
+    @media (max-width: 1399.98px) {
+        .br-summary-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 991.98px) {
+        .br-summary-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        .br-page-header {
+            padding: 1.1rem;
+        }
+
+        .br-summary-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .br-profile-row {
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .br-profile-row > span,
+        .br-profile-row > strong {
+            width: 100%;
+            flex: 0 0 auto;
+            text-align: left;
+        }
+    }
+</style>
+
 <body>
 
     @php
-        /*
-        |--------------------------------------------------------------------------
-        | Support Collection and Paginator
-        |--------------------------------------------------------------------------
-        */
+        $fallbackImage =
+            asset('admins/asset/dummy/dummy.jpg');
 
-        $requestsArePaginated = method_exists($requests, 'total');
+        $totalRequests =
+            $requestStats['total']
+            ?? $requests->total();
 
-        $totalRequests = $requestsArePaginated
-            ? $requests->total()
-            : $requests->count();
+        $adminPendingRequests =
+            $requestStats['admin_pending']
+            ?? 0;
 
-        $startingNumber = $requestsArePaginated
-            ? ($requests->firstItem() ?? 1)
-            : 1;
+        $awaitingDonorRequests =
+            $requestStats['awaiting_donor']
+            ?? 0;
 
-        $pendingRequests = $requests
-            ->where('donor_status', 'pending')
-            ->count();
+        $acceptedRequests =
+            $requestStats['accepted']
+            ?? 0;
 
-        $acceptedRequests = $requests
-            ->where('donor_status', 'accepted')
-            ->count();
-
-        $rejectedRequests = $requests
-            ->where('donor_status', 'rejected')
-            ->count();
-
-        $fallbackImage = asset('admins/asset/dummy/dummy.jpg');
+        $rejectedRequests =
+            $requestStats['rejected']
+            ?? 0;
     @endphp
 
 
-    {{-- New Sidebar --}}
     @include('layouts.admin.sidebar')
 
 
-    {{-- Main Content --}}
     <div class="nsn-main">
 
-        {{-- New Topbar --}}
         @include('layouts.admin.header')
 
 
         <main class="nsn-content">
 
-            {{-- Page Header --}}
-            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+            {{-- =========================================================
+                PAGE HEADER
+            ========================================================== --}}
+            <section class="br-page-header mb-4">
 
-                <div>
-                    <h3 class="fw-bold text-dark mb-1">
-                        My Requests
-                    </h3>
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
 
-                    <p class="text-secondary small mb-0">
-                        Track your product requests and view donor decisions.
-                    </p>
+                    <div class="d-flex align-items-center gap-3">
+
+                        <span class="br-header-icon">
+                            <i class="bi bi-clipboard-check"></i>
+                        </span>
+
+                        <div>
+                            <h3 class="fw-bold text-dark mb-1">
+                                My Requests
+                            </h3>
+
+                            <p class="text-secondary small mb-0">
+                                Track administrator review, donor decisions, messages and accepted donor details.
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <a
+                        href="{{ route('beneficiary.products.index') }}"
+                        class="btn btn-primary br-browse-btn d-flex align-items-center gap-2"
+                    >
+                        <i class="bi bi-grid-3x3-gap"></i>
+                        <span>Browse Products</span>
+                    </a>
+
                 </div>
 
-                <a
-                    href="{{ route('beneficiary.products.index') }}"
-                    class="btn btn-primary d-flex align-items-center gap-2"
-                >
-                    <i class="bi bi-box-seam"></i>
-                    <span>Browse Products</span>
-                </a>
-
-            </div>
+            </section>
 
 
-            {{-- Breadcrumb --}}
-            <nav aria-label="breadcrumb" class="mb-4">
+            {{-- =========================================================
+                BREADCRUMB
+            ========================================================== --}}
+            <nav
+                aria-label="breadcrumb"
+                class="mb-4"
+            >
 
                 <ol class="breadcrumb small mb-0">
 
                     <li class="breadcrumb-item">
+
                         <a
                             href="{{ route('dashboard') }}"
                             class="text-decoration-none"
@@ -87,7 +362,9 @@
                             <i class="bi bi-house-door me-1"></i>
                             Dashboard
                         </a>
+
                     </li>
+
 
                     <li
                         class="breadcrumb-item active"
@@ -101,42 +378,34 @@
             </nav>
 
 
-            {{-- Alert Messages --}}
             @include('layouts.admin.alert')
 
 
-            {{-- ================================================= --}}
-            {{-- REQUEST STATISTICS --}}
-            {{-- ================================================= --}}
-            <div class="row g-3 mb-4">
+            {{-- =========================================================
+                REQUEST SUMMARY
+            ========================================================== --}}
+            <section class="br-summary-grid">
 
                 {{-- Total --}}
-                <div class="col-12 col-sm-6 col-xl-3">
+                <div class="card br-stat-card h-100">
 
-                    <div class="card border-0 shadow-sm rounded-4 h-100">
+                    <div class="card-body p-3">
 
-                        <div class="card-body p-4">
+                        <div class="d-flex align-items-center justify-content-between gap-3">
 
-                            <div class="d-flex align-items-center justify-content-between gap-3">
-
-                                <div>
-                                    <p class="text-secondary small fw-semibold mb-1">
-                                        Total Requests
-                                    </p>
-
-                                    <h3 class="fw-bold text-dark mb-0">
-                                        {{ number_format($totalRequests) }}
-                                    </h3>
+                            <div>
+                                <div class="br-stat-label mb-1">
+                                    Total Requests
                                 </div>
 
-                                <span
-                                    class="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary flex-shrink-0"
-                                    style="width: 48px; height: 48px;"
-                                >
-                                    <i class="bi bi-clipboard-data fs-5"></i>
-                                </span>
-
+                                <p class="br-stat-value">
+                                    {{ number_format($totalRequests) }}
+                                </p>
                             </div>
+
+                            <span class="br-stat-icon bg-primary-subtle text-primary">
+                                <i class="bi bi-clipboard-data"></i>
+                            </span>
 
                         </div>
 
@@ -145,33 +414,54 @@
                 </div>
 
 
-                {{-- Pending --}}
-                <div class="col-12 col-sm-6 col-xl-3">
+                {{-- Admin Review --}}
+                <div class="card br-stat-card h-100">
 
-                    <div class="card border-0 shadow-sm rounded-4 h-100">
+                    <div class="card-body p-3">
 
-                        <div class="card-body p-4">
+                        <div class="d-flex align-items-center justify-content-between gap-3">
 
-                            <div class="d-flex align-items-center justify-content-between gap-3">
-
-                                <div>
-                                    <p class="text-secondary small fw-semibold mb-1">
-                                        Pending
-                                    </p>
-
-                                    <h3 class="fw-bold text-warning mb-0">
-                                        {{ number_format($pendingRequests) }}
-                                    </h3>
+                            <div>
+                                <div class="br-stat-label mb-1">
+                                    Admin Review
                                 </div>
 
-                                <span
-                                    class="d-inline-flex align-items-center justify-content-center rounded-circle bg-warning-subtle text-warning-emphasis flex-shrink-0"
-                                    style="width: 48px; height: 48px;"
-                                >
-                                    <i class="bi bi-hourglass-split fs-5"></i>
-                                </span>
-
+                                <p class="br-stat-value text-warning-emphasis">
+                                    {{ number_format($adminPendingRequests) }}
+                                </p>
                             </div>
+
+                            <span class="br-stat-icon bg-warning-subtle text-warning-emphasis">
+                                <i class="bi bi-shield-clock"></i>
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                {{-- Awaiting Donor --}}
+                <div class="card br-stat-card h-100">
+
+                    <div class="card-body p-3">
+
+                        <div class="d-flex align-items-center justify-content-between gap-3">
+
+                            <div>
+                                <div class="br-stat-label mb-1">
+                                    Awaiting Donor
+                                </div>
+
+                                <p class="br-stat-value text-info">
+                                    {{ number_format($awaitingDonorRequests) }}
+                                </p>
+                            </div>
+
+                            <span class="br-stat-icon bg-info-subtle text-info-emphasis">
+                                <i class="bi bi-person-clock"></i>
+                            </span>
 
                         </div>
 
@@ -181,32 +471,25 @@
 
 
                 {{-- Accepted --}}
-                <div class="col-12 col-sm-6 col-xl-3">
+                <div class="card br-stat-card h-100">
 
-                    <div class="card border-0 shadow-sm rounded-4 h-100">
+                    <div class="card-body p-3">
 
-                        <div class="card-body p-4">
+                        <div class="d-flex align-items-center justify-content-between gap-3">
 
-                            <div class="d-flex align-items-center justify-content-between gap-3">
-
-                                <div>
-                                    <p class="text-secondary small fw-semibold mb-1">
-                                        Accepted
-                                    </p>
-
-                                    <h3 class="fw-bold text-success mb-0">
-                                        {{ number_format($acceptedRequests) }}
-                                    </h3>
+                            <div>
+                                <div class="br-stat-label mb-1">
+                                    Accepted
                                 </div>
 
-                                <span
-                                    class="d-inline-flex align-items-center justify-content-center rounded-circle bg-success-subtle text-success flex-shrink-0"
-                                    style="width: 48px 48; height: 48px;"
-                                >
-                                    <i class="bi bi-check-circle fs-5"></i>
-                                </span>
-
+                                <p class="br-stat-value text-success">
+                                    {{ number_format($acceptedRequests) }}
+                                </p>
                             </div>
+
+                            <span class="br-stat-icon bg-success-subtle text-success">
+                                <i class="bi bi-check-circle"></i>
+                            </span>
 
                         </div>
 
@@ -216,32 +499,25 @@
 
 
                 {{-- Rejected --}}
-                <div class="col-12 col-sm-6 col-xl-3">
+                <div class="card br-stat-card h-100">
 
-                    <div class="card border-0 shadow-sm rounded-4 h-100">
+                    <div class="card-body p-3">
 
-                        <div class="card-body p-4">
+                        <div class="d-flex align-items-center justify-content-between gap-3">
 
-                            <div class="d-flex align-items-center justify-content-between gap-3">
-
-                                <div>
-                                    <p class="text-secondary small fw-semibold mb-1">
-                                        Rejected
-                                    </p>
-
-                                    <h3 class="fw-bold text-danger mb-0">
-                                        {{ number_format($rejectedRequests) }}
-                                    </h3>
+                            <div>
+                                <div class="br-stat-label mb-1">
+                                    Rejected
                                 </div>
 
-                                <span
-                                    class="d-inline-flex align-items-center justify-content-center rounded-circle bg-danger-subtle text-danger flex-shrink-0"
-                                    style="width: 48px; height: 48px;"
-                                >
-                                    <i class="bi bi-x-circle fs-5"></i>
-                                </span>
-
+                                <p class="br-stat-value text-danger">
+                                    {{ number_format($rejectedRequests) }}
+                                </p>
                             </div>
+
+                            <span class="br-stat-icon bg-danger-subtle text-danger">
+                                <i class="bi bi-x-circle"></i>
+                            </span>
 
                         </div>
 
@@ -249,32 +525,35 @@
 
                 </div>
 
-            </div>
+            </section>
 
 
-            {{-- ================================================= --}}
-            {{-- REQUESTS TABLE --}}
-            {{-- ================================================= --}}
-            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+            {{-- =========================================================
+                REQUEST HISTORY
+            ========================================================== --}}
+            <section class="card br-history-card">
 
-                {{-- Card Header --}}
                 <div class="card-header bg-white border-bottom px-4 py-3">
 
                     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
 
                         <div>
+
                             <h5 class="fw-semibold text-dark mb-1">
                                 Product Request History
                             </h5>
 
                             <p class="text-secondary small mb-0">
-                                Donor details become available after request acceptance.
+                                Donor profile, contact information and messages unlock only after admin approval, donor acceptance, and donor permission.
                             </p>
+
                         </div>
+
 
                         <span class="badge rounded-pill bg-light text-secondary border px-3 py-2">
                             <i class="bi bi-list-ul me-1"></i>
-                            {{ $totalRequests }} requests
+                            {{ number_format($totalRequests) }}
+                            {{ $totalRequests === 1 ? 'request' : 'requests' }}
                         </span>
 
                     </div>
@@ -286,34 +565,40 @@
 
                     <div class="table-responsive">
 
-                        <table class="table table-hover align-middle mb-0">
+                        <table class="table table-hover align-middle mb-0 br-table">
 
                             <thead class="table-light">
+
                                 <tr>
-                                    <th class="px-4 py-3 text-secondary small">
+                                    <th class="px-4 py-3">
                                         #
                                     </th>
 
-                                    <th class="py-3 text-secondary small">
+                                    <th class="py-3">
                                         Product
                                     </th>
 
-                                    <th class="py-3 text-secondary small">
-                                        Admin Status
+                                    <th class="py-3">
+                                        Admin Review
                                     </th>
 
-                                    <th class="py-3 text-secondary small">
-                                        Donor Status
+                                    <th class="py-3">
+                                        Donor Decision
                                     </th>
 
-                                    <th class="py-3 text-secondary small">
-                                        Donor Information
+                                    <th class="py-3">
+                                        Donor / Message
                                     </th>
 
-                                    <th class="px-4 py-3 text-secondary small">
-                                        Request Date
+                                    <th class="py-3">
+                                        Submitted
+                                    </th>
+
+                                    <th class="px-4 py-3 text-end">
+                                        Product
                                     </th>
                                 </tr>
+
                             </thead>
 
 
@@ -322,48 +607,209 @@
                                 @forelse ($requests as $key => $productRequest)
 
                                     @php
-                                        $product = $productRequest->product;
-                                        $donor = $productRequest->donor;
+                                        $product =
+                                            $productRequest->product;
+
+                                        /*
+                                        |--------------------------------------------------------------------------
+                                        | Product Image
+                                        |--------------------------------------------------------------------------
+                                        */
 
                                         $productImages = [];
 
                                         if ($product) {
-                                            $productImages = is_array($product->images)
-                                                ? $product->images
-                                                : json_decode($product->images, true);
+                                            $productImages =
+                                                is_array($product->images)
+                                                    ? $product->images
+                                                    : json_decode(
+                                                        $product->images,
+                                                        true
+                                                    );
 
-                                            $productImages = is_array($productImages)
-                                                ? $productImages
-                                                : [];
+                                            $productImages =
+                                                is_array($productImages)
+                                                    ? array_values(
+                                                        array_filter(
+                                                            $productImages
+                                                        )
+                                                    )
+                                                    : [];
                                         }
 
-                                        $productImage = !empty($productImages)
-                                            ? asset('admins/products/' . $productImages[0])
-                                            : $fallbackImage;
+                                        $productImage =
+                                            ! empty($productImages)
+                                                ? asset(
+                                                    'admins/products/'
+                                                    . basename($productImages[0])
+                                                )
+                                                : $fallbackImage;
+
+
+                                        /*
+                                        |--------------------------------------------------------------------------
+                                        | Status Checks
+                                        |--------------------------------------------------------------------------
+                                        */
+
+                                        $adminStatus =
+                                            $productRequest->admin_status
+                                            ?? 'pending';
+
+                                        $donorStatus =
+                                            $productRequest->donor_status
+                                            ?? 'pending';
 
                                         $donorAccepted =
-                                            $productRequest->donor_status === 'accepted';
+                                            in_array(
+                                                $donorStatus,
+                                                [
+                                                    'accepted',
+                                                    'approved',
+                                                ],
+                                                true
+                                            );
 
-                                        $adminBadge = match ($productRequest->admin_status) {
-                                            'approved' => 'bg-success-subtle text-success',
-                                            'rejected' => 'bg-danger-subtle text-danger',
-                                            default => 'bg-warning-subtle text-warning-emphasis',
-                                        };
+                                        $adminApproved =
+                                            $adminStatus ===
+                                            'approved';
 
-                                        $donorBadge = match ($productRequest->donor_status) {
-                                            'accepted' => 'bg-success-subtle text-success',
-                                            'rejected' => 'bg-danger-subtle text-danger',
-                                            default => 'bg-warning-subtle text-warning-emphasis',
-                                        };
+                                        $adminRejected =
+                                            $adminStatus ===
+                                            'rejected';
+
+                                        $donorRejected =
+                                            $donorStatus ===
+                                            'rejected';
+
+                                        $informationAllowed =
+                                            (bool) (
+                                                $productRequest->donor_information_allowed
+                                                ?? false
+                                            );
+
+                                        $donorInformationAllowed =
+                                            $adminApproved
+                                            && $donorAccepted
+                                            && $informationAllowed;
+
+                                        $donor =
+                                            $donorInformationAllowed
+                                                ? $productRequest->donor
+                                                : null;
+
+
+                                        /*
+                                        |--------------------------------------------------------------------------
+                                        | Admin Status Presentation
+                                        |--------------------------------------------------------------------------
+                                        */
+
+                                        $adminBadge =
+                                            match ($adminStatus) {
+                                                'approved' =>
+                                                    'bg-success-subtle text-success',
+
+                                                'rejected' =>
+                                                    'bg-danger-subtle text-danger',
+
+                                                default =>
+                                                    'bg-warning-subtle text-warning-emphasis',
+                                            };
+
+                                        $adminIcon =
+                                            match ($adminStatus) {
+                                                'approved' =>
+                                                    'bi-shield-check',
+
+                                                'rejected' =>
+                                                    'bi-shield-x',
+
+                                                default =>
+                                                    'bi-hourglass-split',
+                                            };
+
+                                        $adminLabel =
+                                            match ($adminStatus) {
+                                                'approved' =>
+                                                    'Approved',
+
+                                                'rejected' =>
+                                                    'Rejected',
+
+                                                default =>
+                                                    'Under Review',
+                                            };
+
+
+                                        /*
+                                        |--------------------------------------------------------------------------
+                                        | Donor Status Presentation
+                                        |--------------------------------------------------------------------------
+                                        */
+
+                                        if ($adminRejected) {
+                                            $donorBadge =
+                                                'bg-secondary-subtle text-secondary';
+
+                                            $donorIcon =
+                                                'bi-dash-circle';
+
+                                            $donorLabel =
+                                                'Not Forwarded';
+
+                                        } elseif (! $adminApproved) {
+                                            $donorBadge =
+                                                'bg-light text-secondary border';
+
+                                            $donorIcon =
+                                                'bi-lock';
+
+                                            $donorLabel =
+                                                'Waiting';
+
+                                        } elseif ($donorAccepted) {
+                                            $donorBadge =
+                                                'bg-success-subtle text-success';
+
+                                            $donorIcon =
+                                                'bi-check-circle';
+
+                                            $donorLabel =
+                                                'Accepted';
+
+                                        } elseif ($donorRejected) {
+                                            $donorBadge =
+                                                'bg-danger-subtle text-danger';
+
+                                            $donorIcon =
+                                                'bi-x-circle';
+
+                                            $donorLabel =
+                                                'Rejected';
+
+                                        } else {
+                                            $donorBadge =
+                                                'bg-info-subtle text-info-emphasis';
+
+                                            $donorIcon =
+                                                'bi-person-clock';
+
+                                            $donorLabel =
+                                                'Awaiting Donor';
+                                        }
                                     @endphp
+
 
                                     <tr>
 
                                         {{-- Number --}}
                                         <td class="px-4">
-                                            <span class="text-secondary">
-                                                {{ $startingNumber + $key }}
+
+                                            <span class="text-secondary small">
+                                                {{ $requests->firstItem() + $key }}
                                             </span>
+
                                         </td>
 
 
@@ -375,19 +821,36 @@
                                                 <img
                                                     src="{{ $productImage }}"
                                                     alt="{{ $product->name ?? 'Product' }}"
-                                                    width="60"
-                                                    height="60"
-                                                    class="rounded-3 border object-fit-cover flex-shrink-0"
+                                                    width="58"
+                                                    height="58"
+                                                    class="br-product-image"
+                                                    loading="lazy"
+                                                    onerror="this.onerror=null;this.src='{{ $fallbackImage }}';"
                                                 >
 
-                                                <div>
-                                                    <div class="fw-semibold text-dark">
+
+                                                <div class="min-width-0">
+
+                                                    <div
+                                                        class="br-product-name"
+                                                        title="{{ $product->name ?? 'Product unavailable' }}"
+                                                    >
                                                         {{ $product->name ?? 'Product unavailable' }}
                                                     </div>
 
                                                     <small class="text-secondary">
                                                         Request #{{ $productRequest->id }}
                                                     </small>
+
+                                                    @if ($product?->category)
+
+                                                        <small class="d-block text-primary mt-1">
+                                                            <i class="bi bi-tag me-1"></i>
+                                                            {{ $product->category->name }}
+                                                        </small>
+
+                                                    @endif
+
                                                 </div>
 
                                             </div>
@@ -395,87 +858,31 @@
                                         </td>
 
 
-                                        {{-- Admin Status --}}
+                                        {{-- Admin Review --}}
                                         <td>
 
-                                            <span class="badge rounded-pill {{ $adminBadge }} px-3 py-2">
-
-                                                @if ($productRequest->admin_status === 'approved')
-                                                    <i class="bi bi-shield-check me-1"></i>
-                                                @elseif ($productRequest->admin_status === 'rejected')
-                                                    <i class="bi bi-shield-x me-1"></i>
-                                                @else
-                                                    <i class="bi bi-hourglass-split me-1"></i>
-                                                @endif
-
-                                                {{ ucfirst($productRequest->admin_status ?? 'pending') }}
-
+                                            <span class="br-status-badge {{ $adminBadge }}">
+                                                <i class="bi {{ $adminIcon }}"></i>
+                                                {{ $adminLabel }}
                                             </span>
 
-                                        </td>
 
+                                            @if ($adminStatus === 'pending')
 
-                                        {{-- Donor Status --}}
-                                        <td>
+                                                <span class="br-status-note">
+                                                    Waiting for administrator review.
+                                                </span>
 
-                                            <span class="badge rounded-pill {{ $donorBadge }} px-3 py-2">
+                                            @elseif ($adminRejected)
 
-                                                @if ($donorAccepted)
-                                                    <i class="bi bi-check-circle me-1"></i>
-                                                @elseif ($productRequest->donor_status === 'rejected')
-                                                    <i class="bi bi-x-circle me-1"></i>
-                                                @else
-                                                    <i class="bi bi-clock me-1"></i>
-                                                @endif
-
-                                                {{ ucfirst($productRequest->donor_status ?? 'pending') }}
-
-                                            </span>
-
-                                        </td>
-
-
-                                        {{-- Donor Information --}}
-                                        <td>
-
-                                            @if ($donorAccepted && $donor)
-
-                                                <div class="d-flex flex-wrap gap-2">
-
-                                                    <button
-                                                        type="button"
-                                                        class="btn btn-outline-primary btn-sm"
-                                                        data-bs-toggle="modal"
-                                                        data-bs-target="#donorModal{{ $productRequest->id }}"
-                                                    >
-                                                        <i class="bi bi-person me-1"></i>
-                                                        View Donor
-                                                    </button>
-
-                                                    <button
-                                                        type="button"
-                                                        class="btn btn-outline-info btn-sm"
-                                                        data-bs-toggle="modal"
-                                                        data-bs-target="#messageModal{{ $productRequest->id }}"
-                                                    >
-                                                        <i class="bi bi-chat-left-text me-1"></i>
-                                                        Message
-                                                    </button>
-
-                                                </div>
-
-                                            @elseif ($productRequest->donor_status === 'rejected')
-
-                                                <span class="text-danger small">
-                                                    <i class="bi bi-x-circle me-1"></i>
-                                                    Request rejected
+                                                <span class="br-status-note text-danger">
+                                                    Request stopped at admin review.
                                                 </span>
 
                                             @else
 
-                                                <span class="text-secondary small">
-                                                    <i class="bi bi-lock me-1"></i>
-                                                    Available after acceptance
+                                                <span class="br-status-note">
+                                                    Forwarded to the donor.
                                                 </span>
 
                                             @endif
@@ -483,56 +890,221 @@
                                         </td>
 
 
-                                        {{-- Date --}}
-                                        <td class="px-4">
+                                        {{-- Donor Decision --}}
+                                        <td>
+
+                                            <span class="br-status-badge {{ $donorBadge }}">
+                                                <i class="bi {{ $donorIcon }}"></i>
+                                                {{ $donorLabel }}
+                                            </span>
+
+
+                                            @if ($adminApproved && $donorStatus === 'pending')
+
+                                                <span class="br-status-note">
+                                                    Donor decision is pending.
+                                                </span>
+
+                                            @elseif ($donorAccepted)
+
+                                                <span class="br-status-note text-success">
+                                                    Donor accepted your request.
+                                                </span>
+
+                                            @elseif ($donorRejected)
+
+                                                <span class="br-status-note text-danger">
+                                                    Donor rejected your request.
+                                                </span>
+
+                                            @endif
+
+                                        </td>
+
+
+                                        {{-- Donor / Message --}}
+                                        <td>
+
+                                            @if ($donorInformationAllowed && $donor)
+
+                                                <div class="d-flex flex-wrap gap-2">
+
+                                                    <button
+                                                        type="button"
+                                                        class="btn btn-outline-primary btn-sm br-action-btn"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#donorModal{{ $productRequest->id }}"
+                                                    >
+                                                        <i class="bi bi-person-vcard me-1"></i>
+                                                        View Donor
+                                                    </button>
+
+
+                                                    <button
+                                                        type="button"
+                                                        class="btn btn-outline-info btn-sm br-action-btn"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#messageModal{{ $productRequest->id }}"
+                                                    >
+                                                        <i class="bi bi-chat-left-text me-1"></i>
+
+                                                        {{
+                                                            $productRequest->message
+                                                                ? 'View Message'
+                                                                : 'Message'
+                                                        }}
+                                                    </button>
+
+                                                </div>
+
+
+                                            @elseif ($donorRejected)
+
+                                                <div class="br-contact-state text-danger">
+
+                                                    <i class="bi bi-x-circle mt-1"></i>
+
+                                                    <span>
+                                                        Donor information is not available because the request was rejected.
+                                                    </span>
+
+                                                </div>
+
+
+                                            @elseif ($adminRejected)
+
+                                                <div class="br-contact-state text-danger">
+
+                                                    <i class="bi bi-shield-x mt-1"></i>
+
+                                                    <span>
+                                                        This request was not forwarded to the donor.
+                                                    </span>
+
+                                                </div>
+
+
+                                            @elseif (
+                                                $adminApproved
+                                                && $donorAccepted
+                                                && ! $informationAllowed
+                                            )
+
+                                                <div class="br-contact-state text-secondary">
+
+                                                    <i class="bi bi-shield-lock mt-1"></i>
+
+                                                    <span>
+                                                        Donor accepted your request, but donor information is private until the donor enables access.
+                                                    </span>
+
+                                                </div>
+
+
+                                            @else
+
+                                                <div class="br-contact-state text-secondary">
+
+                                                    <i class="bi bi-lock mt-1"></i>
+
+                                                    <span>
+                                                        Donor information remains locked until all permissions are complete.
+                                                    </span>
+
+                                                </div>
+
+                                            @endif
+
+                                        </td>
+
+
+                                        {{-- Submitted --}}
+                                        <td>
 
                                             <div class="small text-dark">
                                                 <i class="bi bi-calendar3 text-secondary me-1"></i>
 
-                                                {{ optional($productRequest->created_at)->format('d M Y') }}
+                                                {{
+                                                    optional(
+                                                        $productRequest->created_at
+                                                    )->format('d M Y')
+                                                    ?? '—'
+                                                }}
                                             </div>
 
                                             <small class="text-secondary">
-                                                {{ optional($productRequest->created_at)->diffForHumans() }}
+                                                {{
+                                                    optional(
+                                                        $productRequest->created_at
+                                                    )->diffForHumans()
+                                                    ?? ''
+                                                }}
                                             </small>
+
+                                        </td>
+
+
+                                        {{-- Product Action --}}
+                                        <td class="px-4 text-end">
+
+                                            @if ($product)
+
+                                                <a
+                                                    href="{{ route('beneficiary.products.detail.show', $product->id) }}"
+                                                    class="btn btn-light border btn-sm br-action-btn"
+                                                >
+                                                    <i class="bi bi-eye me-1"></i>
+                                                    View
+                                                </a>
+
+                                            @else
+
+                                                <span class="text-secondary small">
+                                                    Unavailable
+                                                </span>
+
+                                            @endif
 
                                         </td>
 
                                     </tr>
 
+
                                 @empty
 
                                     <tr>
-                                        <td colspan="6" class="text-center py-5">
 
-                                            <div class="d-flex flex-column align-items-center">
+                                        <td
+                                            colspan="7"
+                                            class="text-center py-5"
+                                        >
 
-                                                <span
-                                                    class="d-inline-flex align-items-center justify-content-center rounded-circle bg-light text-secondary mb-3"
-                                                    style="width: 68px; height: 68px;"
-                                                >
-                                                    <i class="bi bi-clipboard-x fs-3"></i>
+                                            <div class="d-flex flex-column align-items-center px-3">
+
+                                                <span class="br-empty-icon mb-3">
+                                                    <i class="bi bi-clipboard-x"></i>
                                                 </span>
 
-                                                <h6 class="fw-semibold text-dark mb-1">
-                                                    No requests found
-                                                </h6>
+                                                <h5 class="fw-bold text-dark mb-2">
+                                                    No product requests yet
+                                                </h5>
 
-                                                <p class="text-secondary small mb-3">
-                                                    You have not submitted any product requests.
+                                                <p class="text-secondary small mb-4">
+                                                    Browse available products and submit a request for something you need.
                                                 </p>
 
                                                 <a
                                                     href="{{ route('beneficiary.products.index') }}"
-                                                    class="btn btn-primary btn-sm"
+                                                    class="btn btn-primary btn-sm px-4"
                                                 >
-                                                    <i class="bi bi-box-seam me-1"></i>
+                                                    <i class="bi bi-grid-3x3-gap me-1"></i>
                                                     Browse Products
                                                 </a>
 
                                             </div>
 
                                         </td>
+
                                     </tr>
 
                                 @endforelse
@@ -546,31 +1118,37 @@
                 </div>
 
 
-                {{-- Pagination: only shown when $requests is paginated --}}
-                @if (
-                    $requestsArePaginated &&
-                    $requests->hasPages()
-                )
+                {{-- Pagination --}}
+                @if ($requests->hasPages())
 
                     <div class="card-footer bg-white border-top px-4 py-3">
 
                         <div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
 
                             <p class="text-secondary small mb-0">
+
                                 Showing
+
                                 <span class="fw-semibold text-dark">
                                     {{ $requests->firstItem() }}
                                 </span>
+
                                 to
+
                                 <span class="fw-semibold text-dark">
                                     {{ $requests->lastItem() }}
                                 </span>
+
                                 of
+
                                 <span class="fw-semibold text-dark">
                                     {{ $requests->total() }}
                                 </span>
+
                                 requests
+
                             </p>
+
 
                             <div>
                                 {{ $requests->withQueryString()->links() }}
@@ -582,38 +1160,71 @@
 
                 @endif
 
-            </div>
+            </section>
 
         </main>
 
     </div>
 
 
-    {{-- ===================================================== --}}
-    {{-- DONOR AND MESSAGE MODALS --}}
-    {{-- ===================================================== --}}
-
+    {{-- =============================================================
+        DONOR / MESSAGE MODALS
+    ============================================================== --}}
     @foreach ($requests as $productRequest)
 
         @php
-            $donor = $productRequest->donor;
-            $donorProfile = $donor?->donorProfile;
+            $adminAllowed =
+                ($productRequest->admin_status ?? 'pending')
+                === 'approved';
 
-            $donorImage = $donor && $donor->image
-                ? asset(
-                    'admins/asset/profilephoto/' .
-                    $donor->image
-                )
-                : $fallbackImage;
+            $donorAllowed =
+                in_array(
+                    $productRequest->donor_status,
+                    [
+                        'accepted',
+                        'approved',
+                    ],
+                    true
+                );
+
+            $informationAllowed =
+                (bool) (
+                    $productRequest->donor_information_allowed
+                    ?? false
+                );
+
+            $donorInformationAllowed =
+                $adminAllowed
+                && $donorAllowed
+                && $informationAllowed;
+
+            $donor =
+                $donorInformationAllowed
+                    ? $productRequest->donor
+                    : null;
+
+            $donorProfile =
+                $donorInformationAllowed
+                    ? $donor?->donorProfile
+                    : null;
+
+            $donorImage =
+                $donorInformationAllowed
+                && $donor
+                && $donor->image
+                    ? asset(
+                        'admins/asset/profilephoto/'
+                        . basename($donor->image)
+                    )
+                    : $fallbackImage;
         @endphp
 
 
-        @if (
-            $productRequest->donor_status === 'accepted' &&
-            $donor
-        )
+        @if ($donorInformationAllowed && $donor)
 
-            {{-- Donor Profile Modal --}}
+            {{-- =========================================================
+                DONOR PROFILE MODAL
+            ========================================================== --}}
             <div
                 class="modal fade"
                 id="donorModal{{ $productRequest->id }}"
@@ -621,18 +1232,27 @@
                 aria-labelledby="donorModalLabel{{ $productRequest->id }}"
                 aria-hidden="true"
             >
-                <div class="modal-dialog modal-dialog-centered">
 
-                    <div class="modal-content border-0 shadow rounded-4">
+                <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
 
-                        <div class="modal-header border-bottom px-4 py-3">
+                    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
 
-                            <h5
-                                class="modal-title fw-bold"
-                                id="donorModalLabel{{ $productRequest->id }}"
-                            >
-                                Donor Profile
-                            </h5>
+                        <div class="modal-header bg-white border-bottom px-4 py-3">
+
+                            <div>
+
+                                <h5
+                                    class="modal-title fw-bold text-dark mb-1"
+                                    id="donorModalLabel{{ $productRequest->id }}"
+                                >
+                                    Donor Information
+                                </h5>
+
+                                <p class="text-secondary small mb-0">
+                                    Donor details for accepted Request #{{ $productRequest->id }}.
+                                </p>
+
+                            </div>
 
                             <button
                                 type="button"
@@ -644,101 +1264,228 @@
                         </div>
 
 
-                        <div class="modal-body p-4">
+                        <div class="modal-body bg-light p-4">
 
-                            {{-- Donor Profile --}}
-                            <div class="text-center mb-4">
+                            {{-- Profile Summary --}}
+                            <div class="card border-0 shadow-sm rounded-4 mb-4">
 
-                                <img
-                                    src="{{ $donorImage }}"
-                                    alt="{{ $donor->name }}"
-                                    width="110"
-                                    height="110"
-                                    class="rounded-circle border border-3 object-fit-cover mb-3"
-                                >
+                                <div class="card-body p-4">
 
-                                <h5 class="fw-bold text-dark mb-1">
-                                    {{ $donor->name }}
-                                </h5>
+                                    <div class="d-flex flex-column flex-sm-row align-items-center align-items-sm-start gap-3">
 
-                                <p class="text-secondary small mb-2">
-                                    {{ $donor->email }}
-                                </p>
+                                        <img
+                                            src="{{ $donorImage }}"
+                                            alt="{{ $donor->name }}"
+                                            width="100"
+                                            height="100"
+                                            class="rounded-circle border border-3 border-white shadow-sm object-fit-cover flex-shrink-0"
+                                        >
 
-                                <span class="badge rounded-pill bg-primary-subtle text-primary px-3 py-2">
-                                    Donor
-                                </span>
+                                        <div class="text-center text-sm-start">
 
-                            </div>
+                                            <div class="d-flex flex-wrap justify-content-center justify-content-sm-start align-items-center gap-2 mb-2">
+
+                                                <h4 class="fw-bold text-dark mb-0">
+                                                    {{ $donor->name }}
+                                                </h4>
+
+                                                <span class="badge rounded-pill bg-primary-subtle text-primary">
+                                                    Donor
+                                                </span>
+
+                                            </div>
 
 
-                            {{-- Organization --}}
-                            <h6 class="fw-bold text-dark mb-3">
-                                <i class="bi bi-building text-primary me-2"></i>
-                                Organization Information
-                            </h6>
+                                            <p class="text-secondary mb-1">
+                                                <i class="bi bi-envelope me-2"></i>
+                                                {{ $donor->email }}
+                                            </p>
 
-                            <div class="border rounded-3 overflow-hidden mb-4">
+                                            <p class="text-secondary mb-0">
+                                                <i class="bi bi-telephone me-2"></i>
+                                                {{ $donor->phone ?? 'Phone not available' }}
+                                            </p>
 
-                                <div class="d-flex justify-content-between gap-3 p-3 border-bottom">
-                                    <span class="text-secondary small">
-                                        Organization
-                                    </span>
+                                        </div>
 
-                                    <span class="fw-semibold small text-end">
-                                        {{ $donorProfile?->organization ?? 'Not available' }}
-                                    </span>
-                                </div>
+                                    </div>
 
-                                <div class="d-flex justify-content-between gap-3 p-3 border-bottom">
-                                    <span class="text-secondary small">
-                                        Designation
-                                    </span>
-
-                                    <span class="fw-semibold small text-end">
-                                        {{ $donorProfile?->designation ?? 'Not available' }}
-                                    </span>
-                                </div>
-
-                                <div class="d-flex justify-content-between gap-3 p-3">
-                                    <span class="text-secondary small">
-                                        Country
-                                    </span>
-
-                                    <span class="fw-semibold small text-end">
-                                        {{ $donorProfile?->country ?? 'Not available' }}
-                                    </span>
                                 </div>
 
                             </div>
 
 
-                            {{-- Contact Details --}}
-                            <h6 class="fw-bold text-dark mb-3">
-                                <i class="bi bi-telephone text-primary me-2"></i>
-                                Contact Information
-                            </h6>
+                            <div class="row g-4">
 
-                            <div class="border rounded-3 overflow-hidden">
+                                {{-- Organization --}}
+                                <div class="col-12 col-md-6">
 
-                                <div class="d-flex justify-content-between gap-3 p-3 border-bottom">
-                                    <span class="text-secondary small">
-                                        Phone
-                                    </span>
+                                    <div class="card border-0 shadow-sm rounded-4 h-100">
 
-                                    <span class="fw-semibold small text-end">
-                                        {{ $donor->phone ?? 'Not available' }}
-                                    </span>
+                                        <div class="card-header bg-white border-bottom px-4 py-3">
+
+                                            <div class="d-flex align-items-center gap-3">
+
+                                                <span class="br-modal-icon bg-success-subtle text-success">
+                                                    <i class="bi bi-building"></i>
+                                                </span>
+
+                                                <h6 class="fw-bold text-dark mb-0">
+                                                    Organization
+                                                </h6>
+
+                                            </div>
+
+                                        </div>
+
+
+                                        <div class="card-body p-0">
+
+                                            <div class="br-profile-row">
+                                                <span>Organization</span>
+                                                <strong>
+                                                    {{ $donorProfile?->organization ?? 'Not available' }}
+                                                </strong>
+                                            </div>
+
+                                            <div class="br-profile-row">
+                                                <span>Designation</span>
+                                                <strong>
+                                                    {{ $donorProfile?->designation ?? 'Not available' }}
+                                                </strong>
+                                            </div>
+
+                                            <div class="br-profile-row">
+                                                <span>Country</span>
+                                                <strong>
+                                                    {{ $donorProfile?->country ?? 'Not available' }}
+                                                </strong>
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
                                 </div>
 
-                                <div class="p-3">
-                                    <span class="d-block text-secondary small mb-1">
-                                        Address
-                                    </span>
 
-                                    <span class="fw-semibold small">
-                                        {{ $donorProfile?->address ?? 'Not available' }}
-                                    </span>
+                                {{-- Contact --}}
+                                <div class="col-12 col-md-6">
+
+                                    <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                                        <div class="card-header bg-white border-bottom px-4 py-3">
+
+                                            <div class="d-flex align-items-center gap-3">
+
+                                                <span class="br-modal-icon bg-info-subtle text-info-emphasis">
+                                                    <i class="bi bi-person-lines-fill"></i>
+                                                </span>
+
+                                                <h6 class="fw-bold text-dark mb-0">
+                                                    Contact Details
+                                                </h6>
+
+                                            </div>
+
+                                        </div>
+
+
+                                        <div class="card-body p-0">
+
+                                            <div class="br-profile-row">
+                                                <span>Email</span>
+                                                <strong class="text-break">
+                                                    {{ $donor->email }}
+                                                </strong>
+                                            </div>
+
+                                            <div class="br-profile-row">
+                                                <span>Phone</span>
+                                                <strong>
+                                                    {{ $donor->phone ?? 'Not available' }}
+                                                </strong>
+                                            </div>
+
+                                            <div class="p-3">
+                                                <span class="d-block text-secondary small mb-2">
+                                                    Address
+                                                </span>
+
+                                                <div class="fw-semibold small text-dark lh-lg">
+                                                    {{ $donorProfile?->address ?? 'Not available' }}
+                                                </div>
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+
+                                {{-- Request Context --}}
+                                <div class="col-12">
+
+                                    <div class="card border-0 shadow-sm rounded-4">
+
+                                        <div class="card-header bg-white border-bottom px-4 py-3">
+
+                                            <div class="d-flex align-items-center gap-3">
+
+                                                <span class="br-modal-icon bg-primary-subtle text-primary">
+                                                    <i class="bi bi-clipboard-check"></i>
+                                                </span>
+
+                                                <h6 class="fw-bold text-dark mb-0">
+                                                    Request Context
+                                                </h6>
+
+                                            </div>
+
+                                        </div>
+
+
+                                        <div class="card-body">
+
+                                            <div class="row g-3">
+
+                                                <div class="col-12 col-sm-4">
+                                                    <small class="d-block text-secondary mb-1">
+                                                        Request ID
+                                                    </small>
+
+                                                    <strong>
+                                                        #{{ $productRequest->id }}
+                                                    </strong>
+                                                </div>
+
+                                                <div class="col-12 col-sm-4">
+                                                    <small class="d-block text-secondary mb-1">
+                                                        Product
+                                                    </small>
+
+                                                    <strong>
+                                                        {{ $productRequest->product?->name ?? 'Not available' }}
+                                                    </strong>
+                                                </div>
+
+                                                <div class="col-12 col-sm-4">
+                                                    <small class="d-block text-secondary mb-1">
+                                                        Donor Decision
+                                                    </small>
+
+                                                    <strong class="text-success">
+                                                        Accepted
+                                                    </strong>
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
                                 </div>
 
                             </div>
@@ -746,13 +1493,14 @@
                         </div>
 
 
-                        <div class="modal-footer border-top px-4 py-3">
+                        <div class="modal-footer bg-white border-top px-4 py-3">
 
                             <button
                                 type="button"
                                 class="btn btn-light border"
                                 data-bs-dismiss="modal"
                             >
+                                <i class="bi bi-x-circle me-1"></i>
                                 Close
                             </button>
 
@@ -761,10 +1509,13 @@
                     </div>
 
                 </div>
+
             </div>
 
 
-            {{-- Donor Message Modal --}}
+            {{-- =========================================================
+                DONOR MESSAGE MODAL
+            ========================================================== --}}
             <div
                 class="modal fade"
                 id="messageModal{{ $productRequest->id }}"
@@ -772,18 +1523,29 @@
                 aria-labelledby="messageModalLabel{{ $productRequest->id }}"
                 aria-hidden="true"
             >
+
                 <div class="modal-dialog modal-dialog-centered">
 
-                    <div class="modal-content border-0 shadow rounded-4">
+                    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
 
-                        <div class="modal-header border-bottom px-4 py-3">
+                        <div class="modal-header bg-white border-bottom px-4 py-3">
 
-                            <h5
-                                class="modal-title fw-bold"
-                                id="messageModalLabel{{ $productRequest->id }}"
-                            >
-                                Message from Donor
-                            </h5>
+                            <div>
+
+                                <h5
+                                    class="modal-title fw-bold text-dark mb-1"
+                                    id="messageModalLabel{{ $productRequest->id }}"
+                                >
+                                    Message from Donor
+                                </h5>
+
+                                <p class="text-secondary small mb-0">
+                                    Request #{{ $productRequest->id }}
+                                    •
+                                    {{ $productRequest->product?->name ?? 'Product' }}
+                                </p>
+
+                            </div>
 
                             <button
                                 type="button"
@@ -799,32 +1561,52 @@
 
                             @if ($productRequest->message)
 
-                                <div class="d-flex align-items-start gap-3">
+                                <div class="d-flex align-items-start gap-3 mb-3">
 
-                                    <span
-                                        class="d-inline-flex align-items-center justify-content-center rounded-circle bg-info-subtle text-info-emphasis flex-shrink-0"
-                                        style="width: 44px; height: 44px;"
+                                    <img
+                                        src="{{ $donorImage }}"
+                                        alt="{{ $donor->name }}"
+                                        width="48"
+                                        height="48"
+                                        class="rounded-circle border object-fit-cover flex-shrink-0"
                                     >
-                                        <i class="bi bi-chat-quote"></i>
-                                    </span>
 
                                     <div>
-                                        <h6 class="fw-semibold text-dark mb-2">
+
+                                        <h6 class="fw-bold text-dark mb-1">
                                             {{ $donor->name }}
                                         </h6>
 
-                                        <p class="text-secondary lh-lg mb-0">
-                                            {!! nl2br(e($productRequest->message)) !!}
-                                        </p>
+                                        <small class="text-secondary">
+                                            Donor
+                                        </small>
+
                                     </div>
 
                                 </div>
 
+
+                                <div class="br-message-box">
+                                    {!! nl2br(e($productRequest->message)) !!}
+                                </div>
+
+
                             @else
 
-                                <div class="alert alert-warning mb-0">
-                                    <i class="bi bi-info-circle me-1"></i>
-                                    The donor has not added a message yet.
+                                <div class="text-center py-3">
+
+                                    <span class="br-modal-icon bg-light text-secondary mx-auto mb-3">
+                                        <i class="bi bi-chat"></i>
+                                    </span>
+
+                                    <h6 class="fw-semibold text-dark mb-1">
+                                        No message added
+                                    </h6>
+
+                                    <p class="text-secondary small mb-0">
+                                        The donor accepted the request but has not added a message yet.
+                                    </p>
+
                                 </div>
 
                             @endif
@@ -832,7 +1614,7 @@
                         </div>
 
 
-                        <div class="modal-footer border-top px-4 py-3">
+                        <div class="modal-footer bg-white border-top px-4 py-3">
 
                             <button
                                 type="button"
@@ -847,6 +1629,7 @@
                     </div>
 
                 </div>
+
             </div>
 
         @endif

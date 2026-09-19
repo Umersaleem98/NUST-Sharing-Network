@@ -713,7 +713,7 @@
                                         </h5>
 
                                         <p class="text-secondary small mb-0">
-                                            Leave these fields empty if you do not want to change your password.
+                                            Enter your current password first. The new password fields will unlock automatically.
                                         </p>
                                     </div>
 
@@ -794,6 +794,7 @@
                                                 class="form-control @error('password') is-invalid @enderror"
                                                 placeholder="Enter a new password"
                                                 autocomplete="new-password"
+                                                disabled
                                             >
 
                                             <button
@@ -801,6 +802,7 @@
                                                 class="btn btn-outline-secondary password-toggle"
                                                 data-target="newPassword"
                                                 aria-label="Show or hide new password"
+                                                disabled
                                             >
                                                 <i class="bi bi-eye"></i>
                                             </button>
@@ -836,9 +838,10 @@
                                                 type="password"
                                                 id="passwordConfirmation"
                                                 name="password_confirmation"
-                                                class="form-control"
+                                                class="form-control @error('password_confirmation') is-invalid @enderror"
                                                 placeholder="Confirm your new password"
                                                 autocomplete="new-password"
+                                                disabled
                                             >
 
                                             <button
@@ -846,9 +849,16 @@
                                                 class="btn btn-outline-secondary password-toggle"
                                                 data-target="passwordConfirmation"
                                                 aria-label="Show or hide password confirmation"
+                                                disabled
                                             >
                                                 <i class="bi bi-eye"></i>
                                             </button>
+
+                                            @error('password_confirmation')
+                                                <div class="invalid-feedback">
+                                                    {{ $message }}
+                                                </div>
+                                            @enderror
 
                                         </div>
 
@@ -960,7 +970,7 @@
                                 @enderror
 
                                 <div class="form-text">
-                                    Accepted formats: JPG, PNG and WebP.
+                                    Accepted formats: JPG, JPEG, PNG and WebP. Maximum file size: 200 KB.
                                 </div>
 
 
@@ -1062,16 +1072,33 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const profileImage =
-                document.getElementById('profileImage');
+            const profileImage = document.getElementById('profileImage');
+            const profilePreview = document.getElementById('profilePreview');
+            const defaultAvatar = document.getElementById('defaultAvatar');
 
-            const profilePreview =
-                document.getElementById('profilePreview');
+            const currentPassword = document.getElementById('currentPassword');
+            const newPassword = document.getElementById('newPassword');
+            const passwordConfirmation = document.getElementById('passwordConfirmation');
 
-            const defaultAvatar =
-                document.getElementById('defaultAvatar');
+            const newPasswordToggle = document.querySelector(
+                '.password-toggle[data-target="newPassword"]'
+            );
+
+            const confirmationToggle = document.querySelector(
+                '.password-toggle[data-target="passwordConfirmation"]'
+            );
+
+            const maxImageSize = 200 * 1024;
+            const allowedImageTypes = [
+                'image/jpeg',
+                'image/png',
+                'image/webp'
+            ];
 
 
+            /* =========================================================
+               IMAGE VALIDATION + PREVIEW
+            ========================================================== */
             if (
                 profileImage &&
                 profilePreview &&
@@ -1084,10 +1111,23 @@
                         return;
                     }
 
-                    if (!selectedFile.type.startsWith('image/')) {
+                    if (!allowedImageTypes.includes(selectedFile.type)) {
                         this.value = '';
 
-                        alert('Please select a valid image file.');
+                        alert(
+                            'Please select a JPG, JPEG, PNG or WebP image.'
+                        );
+
+                        return;
+                    }
+
+                    if (selectedFile.size > maxImageSize) {
+                        this.value = '';
+
+                        alert(
+                            'Profile image must not be larger than 200 KB.'
+                        );
+
                         return;
                     }
 
@@ -1106,10 +1146,80 @@
             }
 
 
+            /* =========================================================
+               PASSWORD FIELD CONTROL
+            ========================================================== */
+            function syncPasswordFields() {
+                if (
+                    !currentPassword ||
+                    !newPassword ||
+                    !passwordConfirmation
+                ) {
+                    return;
+                }
+
+                const canChangePassword =
+                    currentPassword.value.trim().length > 0;
+
+                newPassword.disabled = !canChangePassword;
+                passwordConfirmation.disabled = !canChangePassword;
+
+                if (newPasswordToggle) {
+                    newPasswordToggle.disabled = !canChangePassword;
+                }
+
+                if (confirmationToggle) {
+                    confirmationToggle.disabled = !canChangePassword;
+                }
+
+                if (!canChangePassword) {
+                    newPassword.value = '';
+                    passwordConfirmation.value = '';
+
+                    newPassword.type = 'password';
+                    passwordConfirmation.type = 'password';
+
+                    if (newPasswordToggle) {
+                        const icon = newPasswordToggle.querySelector('i');
+
+                        if (icon) {
+                            icon.classList.remove('bi-eye-slash');
+                            icon.classList.add('bi-eye');
+                        }
+                    }
+
+                    if (confirmationToggle) {
+                        const icon = confirmationToggle.querySelector('i');
+
+                        if (icon) {
+                            icon.classList.remove('bi-eye-slash');
+                            icon.classList.add('bi-eye');
+                        }
+                    }
+                }
+            }
+
+            if (currentPassword) {
+                currentPassword.addEventListener(
+                    'input',
+                    syncPasswordFields
+                );
+
+                syncPasswordFields();
+            }
+
+
+            /* =========================================================
+               SHOW / HIDE PASSWORD
+            ========================================================== */
             document
                 .querySelectorAll('.password-toggle')
                 .forEach(function (button) {
                     button.addEventListener('click', function () {
+                        if (this.disabled) {
+                            return;
+                        }
+
                         const targetId =
                             this.getAttribute('data-target');
 

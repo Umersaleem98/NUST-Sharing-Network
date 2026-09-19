@@ -523,7 +523,7 @@
 
 
                                             {{-- Password Confirmation --}}
-                                            <div class="col-12">
+                                            <div class="col-12 col-md-6">
 
                                                 <label
                                                     for="passwordConfirmation"
@@ -533,13 +533,58 @@
                                                 </label>
 
 
-                                                <input
-                                                    type="password"
-                                                    id="passwordConfirmation"
-                                                    name="password_confirmation"
-                                                    class="form-control"
-                                                    placeholder="Confirm new password"
-                                                >
+                                                <div class="input-group">
+
+                                                    <span class="input-group-text bg-light">
+
+                                                        <i class="bi bi-shield-lock"></i>
+
+                                                    </span>
+
+
+                                                    <input
+                                                        type="password"
+                                                        id="passwordConfirmation"
+                                                        name="password_confirmation"
+                                                        class="form-control @error('password_confirmation') is-invalid @enderror"
+                                                        placeholder="Confirm new password"
+                                                    >
+
+
+                                                    <button
+                                                        type="button"
+                                                        id="togglePasswordConfirmation"
+                                                        class="btn btn-outline-secondary"
+                                                        aria-label="Show or hide password confirmation"
+                                                    >
+                                                        <i
+                                                            id="passwordConfirmationIcon"
+                                                            class="bi bi-eye"
+                                                        ></i>
+                                                    </button>
+
+
+                                                    @error('password_confirmation')
+
+                                                        <div class="invalid-feedback">
+                                                            {{ $message }}
+                                                        </div>
+
+                                                    @enderror
+
+                                                </div>
+
+                                            </div>
+
+
+                                            <div class="col-12 mt-2">
+
+                                                <div class="form-text">
+
+                                                    Leave both password fields empty
+                                                    to keep the current password.
+
+                                                </div>
 
                                             </div>
 
@@ -1426,11 +1471,11 @@
                                         <div class="text-center mb-4">
 
 
-                                            @if ($user->image)
+                                            @if ($profileImageUrl)
 
                                                 <img
                                                     id="imagePreview"
-                                                    src="{{ asset('admins/asset/profilephoto/' . $user->image) }}"
+                                                    src="{{ $profileImageUrl }}"
                                                     alt="{{ $user->name }}"
                                                     width="130"
                                                     height="130"
@@ -1506,6 +1551,11 @@
                                             </div>
 
                                         @enderror
+
+
+                                        <div class="form-text">
+                                            JPG, JPEG, PNG or WebP only. Maximum file size: 200 KB.
+                                        </div>
 
 
 
@@ -2382,6 +2432,71 @@
                 }
 
 
+                /*
+                |--------------------------------------------------------------------------
+                | Password Confirmation Toggle
+                |--------------------------------------------------------------------------
+                */
+
+                const passwordConfirmationInput =
+                    document.getElementById(
+                        'passwordConfirmation'
+                    );
+
+                const togglePasswordConfirmation =
+                    document.getElementById(
+                        'togglePasswordConfirmation'
+                    );
+
+                const passwordConfirmationIcon =
+                    document.getElementById(
+                        'passwordConfirmationIcon'
+                    );
+
+
+                if (
+                    togglePasswordConfirmation
+                    && passwordConfirmationInput
+                    && passwordConfirmationIcon
+                ) {
+
+                    togglePasswordConfirmation
+                        .addEventListener(
+                            'click',
+                            function () {
+
+                                const hidden =
+                                    passwordConfirmationInput
+                                        .type
+                                    ===
+                                    'password';
+
+
+                                passwordConfirmationInput.type =
+                                    hidden
+                                        ? 'text'
+                                        : 'password';
+
+
+                                passwordConfirmationIcon
+                                    .classList
+                                    .toggle(
+                                        'bi-eye',
+                                        !hidden
+                                    );
+
+
+                                passwordConfirmationIcon
+                                    .classList
+                                    .toggle(
+                                        'bi-eye-slash',
+                                        hidden
+                                    );
+                            }
+                        );
+                }
+
+
 
                 /*
                 |--------------------------------------------------------------------------
@@ -2427,18 +2542,42 @@
                                 }
 
 
+                                const allowedImageTypes = [
+                                    'image/jpeg',
+                                    'image/png',
+                                    'image/webp',
+                                ];
+
+
                                 if (
-                                    !file.type
-                                        .startsWith(
-                                            'image/'
-                                        )
+                                    !allowedImageTypes
+                                        .includes(file.type)
                                 ) {
 
                                     this.value =
                                         '';
 
                                     alert(
-                                        'Please select a valid image file.'
+                                        'Please select a JPG, JPEG, PNG or WebP image.'
+                                    );
+
+                                    return;
+                                }
+
+
+                                const maxImageSize =
+                                    200 * 1024;
+
+
+                                if (
+                                    file.size > maxImageSize
+                                ) {
+
+                                    this.value =
+                                        '';
+
+                                    alert(
+                                        'Profile image must not exceed 200 KB.'
                                     );
 
                                     return;

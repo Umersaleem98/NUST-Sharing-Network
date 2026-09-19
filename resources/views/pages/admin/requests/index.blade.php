@@ -1,6 +1,6 @@
 @include('layouts.admin.head')
 
-<title>Admin Request Approval</title>
+<title>Request Management</title>
 
 <body>
 
@@ -15,11 +15,26 @@
     ========================================================== --}}
     <div class="nsn-main">
 
-        {{-- Topbar --}}
         @include('layouts.admin.header')
 
 
         <main class="nsn-content">
+
+            @php
+                $stats = $requestStats ?? [
+                    'total' => $requests->total(),
+                    'pending' => $requests->getCollection()
+                        ->where('admin_status', 'pending')
+                        ->count(),
+                    'approved' => $requests->getCollection()
+                        ->where('admin_status', 'approved')
+                        ->count(),
+                    'rejected' => $requests->getCollection()
+                        ->where('admin_status', 'rejected')
+                        ->count(),
+                ];
+            @endphp
+
 
             {{-- =====================================================
                 PAGE HEADER
@@ -27,25 +42,25 @@
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
 
                 <div>
-
                     <h3 class="fw-bold text-dark mb-1">
-                        Request Approvals
+                        Request Management
                     </h3>
 
                     <p class="text-secondary small mb-0">
-                        Review beneficiary, donor and product information before approving or rejecting requests.
+                        Review product requests, beneficiary profiles and donor information before making an administrative decision.
                     </p>
-
                 </div>
 
 
-                <span class="badge rounded-pill bg-primary-subtle text-primary px-3 py-2">
+                <div class="d-flex flex-wrap align-items-center gap-2">
 
-                    <i class="bi bi-clipboard-check me-1"></i>
+                    <span class="badge rounded-pill bg-primary-subtle text-primary px-3 py-2">
+                        <i class="bi bi-clipboard-data me-1"></i>
+                        {{ number_format($stats['total']) }}
+                        Total Requests
+                    </span>
 
-                    {{ $requests->total() }} total requests
-
-                </span>
+                </div>
 
             </div>
 
@@ -73,7 +88,7 @@
                         class="breadcrumb-item active"
                         aria-current="page"
                     >
-                        Request Approvals
+                        Request Management
                     </li>
 
                 </ol>
@@ -88,7 +103,110 @@
 
 
             {{-- =====================================================
-                REQUESTS CARD
+                REQUEST STATISTICS
+            ====================================================== --}}
+            <div class="row g-3 mb-4">
+
+                {{-- Total --}}
+                <div class="col-12 col-sm-6 col-xl-3">
+
+                    <div class="request-stat-card h-100">
+
+                        <div class="request-stat-icon bg-primary-subtle text-primary">
+                            <i class="bi bi-collection"></i>
+                        </div>
+
+                        <div>
+                            <div class="request-stat-label">
+                                Total Requests
+                            </div>
+
+                            <div class="request-stat-value">
+                                {{ number_format($stats['total']) }}
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                {{-- Pending --}}
+                <div class="col-12 col-sm-6 col-xl-3">
+
+                    <div class="request-stat-card h-100">
+
+                        <div class="request-stat-icon bg-warning-subtle text-warning-emphasis">
+                            <i class="bi bi-hourglass-split"></i>
+                        </div>
+
+                        <div>
+                            <div class="request-stat-label">
+                                Pending Review
+                            </div>
+
+                            <div class="request-stat-value">
+                                {{ number_format($stats['pending']) }}
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                {{-- Approved --}}
+                <div class="col-12 col-sm-6 col-xl-3">
+
+                    <div class="request-stat-card h-100">
+
+                        <div class="request-stat-icon bg-success-subtle text-success">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+
+                        <div>
+                            <div class="request-stat-label">
+                                Approved
+                            </div>
+
+                            <div class="request-stat-value">
+                                {{ number_format($stats['approved']) }}
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                {{-- Rejected --}}
+                <div class="col-12 col-sm-6 col-xl-3">
+
+                    <div class="request-stat-card h-100">
+
+                        <div class="request-stat-icon bg-danger-subtle text-danger">
+                            <i class="bi bi-x-circle"></i>
+                        </div>
+
+                        <div>
+                            <div class="request-stat-label">
+                                Rejected
+                            </div>
+
+                            <div class="request-stat-value">
+                                {{ number_format($stats['rejected']) }}
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            {{-- =====================================================
+                REQUEST QUEUE
             ====================================================== --}}
             <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
 
@@ -98,73 +216,81 @@
                     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
 
                         <div>
-
-                            <h5 class="fw-semibold text-dark mb-1">
-                                Product Requests
+                            <h5 class="fw-bold text-dark mb-1">
+                                Product Request Queue
                             </h5>
 
                             <p class="text-secondary small mb-0">
-                                Review beneficiary and donor profiles before making a final decision.
+                                Review the request in sequence, inspect both profiles, then approve or reject it.
                             </p>
-
                         </div>
 
 
-                        <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis px-3 py-2">
+                        <div class="d-flex flex-wrap gap-2">
 
-                            <i class="bi bi-hourglass-split me-1"></i>
+                            <span class="request-legend">
+                                <span class="request-legend-dot bg-warning"></span>
+                                Pending
+                            </span>
 
-                            {{ $requests->where('admin_status', 'pending')->count() }}
-                            pending on this page
+                            <span class="request-legend">
+                                <span class="request-legend-dot bg-success"></span>
+                                Approved
+                            </span>
 
-                        </span>
+                            <span class="request-legend">
+                                <span class="request-legend-dot bg-danger"></span>
+                                Rejected
+                            </span>
+
+                        </div>
 
                     </div>
 
                 </div>
 
 
-                {{-- =================================================
-                    REQUEST TABLE
-                ================================================== --}}
+                {{-- Table --}}
                 <div class="card-body p-0">
 
                     <div class="table-responsive">
 
-                        <table class="table table-hover align-middle mb-0">
+                        <table class="table request-table align-middle mb-0">
 
-                            <thead class="table-light">
+                            <thead>
 
                                 <tr>
-
-                                    <th class="px-4 py-3 text-secondary small">
-                                        #
+                                    <th class="px-4">
+                                        Request
                                     </th>
 
-                                    <th class="py-3 text-secondary small">
+                                    <th>
                                         Product
                                     </th>
 
-                                    <th class="py-3 text-secondary small">
-                                        People
+                                    <th>
+                                        Beneficiary
                                     </th>
 
-                                    <th class="py-3 text-secondary small">
+                                    <th>
+                                        Donor
+                                    </th>
+
+                                    <th>
                                         Admin Status
                                     </th>
 
-                                    <th class="py-3 text-secondary small">
+                                    <th>
                                         Donor Status
                                     </th>
 
-                                    <th class="py-3 text-secondary small">
-                                        Date
+                                    <th>
+                                        Submitted
                                     </th>
 
-                                    <th class="px-4 py-3 text-secondary small text-end">
-                                        Decision
+                                    <th class="px-4 text-end">
+                                        Actions
                                     </th>
-
                                 </tr>
 
                             </thead>
@@ -175,142 +301,110 @@
                                 @forelse ($requests as $key => $productRequest)
 
                                     @php
-
                                         $product = $productRequest->product;
-
-                                        $beneficiary =
-                                            $productRequest->beneficiary;
-
-                                        $donor =
-                                            $productRequest->donor;
-
-
-                                        /*
-                                        |--------------------------------------------------------------------------
-                                        | Product Image
-                                        |--------------------------------------------------------------------------
-                                        */
+                                        $beneficiary = $productRequest->beneficiary;
+                                        $donor = $productRequest->donor;
 
                                         $productImages = [];
 
                                         if ($product) {
+                                            $productImages = is_array($product->images)
+                                                ? $product->images
+                                                : json_decode($product->images, true);
 
-                                            $productImages =
-                                                is_array($product->images)
-                                                    ? $product->images
-                                                    : json_decode(
-                                                        $product->images,
-                                                        true
-                                                    );
-
-                                            $productImages =
-                                                is_array($productImages)
-                                                    ? $productImages
-                                                    : [];
+                                            $productImages = is_array($productImages)
+                                                ? $productImages
+                                                : [];
                                         }
 
+                                        $productImage = !empty($productImages)
+                                            ? asset(
+                                                'admins/products/' .
+                                                basename($productImages[0])
+                                            )
+                                            : asset(
+                                                'admins/asset/dummy/dummy.jpg'
+                                            );
 
-                                        $productImage =
-                                            !empty($productImages)
-                                                ? asset(
-                                                    'admins/products/' .
-                                                    $productImages[0]
-                                                )
-                                                : asset(
-                                                    'admins/asset/dummy/dummy.jpg'
-                                                );
+                                        $adminStatus = $productRequest->admin_status
+                                            ?? 'pending';
 
+                                        $donorStatus = $productRequest->donor_status
+                                            ?? 'pending';
 
-                                        /*
-                                        |--------------------------------------------------------------------------
-                                        | Status
-                                        |--------------------------------------------------------------------------
-                                        */
+                                        $adminBadge = match ($adminStatus) {
+                                            'approved' => 'status-approved',
+                                            'rejected' => 'status-rejected',
+                                            default => 'status-pending',
+                                        };
 
-                                        $isApproved =
-                                            $productRequest->admin_status ===
-                                            'approved';
+                                        $adminIcon = match ($adminStatus) {
+                                            'approved' => 'bi-check-circle-fill',
+                                            'rejected' => 'bi-x-circle-fill',
+                                            default => 'bi-hourglass-split',
+                                        };
 
-                                        $isRejected =
-                                            $productRequest->admin_status ===
-                                            'rejected';
+                                        $donorBadge = match ($donorStatus) {
+                                            'accepted' => 'status-approved',
+                                            'approved' => 'status-approved',
+                                            'rejected' => 'status-rejected',
+                                            default => 'status-waiting',
+                                        };
 
+                                        $donorIcon = match ($donorStatus) {
+                                            'accepted' => 'bi-check-circle-fill',
+                                            'approved' => 'bi-check-circle-fill',
+                                            'rejected' => 'bi-x-circle-fill',
+                                            default => 'bi-clock-fill',
+                                        };
 
-                                        $adminBadge =
-                                            match (
-                                                $productRequest->admin_status
-                                            ) {
-                                                'approved' =>
-                                                    'bg-success-subtle text-success',
-
-                                                'rejected' =>
-                                                    'bg-danger-subtle text-danger',
-
-                                                default =>
-                                                    'bg-warning-subtle text-warning-emphasis',
-                                            };
-
-
-                                        $donorBadge =
-                                            match (
-                                                $productRequest->donor_status
-                                            ) {
-                                                'accepted' =>
-                                                    'bg-success-subtle text-success',
-
-                                                'rejected' =>
-                                                    'bg-danger-subtle text-danger',
-
-                                                default =>
-                                                    'bg-info-subtle text-info-emphasis',
-                                            };
-
+                                        $donorStatusLabel = match ($donorStatus) {
+                                            'accepted' => 'Accepted',
+                                            'approved' => 'Approved',
+                                            'rejected' => 'Rejected',
+                                            default => 'Waiting',
+                                        };
                                     @endphp
 
 
                                     <tr>
 
-                                        {{-- =====================================
-                                            NUMBER
-                                        ====================================== --}}
+                                        {{-- Request --}}
                                         <td class="px-4">
 
-                                            <span class="text-secondary">
-                                                {{ $requests->firstItem() + $key }}
-                                            </span>
+                                            <div class="request-number">
+                                                #{{ $productRequest->id }}
+                                            </div>
+
+                                            <small class="text-secondary">
+                                                Row {{ $requests->firstItem() + $key }}
+                                            </small>
 
                                         </td>
 
 
-                                        {{-- =====================================
-                                            PRODUCT
-                                        ====================================== --}}
+                                        {{-- Product --}}
                                         <td>
 
-                                            <div class="d-flex align-items-center gap-3">
+                                            <div class="d-flex align-items-center gap-3 request-product">
 
                                                 <img
                                                     src="{{ $productImage }}"
-                                                    alt="{{ $product->name ?? 'Product' }}"
-                                                    width="58"
-                                                    height="58"
-                                                    class="rounded-3 border object-fit-cover flex-shrink-0"
+                                                    alt="{{ $product?->name ?? 'Product' }}"
+                                                    width="64"
+                                                    height="64"
+                                                    class="request-product-image"
                                                 >
 
 
-                                                <div>
+                                                <div class="min-w-0">
 
-                                                    <div class="fw-semibold text-dark">
-
-                                                        {{ $product->name ?? 'Product unavailable' }}
-
+                                                    <div class="fw-semibold text-dark text-truncate request-product-name">
+                                                        {{ $product?->name ?? 'Product unavailable' }}
                                                     </div>
 
-
-                                                    <small class="text-secondary">
-
-                                                        Request #{{ $productRequest->id }}
-
+                                                    <small class="text-secondary d-block text-truncate">
+                                                        {{ $product?->category?->name ?? 'No category' }}
                                                     </small>
 
                                                 </div>
@@ -320,235 +414,224 @@
                                         </td>
 
 
-                                        {{-- =====================================
-                                            BENEFICIARY / DONOR
-                                        ====================================== --}}
+                                        {{-- Beneficiary --}}
                                         <td>
 
-                                            <div class="d-flex flex-column align-items-start gap-2">
+                                            @if ($beneficiary)
 
+                                                <div class="person-summary">
 
-                                                @if ($beneficiary)
+                                                    <div class="person-avatar bg-info-subtle text-info-emphasis">
+                                                        {{ strtoupper(substr($beneficiary->name, 0, 1)) }}
+                                                    </div>
 
-                                                    <button
-                                                        type="button"
-                                                        class="btn btn-outline-info btn-sm"
-                                                        data-bs-toggle="modal"
-                                                        data-bs-target="#beneficiaryModal{{ $productRequest->id }}"
-                                                    >
-                                                        <i class="bi bi-person-vcard me-1"></i>
+                                                    <div class="min-w-0">
 
-                                                        Beneficiary
-                                                    </button>
+                                                        <div class="fw-semibold text-dark text-truncate">
+                                                            {{ $beneficiary->name }}
+                                                        </div>
 
-                                                @else
+                                                        <small class="text-secondary text-truncate d-block">
+                                                            {{ $beneficiary->qalam_id ?? 'No Qalam ID' }}
+                                                        </small>
 
-                                                    <span class="text-secondary small">
-                                                        Beneficiary unavailable
-                                                    </span>
+                                                    </div>
 
-                                                @endif
+                                                </div>
 
+                                            @else
 
-                                                @if ($donor)
+                                                <span class="text-secondary small">
+                                                    <i class="bi bi-person-x me-1"></i>
+                                                    Unavailable
+                                                </span>
 
-                                                    <button
-                                                        type="button"
-                                                        class="btn btn-outline-primary btn-sm"
-                                                        data-bs-toggle="modal"
-                                                        data-bs-target="#donorModal{{ $productRequest->id }}"
-                                                    >
-                                                        <i class="bi bi-person-heart me-1"></i>
-
-                                                        Donor
-                                                    </button>
-
-                                                @else
-
-                                                    <span class="text-secondary small">
-                                                        Donor unavailable
-                                                    </span>
-
-                                                @endif
-
-                                            </div>
+                                            @endif
 
                                         </td>
 
 
-                                        {{-- =====================================
-                                            ADMIN STATUS
-                                        ====================================== --}}
+                                        {{-- Donor --}}
                                         <td>
 
-                                            <span class="badge rounded-pill {{ $adminBadge }} px-3 py-2">
+                                            @if ($donor)
 
-                                                @if ($productRequest->admin_status === 'approved')
+                                                <div class="person-summary">
 
-                                                    <i class="bi bi-check-circle me-1"></i>
+                                                    <div class="person-avatar bg-primary-subtle text-primary">
+                                                        {{ strtoupper(substr($donor->name, 0, 1)) }}
+                                                    </div>
 
-                                                @elseif ($productRequest->admin_status === 'rejected')
+                                                    <div class="min-w-0">
 
-                                                    <i class="bi bi-x-circle me-1"></i>
+                                                        <div class="fw-semibold text-dark text-truncate">
+                                                            {{ $donor->name }}
+                                                        </div>
 
-                                                @else
+                                                        <small class="text-secondary text-truncate d-block">
+                                                            {{ $donor->donorProfile?->organization ?? 'Individual Donor' }}
+                                                        </small>
 
-                                                    <i class="bi bi-hourglass-split me-1"></i>
+                                                    </div>
 
-                                                @endif
+                                                </div>
+
+                                            @else
+
+                                                <span class="text-secondary small">
+                                                    <i class="bi bi-person-x me-1"></i>
+                                                    Unavailable
+                                                </span>
+
+                                            @endif
+
+                                        </td>
 
 
-                                                {{ ucfirst($productRequest->admin_status) }}
+                                        {{-- Admin Status --}}
+                                        <td>
 
+                                            <span class="request-status {{ $adminBadge }}">
+                                                <i class="bi {{ $adminIcon }}"></i>
+                                                {{ ucfirst($adminStatus) }}
                                             </span>
 
                                         </td>
 
 
-                                        {{-- =====================================
-                                            DONOR STATUS
-                                        ====================================== --}}
+                                        {{-- Donor Status --}}
                                         <td>
 
-                                            <span class="badge rounded-pill {{ $donorBadge }} px-3 py-2">
-
-                                                @if ($productRequest->donor_status === 'accepted')
-
-                                                    <i class="bi bi-check-circle me-1"></i>
-
-                                                @elseif ($productRequest->donor_status === 'rejected')
-
-                                                    <i class="bi bi-x-circle me-1"></i>
-
-                                                @else
-
-                                                    <i class="bi bi-clock me-1"></i>
-
-                                                @endif
-
-
-                                                {{
-                                                    $productRequest->donor_status === 'pending'
-                                                        ? 'Waiting'
-                                                        : ucfirst(
-                                                            $productRequest->donor_status
-                                                        )
-                                                }}
-
+                                            <span class="request-status {{ $donorBadge }}">
+                                                <i class="bi {{ $donorIcon }}"></i>
+                                                {{ $donorStatusLabel }}
                                             </span>
 
                                         </td>
 
 
-                                        {{-- =====================================
-                                            DATE
-                                        ====================================== --}}
+                                        {{-- Submitted --}}
                                         <td>
 
-                                            <div class="small text-dark">
-
-                                                <i class="bi bi-calendar3 text-secondary me-1"></i>
-
-                                                {{
-                                                    optional(
-                                                        $productRequest->created_at
-                                                    )->format('d M Y')
-                                                }}
-
+                                            <div class="small fw-semibold text-dark">
+                                                {{ optional($productRequest->created_at)->format('d M Y') ?? '—' }}
                                             </div>
-
 
                                             <small class="text-secondary">
-
-                                                {{
-                                                    optional(
-                                                        $productRequest->created_at
-                                                    )->diffForHumans()
-                                                }}
-
+                                                {{ optional($productRequest->created_at)->format('h:i A') ?? '' }}
                                             </small>
 
                                         </td>
 
 
-                                        {{-- =====================================
-                                            ACTIONS
-                                        ====================================== --}}
+                                        {{-- Actions --}}
                                         <td class="px-4 text-end">
 
-                                            <div class="d-inline-flex flex-column flex-sm-row gap-2">
+                                            <div class="d-inline-flex align-items-center gap-2">
 
-
-                                                {{-- APPROVE --}}
-                                                <form
-                                                    method="POST"
-                                                    action="{{ route('admin.request.update', $productRequest->id) }}"
-                                                >
-
-                                                    @csrf
-
-
-                                                    <input
-                                                        type="hidden"
-                                                        name="admin_status"
-                                                        value="approved"
-                                                    >
-
+                                                {{-- Profile Dropdown --}}
+                                                <div class="dropdown">
 
                                                     <button
-                                                        type="submit"
-                                                        class="btn btn-sm {{ $isApproved ? 'btn-secondary' : 'btn-success' }}"
-                                                        @disabled($isApproved)
-                                                        onclick="return confirm('Approve this product request?');"
+                                                        type="button"
+                                                        class="btn btn-light border btn-sm dropdown-toggle"
+                                                        data-bs-toggle="dropdown"
+                                                        aria-expanded="false"
                                                     >
-
-                                                        <i class="bi bi-check-lg me-1"></i>
-
-                                                        {{
-                                                            $isApproved
-                                                                ? 'Approved'
-                                                                : 'Approve'
-                                                        }}
-
+                                                        <i class="bi bi-eye me-1"></i>
+                                                        View
                                                     </button>
 
-                                                </form>
+
+                                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+
+                                                        @if ($beneficiary)
+
+                                                            <li>
+                                                                <button
+                                                                    type="button"
+                                                                    class="dropdown-item"
+                                                                    data-bs-toggle="modal"
+                                                                    data-bs-target="#beneficiaryModal{{ $productRequest->id }}"
+                                                                >
+                                                                    <i class="bi bi-person-vcard text-info me-2"></i>
+                                                                    Beneficiary Profile
+                                                                </button>
+                                                            </li>
+
+                                                        @endif
 
 
-                                                {{-- REJECT --}}
-                                                <form
-                                                    method="POST"
-                                                    action="{{ route('admin.request.update', $productRequest->id) }}"
+                                                        @if ($donor)
+
+                                                            <li>
+                                                                <button
+                                                                    type="button"
+                                                                    class="dropdown-item"
+                                                                    data-bs-toggle="modal"
+                                                                    data-bs-target="#donorModal{{ $productRequest->id }}"
+                                                                >
+                                                                    <i class="bi bi-person-heart text-primary me-2"></i>
+                                                                    Donor Profile
+                                                                </button>
+                                                            </li>
+
+                                                        @endif
+
+
+                                                        @if (!$beneficiary && !$donor)
+
+                                                            <li>
+                                                                <span class="dropdown-item-text text-secondary small">
+                                                                    No profiles available
+                                                                </span>
+                                                            </li>
+
+                                                        @endif
+
+                                                    </ul>
+
+                                                </div>
+
+
+                                                {{-- Approve --}}
+                                                <button
+                                                    type="button"
+                                                    class="btn btn-success btn-sm request-decision-btn"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#requestDecisionModal"
+                                                    data-action="{{ route('admin.request.update', $productRequest->id) }}"
+                                                    data-status="approved"
+                                                    data-request-id="{{ $productRequest->id }}"
+                                                    data-product="{{ $product?->name ?? 'this product' }}"
+                                                    @disabled($adminStatus === 'approved')
+                                                    title="Approve request"
                                                 >
-
-                                                    @csrf
-
-
-                                                    <input
-                                                        type="hidden"
-                                                        name="admin_status"
-                                                        value="rejected"
-                                                    >
+                                                    <i class="bi bi-check-lg"></i>
+                                                    <span class="d-none d-xxl-inline ms-1">
+                                                        Approve
+                                                    </span>
+                                                </button>
 
 
-                                                    <button
-                                                        type="submit"
-                                                        class="btn btn-sm {{ $isRejected ? 'btn-secondary' : 'btn-danger' }}"
-                                                        @disabled($isRejected)
-                                                        onclick="return confirm('Reject this product request?');"
-                                                    >
-
-                                                        <i class="bi bi-x-lg me-1"></i>
-
-                                                        {{
-                                                            $isRejected
-                                                                ? 'Rejected'
-                                                                : 'Reject'
-                                                        }}
-
-                                                    </button>
-
-                                                </form>
+                                                {{-- Reject --}}
+                                                <button
+                                                    type="button"
+                                                    class="btn btn-outline-danger btn-sm request-decision-btn"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#requestDecisionModal"
+                                                    data-action="{{ route('admin.request.update', $productRequest->id) }}"
+                                                    data-status="rejected"
+                                                    data-request-id="{{ $productRequest->id }}"
+                                                    data-product="{{ $product?->name ?? 'this product' }}"
+                                                    @disabled($adminStatus === 'rejected')
+                                                    title="Reject request"
+                                                >
+                                                    <i class="bi bi-x-lg"></i>
+                                                    <span class="d-none d-xxl-inline ms-1">
+                                                        Reject
+                                                    </span>
+                                                </button>
 
                                             </div>
 
@@ -556,34 +639,27 @@
 
                                     </tr>
 
-
                                 @empty
-
 
                                     <tr>
 
                                         <td
-                                            colspan="7"
+                                            colspan="8"
                                             class="text-center py-5"
                                         >
 
-                                            <div class="d-flex flex-column align-items-center">
+                                            <div class="empty-state">
 
-                                                <span
-                                                    class="d-inline-flex align-items-center justify-content-center rounded-circle bg-light text-secondary mb-3"
-                                                    style="width:64px;height:64px;"
-                                                >
-                                                    <i class="bi bi-clipboard-x fs-3"></i>
-                                                </span>
+                                                <div class="empty-state-icon">
+                                                    <i class="bi bi-clipboard-x"></i>
+                                                </div>
 
-
-                                                <h6 class="fw-semibold text-dark mb-1">
+                                                <h6 class="fw-bold text-dark mb-1">
                                                     No requests found
                                                 </h6>
 
-
                                                 <p class="text-secondary small mb-0">
-                                                    Product requests will appear here when submitted.
+                                                    Product requests will appear here after beneficiaries submit them.
                                                 </p>
 
                                             </div>
@@ -591,7 +667,6 @@
                                         </td>
 
                                     </tr>
-
 
                                 @endforelse
 
@@ -604,14 +679,12 @@
                 </div>
 
 
-                {{-- =================================================
-                    PAGINATION
-                ================================================== --}}
+                {{-- Pagination --}}
                 @if ($requests->hasPages())
 
                     <div class="card-footer bg-white border-top px-4 py-3">
 
-                        <div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
+                        <div class="d-flex flex-column flex-lg-row align-items-center justify-content-between gap-3">
 
                             <p class="text-secondary small mb-0">
 
@@ -639,9 +712,7 @@
 
 
                             <div>
-
                                 {{ $requests->withQueryString()->links() }}
-
                             </div>
 
                         </div>
@@ -659,18 +730,13 @@
 
 
     {{-- =============================================================
-        PROFILE MODALS
+        BENEFICIARY / DONOR PROFILE MODALS
     ============================================================= --}}
     @foreach ($requests as $productRequest)
 
         @php
-
-            $beneficiary =
-                $productRequest->beneficiary;
-
-            $donor =
-                $productRequest->donor;
-
+            $beneficiary = $productRequest->beneficiary;
+            $donor = $productRequest->donor;
 
             $beneficiaryProfile =
                 $beneficiary?->beneficiaryProfile;
@@ -678,78 +744,42 @@
             $donorProfile =
                 $donor?->donorProfile;
 
-
-            /*
-            |--------------------------------------------------------------------------
-            | Images
-            |--------------------------------------------------------------------------
-            */
-
             $beneficiaryImage =
                 $beneficiary && $beneficiary->image
                     ? asset(
                         'admins/asset/profilephoto/' .
-                        $beneficiary->image
+                        basename($beneficiary->image)
                     )
                     : asset(
                         'admins/asset/dummy/dummy.jpg'
                     );
-
 
             $donorImage =
                 $donor && $donor->image
                     ? asset(
                         'admins/asset/profilephoto/' .
-                        $donor->image
+                        basename($donor->image)
                     )
                     : asset(
                         'admins/asset/dummy/dummy.jpg'
                     );
 
-
-            /*
-            |--------------------------------------------------------------------------
-            | Status Badges
-            |--------------------------------------------------------------------------
-            */
-
-            $accountStatusBadge =
-                match (
-                    $beneficiary?->account_status
-                ) {
-                    'active' =>
-                        'bg-success-subtle text-success',
-
-                    'suspended' =>
-                        'bg-warning-subtle text-warning-emphasis',
-
-                    'blocked' =>
-                        'bg-danger-subtle text-danger',
-
-                    default =>
-                        'bg-secondary-subtle text-secondary',
+            $beneficiaryAccountBadge =
+                match ($beneficiary?->account_status) {
+                    'active' => 'status-approved',
+                    'suspended' => 'status-pending',
+                    'blocked' => 'status-rejected',
+                    default => 'status-neutral',
                 };
 
-
-            $donorAccountStatusBadge =
-                match (
-                    $donor?->account_status
-                ) {
-                    'active' =>
-                        'bg-success-subtle text-success',
-
-                    'suspended' =>
-                        'bg-warning-subtle text-warning-emphasis',
-
-                    'blocked' =>
-                        'bg-danger-subtle text-danger',
-
-                    default =>
-                        'bg-secondary-subtle text-secondary',
+            $donorAccountBadge =
+                match ($donor?->account_status) {
+                    'active' => 'status-approved',
+                    'suspended' => 'status-pending',
+                    'blocked' => 'status-rejected',
+                    default => 'status-neutral',
                 };
-
         @endphp
-
 
 
         {{-- =========================================================
@@ -769,14 +799,10 @@
 
                     <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
 
-
-                        {{-- =================================================
-                            HEADER
-                        ================================================== --}}
-                        <div class="modal-header bg-white border-bottom px-4 py-3">
+                        {{-- Header --}}
+                        <div class="modal-header profile-modal-header px-4 py-3">
 
                             <div>
-
                                 <h5
                                     class="modal-title fw-bold text-dark mb-1"
                                     id="beneficiaryModalLabel{{ $productRequest->id }}"
@@ -784,11 +810,9 @@
                                     Beneficiary Profile
                                 </h5>
 
-
                                 <p class="text-secondary small mb-0">
-                                    Complete beneficiary information for request #{{ $productRequest->id }}.
+                                    Review beneficiary information for request #{{ $productRequest->id }}.
                                 </p>
-
                             </div>
 
 
@@ -802,35 +826,25 @@
                         </div>
 
 
-                        {{-- =================================================
-                            BODY
-                        ================================================== --}}
+                        {{-- Body --}}
                         <div class="modal-body bg-light p-4">
 
-
-                            {{-- =============================================
-                                PROFILE SUMMARY
-                            ============================================== --}}
+                            {{-- Profile Summary --}}
                             <div class="card border-0 shadow-sm rounded-4 mb-4">
 
                                 <div class="card-body p-4">
 
                                     <div class="row align-items-center g-4">
 
+                                        <div class="col-12 col-lg-auto text-center">
 
-                                        <div class="col-12 col-lg-auto">
-
-                                            <div class="text-center">
-
-                                                <img
-                                                    src="{{ $beneficiaryImage }}"
-                                                    alt="{{ $beneficiary->name }}"
-                                                    width="125"
-                                                    height="125"
-                                                    class="rounded-circle border border-4 border-white shadow-sm object-fit-cover"
-                                                >
-
-                                            </div>
+                                            <img
+                                                src="{{ $beneficiaryImage }}"
+                                                alt="{{ $beneficiary->name }}"
+                                                width="120"
+                                                height="120"
+                                                class="rounded-circle border border-4 border-white shadow-sm object-fit-cover"
+                                            >
 
                                         </div>
 
@@ -847,41 +861,25 @@
                                                             {{ $beneficiary->name }}
                                                         </h4>
 
-
-                                                        <span class="badge rounded-pill bg-info-subtle text-info-emphasis px-3 py-2">
+                                                        <span class="request-status status-waiting">
                                                             Beneficiary
                                                         </span>
 
-
-                                                        <span class="badge rounded-pill {{ $accountStatusBadge }} px-3 py-2">
-
-                                                            {{
-                                                                ucfirst(
-                                                                    $beneficiary->account_status
-                                                                    ?? 'Unknown'
-                                                                )
-                                                            }}
-
+                                                        <span class="request-status {{ $beneficiaryAccountBadge }}">
+                                                            {{ ucfirst($beneficiary->account_status ?? 'Unknown') }}
                                                         </span>
 
                                                     </div>
 
 
                                                     <p class="text-secondary mb-2">
-
                                                         <i class="bi bi-envelope me-2"></i>
-
                                                         {{ $beneficiary->email }}
-
                                                     </p>
 
-
                                                     <p class="text-secondary mb-0">
-
                                                         <i class="bi bi-telephone me-2"></i>
-
                                                         {{ $beneficiary->phone ?? 'Phone not available' }}
-
                                                     </p>
 
                                                 </div>
@@ -890,11 +888,11 @@
                                                 <div class="text-lg-end">
 
                                                     <small class="d-block text-secondary mb-1">
-                                                        Request ID
+                                                        Qalam ID
                                                     </small>
 
                                                     <span class="fw-bold text-dark">
-                                                        #{{ $productRequest->id }}
+                                                        {{ $beneficiary->qalam_id ?? 'Not available' }}
                                                     </span>
 
                                                 </div>
@@ -910,126 +908,59 @@
                             </div>
 
 
-
                             <div class="row g-4">
 
-
-                                {{-- =============================================
-                                    ACCOUNT INFORMATION
-                                ============================================== --}}
+                                {{-- Account --}}
                                 <div class="col-12 col-lg-6">
 
-                                    <div class="card border-0 shadow-sm rounded-4 h-100">
+                                    <div class="profile-detail-card h-100">
 
-                                        <div class="card-header bg-white border-bottom px-4 py-3">
+                                        <div class="profile-detail-header">
 
-                                            <div class="d-flex align-items-center gap-2">
+                                            <span class="profile-section-icon bg-primary-subtle text-primary">
+                                                <i class="bi bi-person-vcard"></i>
+                                            </span>
 
-                                                <span
-                                                    class="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary"
-                                                    style="width:38px;height:38px;"
-                                                >
-                                                    <i class="bi bi-person-vcard"></i>
-                                                </span>
-
-
-                                                <h6 class="fw-bold text-dark mb-0">
-                                                    Account Information
+                                            <div>
+                                                <h6 class="fw-bold text-dark mb-1">
+                                                    Account & Personal
                                                 </h6>
 
+                                                <small class="text-secondary">
+                                                    Basic account details
+                                                </small>
                                             </div>
 
                                         </div>
 
 
-                                        <div class="card-body p-0">
+                                        <div class="profile-info-row">
+                                            <span>Full Name</span>
+                                            <strong>{{ $beneficiary->name }}</strong>
+                                        </div>
 
-                                            <div class="profile-info-row">
+                                        <div class="profile-info-row">
+                                            <span>Email</span>
+                                            <strong class="text-break">{{ $beneficiary->email }}</strong>
+                                        </div>
 
-                                                <span>
-                                                    Full Name
-                                                </span>
+                                        <div class="profile-info-row">
+                                            <span>Phone</span>
+                                            <strong>{{ $beneficiary->phone ?? 'Not available' }}</strong>
+                                        </div>
 
-                                                <strong>
-                                                    {{ $beneficiary->name }}
-                                                </strong>
+                                        <div class="profile-info-row">
+                                            <span>Gender</span>
+                                            <strong class="text-capitalize">
+                                                {{ $beneficiaryProfile?->gender ?? 'Not available' }}
+                                            </strong>
+                                        </div>
 
-                                            </div>
-
-
-                                            <div class="profile-info-row">
-
-                                                <span>
-                                                    Email
-                                                </span>
-
-                                                <strong class="text-break">
-                                                    {{ $beneficiary->email }}
-                                                </strong>
-
-                                            </div>
-
-
-                                            <div class="profile-info-row">
-
-                                                <span>
-                                                    Phone
-                                                </span>
-
-                                                <strong>
-                                                    {{ $beneficiary->phone ?? 'Not available' }}
-                                                </strong>
-
-                                            </div>
-
-
-                                            <div class="profile-info-row">
-
-                                                <span>
-                                                    Qalam ID
-                                                </span>
-
-                                                <strong>
-                                                    {{ $beneficiary->qalam_id ?? 'Not available' }}
-                                                </strong>
-
-                                            </div>
-
-
-                                            <div class="profile-info-row">
-
-                                                <span>
-                                                    Gender
-                                                </span>
-
-                                                <strong class="text-capitalize">
-
-                                                    {{ $beneficiaryProfile?->gender ?? 'Not available' }}
-
-                                                </strong>
-
-                                            </div>
-
-
-                                            <div class="profile-info-row border-bottom-0">
-
-                                                <span>
-                                                    Member Since
-                                                </span>
-
-                                                <strong>
-
-                                                    {{
-                                                        optional(
-                                                            $beneficiary->created_at
-                                                        )->format('d M Y')
-                                                        ?? 'Not available'
-                                                    }}
-
-                                                </strong>
-
-                                            </div>
-
+                                        <div class="profile-info-row border-bottom-0">
+                                            <span>Member Since</span>
+                                            <strong>
+                                                {{ optional($beneficiary->created_at)->format('d M Y') ?? 'Not available' }}
+                                            </strong>
                                         </div>
 
                                     </div>
@@ -1037,150 +968,74 @@
                                 </div>
 
 
-
-                                {{-- =============================================
-                                    ACADEMIC INFORMATION
-                                ============================================== --}}
+                                {{-- Academic --}}
                                 <div class="col-12 col-lg-6">
 
-                                    <div class="card border-0 shadow-sm rounded-4 h-100">
+                                    <div class="profile-detail-card h-100">
 
-                                        <div class="card-header bg-white border-bottom px-4 py-3">
+                                        <div class="profile-detail-header">
 
-                                            <div class="d-flex align-items-center gap-2">
+                                            <span class="profile-section-icon bg-success-subtle text-success">
+                                                <i class="bi bi-mortarboard"></i>
+                                            </span>
 
-                                                <span
-                                                    class="d-inline-flex align-items-center justify-content-center rounded-circle bg-success-subtle text-success"
-                                                    style="width:38px;height:38px;"
-                                                >
-                                                    <i class="bi bi-mortarboard"></i>
-                                                </span>
-
-
-                                                <h6 class="fw-bold text-dark mb-0">
+                                            <div>
+                                                <h6 class="fw-bold text-dark mb-1">
                                                     Academic Information
                                                 </h6>
 
+                                                <small class="text-secondary">
+                                                    Study and enrollment details
+                                                </small>
                                             </div>
 
                                         </div>
 
 
-                                        <div class="card-body p-0">
+                                        <div class="profile-info-row">
+                                            <span>Institution</span>
+                                            <strong>{{ $beneficiaryProfile?->institution ?? 'Not available' }}</strong>
+                                        </div>
 
-                                            <div class="profile-info-row">
+                                        <div class="profile-info-row">
+                                            <span>Degree Level</span>
+                                            <strong>{{ $beneficiaryProfile?->degree_level ?? 'Not available' }}</strong>
+                                        </div>
 
-                                                <span>
-                                                    Institution
-                                                </span>
+                                        <div class="profile-info-row">
+                                            <span>Degree Program</span>
+                                            <strong>{{ $beneficiaryProfile?->degree_program ?? 'Not available' }}</strong>
+                                        </div>
 
-                                                <strong>
-                                                    {{ $beneficiaryProfile?->institution ?? 'Not available' }}
-                                                </strong>
+                                        <div class="profile-info-row">
+                                            <span>Department</span>
+                                            <strong>{{ $beneficiaryProfile?->department ?? 'Not available' }}</strong>
+                                        </div>
 
-                                            </div>
+                                        <div class="profile-info-row">
+                                            <span>Semester</span>
+                                            <strong>{{ $beneficiaryProfile?->semester ?? 'Not available' }}</strong>
+                                        </div>
 
+                                        <div class="profile-info-row">
+                                            <span>CGPA</span>
+                                            <strong>
+                                                @if (!is_null($beneficiaryProfile?->cgpa))
+                                                    {{ number_format((float) $beneficiaryProfile->cgpa, 2) }} / 4.00
+                                                @else
+                                                    Not available
+                                                @endif
+                                            </strong>
+                                        </div>
 
-                                            <div class="profile-info-row">
+                                        <div class="profile-info-row">
+                                            <span>Enrollment Year</span>
+                                            <strong>{{ $beneficiaryProfile?->enrollment_year ?? 'Not available' }}</strong>
+                                        </div>
 
-                                                <span>
-                                                    Degree Level
-                                                </span>
-
-                                                <strong>
-                                                    {{ $beneficiaryProfile?->degree_level ?? 'Not available' }}
-                                                </strong>
-
-                                            </div>
-
-
-                                            <div class="profile-info-row">
-
-                                                <span>
-                                                    Degree Program
-                                                </span>
-
-                                                <strong class="text-end">
-                                                    {{ $beneficiaryProfile?->degree_program ?? 'Not available' }}
-                                                </strong>
-
-                                            </div>
-
-
-                                            <div class="profile-info-row">
-
-                                                <span>
-                                                    Department
-                                                </span>
-
-                                                <strong class="text-end">
-                                                    {{ $beneficiaryProfile?->department ?? 'Not available' }}
-                                                </strong>
-
-                                            </div>
-
-
-                                            <div class="profile-info-row">
-
-                                                <span>
-                                                    Semester
-                                                </span>
-
-                                                <strong>
-                                                    {{ $beneficiaryProfile?->semester ?? 'Not available' }}
-                                                </strong>
-
-                                            </div>
-
-
-                                            <div class="profile-info-row">
-
-                                                <span>
-                                                    CGPA
-                                                </span>
-
-                                                <strong>
-
-                                                    @if (!is_null($beneficiaryProfile?->cgpa))
-
-                                                        {{ number_format((float) $beneficiaryProfile->cgpa, 2) }} / 4.00
-
-                                                    @else
-
-                                                        Not available
-
-                                                    @endif
-
-                                                </strong>
-
-                                            </div>
-
-
-                                            <div class="profile-info-row">
-
-                                                <span>
-                                                    Enrollment Year
-                                                </span>
-
-                                                <strong>
-                                                    {{ $beneficiaryProfile?->enrollment_year ?? 'Not available' }}
-                                                </strong>
-
-                                            </div>
-
-
-                                            <div class="profile-info-row border-bottom-0">
-
-                                                <span>
-                                                    Graduation Year
-                                                </span>
-
-                                                <strong>
-                                                    {{ $beneficiaryProfile?->graduation_year ?? 'Not available' }}
-                                                </strong>
-
-                                            </div>
-
+                                        <div class="profile-info-row border-bottom-0">
+                                            <span>Graduation Year</span>
+                                            <strong>{{ $beneficiaryProfile?->graduation_year ?? 'Not available' }}</strong>
                                         </div>
 
                                     </div>
@@ -1188,91 +1043,49 @@
                                 </div>
 
 
-
-                                {{-- =============================================
-                                    FAMILY AND FINANCIAL
-                                ============================================== --}}
+                                {{-- Family / Financial --}}
                                 <div class="col-12 col-lg-6">
 
-                                    <div class="card border-0 shadow-sm rounded-4 h-100">
+                                    <div class="profile-detail-card h-100">
 
-                                        <div class="card-header bg-white border-bottom px-4 py-3">
+                                        <div class="profile-detail-header">
 
-                                            <div class="d-flex align-items-center gap-2">
+                                            <span class="profile-section-icon bg-info-subtle text-info-emphasis">
+                                                <i class="bi bi-people"></i>
+                                            </span>
 
-                                                <span
-                                                    class="d-inline-flex align-items-center justify-content-center rounded-circle bg-info-subtle text-info-emphasis"
-                                                    style="width:38px;height:38px;"
-                                                >
-                                                    <i class="bi bi-people"></i>
-                                                </span>
-
-
-                                                <h6 class="fw-bold text-dark mb-0">
-                                                    Family & Financial Information
+                                            <div>
+                                                <h6 class="fw-bold text-dark mb-1">
+                                                    Family & Financial
                                                 </h6>
 
+                                                <small class="text-secondary">
+                                                    Household information
+                                                </small>
                                             </div>
 
                                         </div>
 
 
-                                        <div class="card-body p-0">
+                                        <div class="profile-info-row">
+                                            <span>Father Status</span>
+                                            <strong>{{ $beneficiaryProfile?->father_status ?? 'Not available' }}</strong>
+                                        </div>
 
-                                            <div class="profile-info-row">
+                                        <div class="profile-info-row">
+                                            <span>Guardian Profession</span>
+                                            <strong>{{ $beneficiaryProfile?->guardian_profession ?? 'Not available' }}</strong>
+                                        </div>
 
-                                                <span>
-                                                    Father Status
-                                                </span>
-
-                                                <strong>
-                                                    {{ $beneficiaryProfile?->father_status ?? 'Not available' }}
-                                                </strong>
-
-                                            </div>
-
-
-                                            <div class="profile-info-row">
-
-                                                <span>
-                                                    Guardian Profession
-                                                </span>
-
-                                                <strong class="text-end">
-                                                    {{ $beneficiaryProfile?->guardian_profession ?? 'Not available' }}
-                                                </strong>
-
-                                            </div>
-
-
-                                            <div class="profile-info-row border-bottom-0">
-
-                                                <span>
-                                                    Monthly Household Income
-                                                </span>
-
-                                                <strong>
-
-                                                    @if (!is_null($beneficiaryProfile?->monthly_income))
-
-                                                        PKR
-                                                        {{
-                                                            number_format(
-                                                                (float) $beneficiaryProfile->monthly_income,
-                                                                2
-                                                            )
-                                                        }}
-
-                                                    @else
-
-                                                        Not available
-
-                                                    @endif
-
-                                                </strong>
-
-                                            </div>
-
+                                        <div class="profile-info-row border-bottom-0">
+                                            <span>Monthly Income</span>
+                                            <strong>
+                                                @if (!is_null($beneficiaryProfile?->monthly_income))
+                                                    PKR {{ number_format((float) $beneficiaryProfile->monthly_income, 2) }}
+                                                @else
+                                                    Not available
+                                                @endif
+                                            </strong>
                                         </div>
 
                                     </div>
@@ -1280,81 +1093,43 @@
                                 </div>
 
 
-
-                                {{-- =============================================
-                                    LOCATION
-                                ============================================== --}}
+                                {{-- Location --}}
                                 <div class="col-12 col-lg-6">
 
-                                    <div class="card border-0 shadow-sm rounded-4 h-100">
+                                    <div class="profile-detail-card h-100">
 
-                                        <div class="card-header bg-white border-bottom px-4 py-3">
+                                        <div class="profile-detail-header">
 
-                                            <div class="d-flex align-items-center gap-2">
+                                            <span class="profile-section-icon bg-warning-subtle text-warning-emphasis">
+                                                <i class="bi bi-geo-alt"></i>
+                                            </span>
 
-                                                <span
-                                                    class="d-inline-flex align-items-center justify-content-center rounded-circle bg-warning-subtle text-warning-emphasis"
-                                                    style="width:38px;height:38px;"
-                                                >
-                                                    <i class="bi bi-geo-alt"></i>
-                                                </span>
-
-
-                                                <h6 class="fw-bold text-dark mb-0">
+                                            <div>
+                                                <h6 class="fw-bold text-dark mb-1">
                                                     Location Information
                                                 </h6>
 
+                                                <small class="text-secondary">
+                                                    Domicile and home address
+                                                </small>
                                             </div>
 
                                         </div>
 
 
-                                        <div class="card-body p-0">
+                                        <div class="profile-info-row">
+                                            <span>Province / Territory</span>
+                                            <strong>{{ $beneficiaryProfile?->province ?? 'Not available' }}</strong>
+                                        </div>
 
-                                            <div class="profile-info-row">
+                                        <div class="profile-info-row">
+                                            <span>Domicile</span>
+                                            <strong>{{ $beneficiaryProfile?->domicile ?? 'Not available' }}</strong>
+                                        </div>
 
-                                                <span>
-                                                    Province / Territory
-                                                </span>
-
-                                                <strong class="text-end">
-                                                    {{ $beneficiaryProfile?->province ?? 'Not available' }}
-                                                </strong>
-
-                                            </div>
-
-
-                                            <div class="profile-info-row">
-
-                                                <span>
-                                                    Domicile
-                                                </span>
-
-                                                <strong>
-                                                    {{ $beneficiaryProfile?->domicile ?? 'Not available' }}
-                                                </strong>
-
-                                            </div>
-
-
-                                            <div class="p-3">
-
-                                                <span class="d-block text-secondary small mb-2">
-                                                    Permanent Home Address
-                                                </span>
-
-
-                                                <div class="fw-semibold text-dark small lh-lg">
-
-                                                    {{
-                                                        $beneficiaryProfile?->home_address
-                                                        ?? 'Not available'
-                                                    }}
-
-                                                </div>
-
-                                            </div>
-
+                                        <div class="profile-address">
+                                            <span>Home Address</span>
+                                            <strong>{{ $beneficiaryProfile?->home_address ?? 'Not available' }}</strong>
                                         </div>
 
                                     </div>
@@ -1362,92 +1137,50 @@
                                 </div>
 
 
-
-                                {{-- =============================================
-                                    REQUEST INFORMATION
-                                ============================================== --}}
+                                {{-- Request Context --}}
                                 <div class="col-12">
 
-                                    <div class="card border-0 shadow-sm rounded-4">
+                                    <div class="profile-detail-card">
 
-                                        <div class="card-header bg-white border-bottom px-4 py-3">
+                                        <div class="profile-detail-header">
 
-                                            <div class="d-flex align-items-center gap-2">
+                                            <span class="profile-section-icon bg-secondary-subtle text-secondary">
+                                                <i class="bi bi-clipboard-check"></i>
+                                            </span>
 
-                                                <span
-                                                    class="d-inline-flex align-items-center justify-content-center rounded-circle bg-secondary-subtle text-secondary"
-                                                    style="width:38px;height:38px;"
-                                                >
-                                                    <i class="bi bi-clipboard-data"></i>
-                                                </span>
-
-
-                                                <h6 class="fw-bold text-dark mb-0">
-                                                    Current Request Information
+                                            <div>
+                                                <h6 class="fw-bold text-dark mb-1">
+                                                    Request Context
                                                 </h6>
 
+                                                <small class="text-secondary">
+                                                    Information related to this request
+                                                </small>
                                             </div>
 
                                         </div>
 
 
-                                        <div class="card-body">
+                                        <div class="row g-0">
 
-                                            <div class="row g-3">
+                                            <div class="col-12 col-md-3 request-context-item">
+                                                <span>Request ID</span>
+                                                <strong>#{{ $productRequest->id }}</strong>
+                                            </div>
 
+                                            <div class="col-12 col-md-3 request-context-item">
+                                                <span>Product</span>
+                                                <strong>{{ $productRequest->product?->name ?? 'Unavailable' }}</strong>
+                                            </div>
 
-                                                <div class="col-12 col-md-3">
+                                            <div class="col-12 col-md-3 request-context-item">
+                                                <span>Admin Status</span>
+                                                <strong class="text-capitalize">{{ $productRequest->admin_status }}</strong>
+                                            </div>
 
-                                                    <small class="d-block text-secondary mb-1">
-                                                        Request ID
-                                                    </small>
-
-                                                    <strong>
-                                                        #{{ $productRequest->id }}
-                                                    </strong>
-
-                                                </div>
-
-
-                                                <div class="col-12 col-md-3">
-
-                                                    <small class="d-block text-secondary mb-1">
-                                                        Product
-                                                    </small>
-
-                                                    <strong>
-                                                        {{ $productRequest->product?->name ?? 'Unavailable' }}
-                                                    </strong>
-
-                                                </div>
-
-
-                                                <div class="col-12 col-md-3">
-
-                                                    <small class="d-block text-secondary mb-1">
-                                                        Admin Status
-                                                    </small>
-
-                                                    <strong class="text-capitalize">
-                                                        {{ $productRequest->admin_status }}
-                                                    </strong>
-
-                                                </div>
-
-
-                                                <div class="col-12 col-md-3">
-
-                                                    <small class="d-block text-secondary mb-1">
-                                                        Donor Status
-                                                    </small>
-
-                                                    <strong class="text-capitalize">
-                                                        {{ $productRequest->donor_status }}
-                                                    </strong>
-
-                                                </div>
-
-
+                                            <div class="col-12 col-md-3 request-context-item">
+                                                <span>Donor Status</span>
+                                                <strong class="text-capitalize">{{ $productRequest->donor_status }}</strong>
                                             </div>
 
                                         </div>
@@ -1455,16 +1188,13 @@
                                     </div>
 
                                 </div>
-
 
                             </div>
 
                         </div>
 
 
-                        {{-- =================================================
-                            FOOTER
-                        ================================================== --}}
+                        {{-- Footer --}}
                         <div class="modal-footer bg-white border-top px-4 py-3">
 
                             <button
@@ -1473,7 +1203,6 @@
                                 data-bs-dismiss="modal"
                             >
                                 <i class="bi bi-x-circle me-1"></i>
-
                                 Close
                             </button>
 
@@ -1506,12 +1235,10 @@
 
                     <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
 
-
                         {{-- Header --}}
-                        <div class="modal-header bg-white border-bottom px-4 py-3">
+                        <div class="modal-header profile-modal-header px-4 py-3">
 
                             <div>
-
                                 <h5
                                     class="modal-title fw-bold text-dark mb-1"
                                     id="donorModalLabel{{ $productRequest->id }}"
@@ -1519,11 +1246,9 @@
                                     Donor Profile
                                 </h5>
 
-
                                 <p class="text-secondary small mb-0">
-                                    Review donor account, organization and contact details.
+                                    Review donor information for request #{{ $productRequest->id }}.
                                 </p>
-
                             </div>
 
 
@@ -1540,30 +1265,22 @@
                         {{-- Body --}}
                         <div class="modal-body bg-light p-4">
 
-
-                            {{-- =============================================
-                                PROFILE SUMMARY
-                            ============================================== --}}
+                            {{-- Profile Summary --}}
                             <div class="card border-0 shadow-sm rounded-4 mb-4">
 
                                 <div class="card-body p-4">
 
                                     <div class="row align-items-center g-4">
 
+                                        <div class="col-12 col-lg-auto text-center">
 
-                                        <div class="col-12 col-lg-auto">
-
-                                            <div class="text-center">
-
-                                                <img
-                                                    src="{{ $donorImage }}"
-                                                    alt="{{ $donor->name }}"
-                                                    width="125"
-                                                    height="125"
-                                                    class="rounded-circle border border-4 border-white shadow-sm object-fit-cover"
-                                                >
-
-                                            </div>
+                                            <img
+                                                src="{{ $donorImage }}"
+                                                alt="{{ $donor->name }}"
+                                                width="120"
+                                                height="120"
+                                                class="rounded-circle border border-4 border-white shadow-sm object-fit-cover"
+                                            >
 
                                         </div>
 
@@ -1580,41 +1297,25 @@
                                                             {{ $donor->name }}
                                                         </h4>
 
-
-                                                        <span class="badge rounded-pill bg-primary-subtle text-primary px-3 py-2">
+                                                        <span class="request-status status-neutral">
                                                             Donor
                                                         </span>
 
-
-                                                        <span class="badge rounded-pill {{ $donorAccountStatusBadge }} px-3 py-2">
-
-                                                            {{
-                                                                ucfirst(
-                                                                    $donor->account_status
-                                                                    ?? 'Unknown'
-                                                                )
-                                                            }}
-
+                                                        <span class="request-status {{ $donorAccountBadge }}">
+                                                            {{ ucfirst($donor->account_status ?? 'Unknown') }}
                                                         </span>
 
                                                     </div>
 
 
                                                     <p class="text-secondary mb-2">
-
                                                         <i class="bi bi-envelope me-2"></i>
-
                                                         {{ $donor->email }}
-
                                                     </p>
 
-
                                                     <p class="text-secondary mb-0">
-
                                                         <i class="bi bi-telephone me-2"></i>
-
                                                         {{ $donor->phone ?? 'Phone not available' }}
-
                                                     </p>
 
                                                 </div>
@@ -1626,7 +1327,7 @@
                                                         Donor ID
                                                     </small>
 
-                                                    <span class="fw-bold">
+                                                    <span class="fw-bold text-dark">
                                                         #{{ $donor->id }}
                                                     </span>
 
@@ -1643,111 +1344,59 @@
                             </div>
 
 
-
                             <div class="row g-4">
 
-
-                                {{-- =============================================
-                                    ACCOUNT
-                                ============================================== --}}
+                                {{-- Account --}}
                                 <div class="col-12 col-lg-6">
 
-                                    <div class="card border-0 shadow-sm rounded-4 h-100">
+                                    <div class="profile-detail-card h-100">
 
-                                        <div class="card-header bg-white border-bottom px-4 py-3">
+                                        <div class="profile-detail-header">
 
-                                            <div class="d-flex align-items-center gap-2">
+                                            <span class="profile-section-icon bg-primary-subtle text-primary">
+                                                <i class="bi bi-person"></i>
+                                            </span>
 
-                                                <span
-                                                    class="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary"
-                                                    style="width:38px;height:38px;"
-                                                >
-                                                    <i class="bi bi-person"></i>
-                                                </span>
-
-
-                                                <h6 class="fw-bold text-dark mb-0">
+                                            <div>
+                                                <h6 class="fw-bold text-dark mb-1">
                                                     Account Information
                                                 </h6>
 
+                                                <small class="text-secondary">
+                                                    Donor account details
+                                                </small>
                                             </div>
 
                                         </div>
 
 
-                                        <div class="card-body p-0">
+                                        <div class="profile-info-row">
+                                            <span>Full Name</span>
+                                            <strong>{{ $donor->name }}</strong>
+                                        </div>
 
-                                            <div class="profile-info-row">
+                                        <div class="profile-info-row">
+                                            <span>Email</span>
+                                            <strong class="text-break">{{ $donor->email }}</strong>
+                                        </div>
 
-                                                <span>
-                                                    Full Name
-                                                </span>
+                                        <div class="profile-info-row">
+                                            <span>Phone</span>
+                                            <strong>{{ $donor->phone ?? 'Not available' }}</strong>
+                                        </div>
 
-                                                <strong>
-                                                    {{ $donor->name }}
-                                                </strong>
+                                        <div class="profile-info-row">
+                                            <span>Account Status</span>
+                                            <strong class="text-capitalize">
+                                                {{ $donor->account_status ?? 'Not available' }}
+                                            </strong>
+                                        </div>
 
-                                            </div>
-
-
-                                            <div class="profile-info-row">
-
-                                                <span>
-                                                    Email
-                                                </span>
-
-                                                <strong class="text-break">
-                                                    {{ $donor->email }}
-                                                </strong>
-
-                                            </div>
-
-
-                                            <div class="profile-info-row">
-
-                                                <span>
-                                                    Phone
-                                                </span>
-
-                                                <strong>
-                                                    {{ $donor->phone ?? 'Not available' }}
-                                                </strong>
-
-                                            </div>
-
-
-                                            <div class="profile-info-row">
-
-                                                <span>
-                                                    Account Status
-                                                </span>
-
-                                                <strong class="text-capitalize">
-                                                    {{ $donor->account_status ?? 'Not available' }}
-                                                </strong>
-
-                                            </div>
-
-
-                                            <div class="profile-info-row border-bottom-0">
-
-                                                <span>
-                                                    Member Since
-                                                </span>
-
-                                                <strong>
-
-                                                    {{
-                                                        optional(
-                                                            $donor->created_at
-                                                        )->format('d M Y')
-                                                        ?? 'Not available'
-                                                    }}
-
-                                                </strong>
-
-                                            </div>
-
+                                        <div class="profile-info-row border-bottom-0">
+                                            <span>Member Since</span>
+                                            <strong>
+                                                {{ optional($donor->created_at)->format('d M Y') ?? 'Not available' }}
+                                            </strong>
                                         </div>
 
                                     </div>
@@ -1755,75 +1404,43 @@
                                 </div>
 
 
-
-                                {{-- =============================================
-                                    ORGANIZATION
-                                ============================================== --}}
+                                {{-- Organization --}}
                                 <div class="col-12 col-lg-6">
 
-                                    <div class="card border-0 shadow-sm rounded-4 h-100">
+                                    <div class="profile-detail-card h-100">
 
-                                        <div class="card-header bg-white border-bottom px-4 py-3">
+                                        <div class="profile-detail-header">
 
-                                            <div class="d-flex align-items-center gap-2">
+                                            <span class="profile-section-icon bg-success-subtle text-success">
+                                                <i class="bi bi-building"></i>
+                                            </span>
 
-                                                <span
-                                                    class="d-inline-flex align-items-center justify-content-center rounded-circle bg-success-subtle text-success"
-                                                    style="width:38px;height:38px;"
-                                                >
-                                                    <i class="bi bi-building"></i>
-                                                </span>
-
-
-                                                <h6 class="fw-bold text-dark mb-0">
+                                            <div>
+                                                <h6 class="fw-bold text-dark mb-1">
                                                     Organization Information
                                                 </h6>
 
+                                                <small class="text-secondary">
+                                                    Professional information
+                                                </small>
                                             </div>
 
                                         </div>
 
 
-                                        <div class="card-body p-0">
+                                        <div class="profile-info-row">
+                                            <span>Organization</span>
+                                            <strong>{{ $donorProfile?->organization ?? 'Not available' }}</strong>
+                                        </div>
 
-                                            <div class="profile-info-row">
+                                        <div class="profile-info-row">
+                                            <span>Designation</span>
+                                            <strong>{{ $donorProfile?->designation ?? 'Not available' }}</strong>
+                                        </div>
 
-                                                <span>
-                                                    Organization
-                                                </span>
-
-                                                <strong class="text-end">
-                                                    {{ $donorProfile?->organization ?? 'Not available' }}
-                                                </strong>
-
-                                            </div>
-
-
-                                            <div class="profile-info-row">
-
-                                                <span>
-                                                    Designation
-                                                </span>
-
-                                                <strong class="text-end">
-                                                    {{ $donorProfile?->designation ?? 'Not available' }}
-                                                </strong>
-
-                                            </div>
-
-
-                                            <div class="profile-info-row border-bottom-0">
-
-                                                <span>
-                                                    Country
-                                                </span>
-
-                                                <strong>
-                                                    {{ $donorProfile?->country ?? 'Not available' }}
-                                                </strong>
-
-                                            </div>
-
+                                        <div class="profile-info-row border-bottom-0">
+                                            <span>Country</span>
+                                            <strong>{{ $donorProfile?->country ?? 'Not available' }}</strong>
                                         </div>
 
                                     </div>
@@ -1831,78 +1448,43 @@
                                 </div>
 
 
-
-                                {{-- =============================================
-                                    CONTACT
-                                ============================================== --}}
+                                {{-- Contact --}}
                                 <div class="col-12 col-lg-6">
 
-                                    <div class="card border-0 shadow-sm rounded-4 h-100">
+                                    <div class="profile-detail-card h-100">
 
-                                        <div class="card-header bg-white border-bottom px-4 py-3">
+                                        <div class="profile-detail-header">
 
-                                            <div class="d-flex align-items-center gap-2">
+                                            <span class="profile-section-icon bg-info-subtle text-info-emphasis">
+                                                <i class="bi bi-envelope-paper"></i>
+                                            </span>
 
-                                                <span
-                                                    class="d-inline-flex align-items-center justify-content-center rounded-circle bg-info-subtle text-info-emphasis"
-                                                    style="width:38px;height:38px;"
-                                                >
-                                                    <i class="bi bi-envelope"></i>
-                                                </span>
-
-
-                                                <h6 class="fw-bold text-dark mb-0">
+                                            <div>
+                                                <h6 class="fw-bold text-dark mb-1">
                                                     Contact Information
                                                 </h6>
 
+                                                <small class="text-secondary">
+                                                    Communication details
+                                                </small>
                                             </div>
 
                                         </div>
 
 
-                                        <div class="card-body p-0">
+                                        <div class="profile-info-row">
+                                            <span>Email Address</span>
+                                            <strong class="text-break">{{ $donor->email }}</strong>
+                                        </div>
 
-                                            <div class="profile-info-row">
+                                        <div class="profile-info-row">
+                                            <span>Phone Number</span>
+                                            <strong>{{ $donor->phone ?? 'Not available' }}</strong>
+                                        </div>
 
-                                                <span>
-                                                    Email Address
-                                                </span>
-
-                                                <strong class="text-break">
-                                                    {{ $donor->email }}
-                                                </strong>
-
-                                            </div>
-
-
-                                            <div class="profile-info-row">
-
-                                                <span>
-                                                    Phone Number
-                                                </span>
-
-                                                <strong>
-                                                    {{ $donor->phone ?? 'Not available' }}
-                                                </strong>
-
-                                            </div>
-
-
-                                            <div class="p-3">
-
-                                                <span class="d-block text-secondary small mb-2">
-                                                    Address
-                                                </span>
-
-
-                                                <div class="fw-semibold small text-dark lh-lg">
-
-                                                    {{ $donorProfile?->address ?? 'Not available' }}
-
-                                                </div>
-
-                                            </div>
-
+                                        <div class="profile-address">
+                                            <span>Address</span>
+                                            <strong>{{ $donorProfile?->address ?? 'Not available' }}</strong>
                                         </div>
 
                                     </div>
@@ -1910,122 +1492,60 @@
                                 </div>
 
 
-
-                                {{-- =============================================
-                                    REQUEST DETAILS
-                                ============================================== --}}
+                                {{-- Request --}}
                                 <div class="col-12 col-lg-6">
 
-                                    <div class="card border-0 shadow-sm rounded-4 h-100">
+                                    <div class="profile-detail-card h-100">
 
-                                        <div class="card-header bg-white border-bottom px-4 py-3">
+                                        <div class="profile-detail-header">
 
-                                            <div class="d-flex align-items-center gap-2">
+                                            <span class="profile-section-icon bg-warning-subtle text-warning-emphasis">
+                                                <i class="bi bi-clipboard-data"></i>
+                                            </span>
 
-                                                <span
-                                                    class="d-inline-flex align-items-center justify-content-center rounded-circle bg-warning-subtle text-warning-emphasis"
-                                                    style="width:38px;height:38px;"
-                                                >
-                                                    <i class="bi bi-clipboard-check"></i>
-                                                </span>
-
-
-                                                <h6 class="fw-bold text-dark mb-0">
+                                            <div>
+                                                <h6 class="fw-bold text-dark mb-1">
                                                     Request Information
                                                 </h6>
 
+                                                <small class="text-secondary">
+                                                    Current request state
+                                                </small>
                                             </div>
 
                                         </div>
 
 
-                                        <div class="card-body p-0">
+                                        <div class="profile-info-row">
+                                            <span>Request ID</span>
+                                            <strong>#{{ $productRequest->id }}</strong>
+                                        </div>
 
-                                            <div class="profile-info-row">
+                                        <div class="profile-info-row">
+                                            <span>Product</span>
+                                            <strong>{{ $productRequest->product?->name ?? 'Not available' }}</strong>
+                                        </div>
 
-                                                <span>
-                                                    Request ID
-                                                </span>
+                                        <div class="profile-info-row">
+                                            <span>Admin Decision</span>
+                                            <strong class="text-capitalize">{{ $productRequest->admin_status }}</strong>
+                                        </div>
 
-                                                <strong>
-                                                    #{{ $productRequest->id }}
-                                                </strong>
+                                        <div class="profile-info-row">
+                                            <span>Donor Decision</span>
+                                            <strong class="text-capitalize">{{ $productRequest->donor_status }}</strong>
+                                        </div>
 
-                                            </div>
-
-
-                                            <div class="profile-info-row">
-
-                                                <span>
-                                                    Product
-                                                </span>
-
-                                                <strong class="text-end">
-                                                    {{ $productRequest->product?->name ?? 'Not available' }}
-                                                </strong>
-
-                                            </div>
-
-
-                                            <div class="profile-info-row">
-
-                                                <span>
-                                                    Admin Decision
-                                                </span>
-
-                                                <strong class="text-capitalize">
-                                                    {{ $productRequest->admin_status }}
-                                                </strong>
-
-                                            </div>
-
-
-                                            <div class="profile-info-row">
-
-                                                <span>
-                                                    Donor Decision
-                                                </span>
-
-                                                <strong>
-
-                                                    {{
-                                                        $productRequest->donor_status === 'pending'
-                                                            ? 'Waiting'
-                                                            : ucfirst(
-                                                                $productRequest->donor_status
-                                                            )
-                                                    }}
-
-                                                </strong>
-
-                                            </div>
-
-
-                                            <div class="profile-info-row border-bottom-0">
-
-                                                <span>
-                                                    Request Date
-                                                </span>
-
-                                                <strong>
-
-                                                    {{
-                                                        optional(
-                                                            $productRequest->created_at
-                                                        )->format('d M Y')
-                                                        ?? 'Not available'
-                                                    }}
-
-                                                </strong>
-
-                                            </div>
-
+                                        <div class="profile-info-row border-bottom-0">
+                                            <span>Request Date</span>
+                                            <strong>
+                                                {{ optional($productRequest->created_at)->format('d M Y') ?? 'Not available' }}
+                                            </strong>
                                         </div>
 
                                     </div>
 
                                 </div>
-
 
                             </div>
 
@@ -2041,7 +1561,6 @@
                                 data-bs-dismiss="modal"
                             >
                                 <i class="bi bi-x-circle me-1"></i>
-
                                 Close
                             </button>
 
@@ -2059,19 +1578,453 @@
 
 
 
-    {{-- =========================================================
-        MODAL STYLES
-    ========================================================== --}}
+    {{-- =============================================================
+        REQUEST DECISION MODAL
+    ============================================================= --}}
+    <div
+        class="modal fade"
+        id="requestDecisionModal"
+        tabindex="-1"
+        aria-labelledby="requestDecisionModalLabel"
+        aria-hidden="true"
+    >
+
+        <div class="modal-dialog modal-dialog-centered">
+
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+
+                <div class="modal-header border-bottom px-4 py-3">
+
+                    <div>
+
+                        <h5
+                            class="modal-title fw-bold text-dark mb-1"
+                            id="requestDecisionModalLabel"
+                        >
+                            Confirm Request Decision
+                        </h5>
+
+                        <p class="text-secondary small mb-0">
+                            Please verify your decision before continuing.
+                        </p>
+
+                    </div>
+
+
+                    <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Close"
+                    ></button>
+
+                </div>
+
+
+                <form
+                    method="POST"
+                    action=""
+                    id="requestDecisionForm"
+                >
+
+                    @csrf
+
+                    <input
+                        type="hidden"
+                        name="admin_status"
+                        id="decisionStatus"
+                        value=""
+                    >
+
+
+                    <div class="modal-body p-4">
+
+                        <div
+                            id="decisionIcon"
+                            class="decision-modal-icon mb-3"
+                        >
+                            <i class="bi bi-question-lg"></i>
+                        </div>
+
+
+                        <h6
+                            id="decisionHeading"
+                            class="fw-bold text-dark mb-2"
+                        >
+                            Confirm decision
+                        </h6>
+
+
+                        <p
+                            id="decisionText"
+                            class="text-secondary mb-0"
+                        >
+                            Are you sure you want to update this request?
+                        </p>
+
+
+                        <div
+                            id="decisionNotice"
+                            class="alert alert-light border small mt-3 mb-0"
+                        >
+                            <i class="bi bi-info-circle me-1"></i>
+                            The request status can be changed again later.
+                        </div>
+
+                    </div>
+
+
+                    <div class="modal-footer border-top px-4 py-3">
+
+                        <button
+                            type="button"
+                            class="btn btn-light border"
+                            data-bs-dismiss="modal"
+                        >
+                            Cancel
+                        </button>
+
+
+                        <button
+                            type="submit"
+                            id="decisionSubmitButton"
+                            class="btn btn-primary"
+                        >
+                            Confirm
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    {{-- =============================================================
+        PAGE STYLES
+    ============================================================= --}}
     <style>
 
-        /*
-        |--------------------------------------------------------------------------
-        | Profile Modal
-        |--------------------------------------------------------------------------
-        */
+        .request-stat-card {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+
+            padding: 18px;
+
+            background: #ffffff;
+
+            border: 1px solid #edf0f3;
+            border-radius: 16px;
+
+            box-shadow: 0 4px 18px rgba(31, 45, 61, 0.05);
+        }
+
+
+        .request-stat-icon {
+            width: 50px;
+            height: 50px;
+
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            flex-shrink: 0;
+
+            border-radius: 14px;
+
+            font-size: 1.25rem;
+        }
+
+
+        .request-stat-label {
+            color: #6c757d;
+
+            font-size: 0.82rem;
+            font-weight: 500;
+        }
+
+
+        .request-stat-value {
+            color: #212529;
+
+            font-size: 1.45rem;
+            font-weight: 700;
+
+            line-height: 1.2;
+
+            margin-top: 2px;
+        }
+
+
+        .request-legend {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+
+            padding: 6px 10px;
+
+            color: #6c757d;
+
+            background: #f8f9fa;
+
+            border: 1px solid #edf0f3;
+            border-radius: 999px;
+
+            font-size: 0.76rem;
+            font-weight: 600;
+        }
+
+
+        .request-legend-dot {
+            width: 7px;
+            height: 7px;
+
+            border-radius: 50%;
+        }
+
+
+        .request-table {
+            min-width: 1180px;
+        }
+
+
+        .request-table thead th {
+            padding-top: 14px;
+            padding-bottom: 14px;
+
+            color: #6c757d;
+
+            background: #f8f9fb;
+
+            border-bottom: 1px solid #edf0f3;
+
+            font-size: 0.74rem;
+            font-weight: 700;
+
+            text-transform: uppercase;
+            letter-spacing: 0.035em;
+
+            white-space: nowrap;
+        }
+
+
+        .request-table tbody td {
+            padding-top: 16px;
+            padding-bottom: 16px;
+
+            border-color: #f0f2f4;
+        }
+
+
+        .request-table tbody tr {
+            transition:
+                background-color 0.18s ease,
+                box-shadow 0.18s ease;
+        }
+
+
+        .request-table tbody tr:hover {
+            background: #fbfcfd;
+        }
+
+
+        .request-number {
+            color: #212529;
+
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+
+        .request-product {
+            min-width: 230px;
+        }
+
+
+        .request-product-image {
+            flex-shrink: 0;
+
+            border: 1px solid #e6e9ed;
+            border-radius: 12px;
+
+            object-fit: cover;
+
+            background: #f8f9fa;
+        }
+
+
+        .request-product-name {
+            max-width: 180px;
+        }
+
+
+        .person-summary {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+
+            min-width: 165px;
+            max-width: 210px;
+        }
+
+
+        .person-avatar {
+            width: 36px;
+            height: 36px;
+
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            flex-shrink: 0;
+
+            border-radius: 50%;
+
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+
+        .min-w-0 {
+            min-width: 0;
+        }
+
+
+        .request-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+
+            padding: 6px 10px;
+
+            border-radius: 999px;
+
+            font-size: 0.76rem;
+            font-weight: 700;
+
+            white-space: nowrap;
+        }
+
+
+        .status-approved {
+            color: #137333;
+            background: #e8f5e9;
+        }
+
+
+        .status-rejected {
+            color: #b3261e;
+            background: #fce8e6;
+        }
+
+
+        .status-pending {
+            color: #8a5a00;
+            background: #fff3cd;
+        }
+
+
+        .status-waiting {
+            color: #075985;
+            background: #e0f2fe;
+        }
+
+
+        .status-neutral {
+            color: #495057;
+            background: #eef1f4;
+        }
+
+
+        .empty-state {
+            max-width: 420px;
+
+            margin: 0 auto;
+        }
+
+
+        .empty-state-icon {
+            width: 64px;
+            height: 64px;
+
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            margin-bottom: 14px;
+
+            color: #6c757d;
+            background: #f1f3f5;
+
+            border-radius: 50%;
+
+            font-size: 1.7rem;
+        }
+
+
+        .dropdown-menu {
+            min-width: 220px;
+        }
+
+
+        .dropdown-item {
+            padding-top: 9px;
+            padding-bottom: 9px;
+
+            font-size: 0.875rem;
+        }
+
 
         .modal-xl {
-            --bs-modal-width: 1140px;
+            --bs-modal-width: 1120px;
+        }
+
+
+        .profile-modal-header {
+            background: #ffffff;
+        }
+
+
+        .profile-detail-card {
+            overflow: hidden;
+
+            background: #ffffff;
+
+            border: 1px solid #edf0f3;
+            border-radius: 16px;
+
+            box-shadow: 0 3px 14px rgba(31, 45, 61, 0.04);
+        }
+
+
+        .profile-detail-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            padding: 16px;
+
+            border-bottom: 1px solid #edf0f3;
+        }
+
+
+        .profile-section-icon {
+            width: 40px;
+            height: 40px;
+
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            flex-shrink: 0;
+
+            border-radius: 12px;
         }
 
 
@@ -2079,11 +2032,11 @@
             display: flex;
             align-items: flex-start;
             justify-content: space-between;
-            gap: 24px;
+            gap: 20px;
 
-            padding: 14px 16px;
+            padding: 13px 16px;
 
-            border-bottom: 1px solid #e9ecef;
+            border-bottom: 1px solid #edf0f3;
         }
 
 
@@ -2092,7 +2045,7 @@
 
             color: #6c757d;
 
-            font-size: 0.875rem;
+            font-size: 0.84rem;
         }
 
 
@@ -2101,8 +2054,7 @@
 
             color: #212529;
 
-            font-size: 0.875rem;
-
+            font-size: 0.84rem;
             font-weight: 600;
 
             text-align: right;
@@ -2111,42 +2063,85 @@
         }
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Modal Scroll
-        |--------------------------------------------------------------------------
-        */
-
-        .modal-dialog-scrollable .modal-content {
-            max-height: calc(100vh - 40px);
+        .profile-address {
+            padding: 16px;
         }
 
 
-        .modal-dialog-scrollable .modal-body {
-            overflow-y: auto;
+        .profile-address > span {
+            display: block;
+
+            color: #6c757d;
+
+            font-size: 0.84rem;
+
+            margin-bottom: 7px;
         }
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Cards
-        |--------------------------------------------------------------------------
-        */
+        .profile-address > strong {
+            color: #212529;
 
-        .modal-body .card {
-            transition:
-                transform 0.2s ease,
-                box-shadow 0.2s ease;
+            font-size: 0.84rem;
+            font-weight: 600;
+
+            line-height: 1.6;
         }
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Responsive
-        |--------------------------------------------------------------------------
-        */
+        .request-context-item {
+            padding: 16px;
+
+            border-right: 1px solid #edf0f3;
+        }
+
+
+        .request-context-item:last-child {
+            border-right: 0;
+        }
+
+
+        .request-context-item > span {
+            display: block;
+
+            color: #6c757d;
+
+            font-size: 0.78rem;
+
+            margin-bottom: 4px;
+        }
+
+
+        .request-context-item > strong {
+            color: #212529;
+
+            font-size: 0.87rem;
+        }
+
+
+        .decision-modal-icon {
+            width: 56px;
+            height: 56px;
+
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 16px;
+
+            color: #0d6efd;
+            background: #e7f1ff;
+
+            font-size: 1.4rem;
+        }
+
 
         @media (max-width: 767.98px) {
+
+            .request-stat-card {
+                padding: 15px;
+            }
+
 
             .profile-info-row {
                 flex-direction: column;
@@ -2168,6 +2163,17 @@
             }
 
 
+            .request-context-item {
+                border-right: 0;
+                border-bottom: 1px solid #edf0f3;
+            }
+
+
+            .request-context-item:last-child {
+                border-bottom: 0;
+            }
+
+
             .modal-body {
                 padding: 16px !important;
             }
@@ -2177,6 +2183,195 @@
     </style>
 
 
+
     @include('layouts.admin.script')
+
+
+    {{-- =============================================================
+        PAGE JAVASCRIPT
+    ============================================================= --}}
+    <script>
+
+        document.addEventListener(
+            'DOMContentLoaded',
+            function () {
+
+                const decisionButtons =
+                    document.querySelectorAll(
+                        '.request-decision-btn'
+                    );
+
+                const decisionForm =
+                    document.getElementById(
+                        'requestDecisionForm'
+                    );
+
+                const decisionStatus =
+                    document.getElementById(
+                        'decisionStatus'
+                    );
+
+                const decisionHeading =
+                    document.getElementById(
+                        'decisionHeading'
+                    );
+
+                const decisionText =
+                    document.getElementById(
+                        'decisionText'
+                    );
+
+                const decisionNotice =
+                    document.getElementById(
+                        'decisionNotice'
+                    );
+
+                const decisionIcon =
+                    document.getElementById(
+                        'decisionIcon'
+                    );
+
+                const decisionSubmitButton =
+                    document.getElementById(
+                        'decisionSubmitButton'
+                    );
+
+
+                decisionButtons.forEach(
+                    function (button) {
+
+                        button.addEventListener(
+                            'click',
+                            function () {
+
+                                if (
+                                    !decisionForm ||
+                                    !decisionStatus
+                                ) {
+                                    return;
+                                }
+
+
+                                const action =
+                                    this.getAttribute(
+                                        'data-action'
+                                    );
+
+                                const status =
+                                    this.getAttribute(
+                                        'data-status'
+                                    );
+
+                                const requestId =
+                                    this.getAttribute(
+                                        'data-request-id'
+                                    );
+
+                                const product =
+                                    this.getAttribute(
+                                        'data-product'
+                                    );
+
+
+                                decisionForm.action =
+                                    action;
+
+                                decisionStatus.value =
+                                    status;
+
+
+                                if (
+                                    status ===
+                                    'approved'
+                                ) {
+
+                                    if (decisionHeading) {
+                                        decisionHeading.textContent =
+                                            'Approve Request #' +
+                                            requestId;
+                                    }
+
+                                    if (decisionText) {
+                                        decisionText.textContent =
+                                            'Approve the request for "' +
+                                            product +
+                                            '" and make it available for donor review?';
+                                    }
+
+                                    if (decisionNotice) {
+                                        decisionNotice.innerHTML =
+                                            '<i class="bi bi-info-circle me-1"></i>' +
+                                            'If the donor has not already made a final decision, donor status will remain pending.';
+                                    }
+
+                                    if (decisionIcon) {
+                                        decisionIcon.className =
+                                            'decision-modal-icon mb-3 text-success bg-success-subtle';
+
+                                        decisionIcon.innerHTML =
+                                            '<i class="bi bi-check-lg"></i>';
+                                    }
+
+                                    if (
+                                        decisionSubmitButton
+                                    ) {
+                                        decisionSubmitButton.className =
+                                            'btn btn-success';
+
+                                        decisionSubmitButton.innerHTML =
+                                            '<i class="bi bi-check-lg me-1"></i>Approve Request';
+                                    }
+
+                                } else {
+
+                                    if (decisionHeading) {
+                                        decisionHeading.textContent =
+                                            'Reject Request #' +
+                                            requestId;
+                                    }
+
+                                    if (decisionText) {
+                                        decisionText.textContent =
+                                            'Reject the request for "' +
+                                            product +
+                                            '"?';
+                                    }
+
+                                    if (decisionNotice) {
+                                        decisionNotice.innerHTML =
+                                            '<i class="bi bi-exclamation-triangle me-1"></i>' +
+                                            'Rejecting this request resets the donor decision to pending.';
+                                    }
+
+                                    if (decisionIcon) {
+                                        decisionIcon.className =
+                                            'decision-modal-icon mb-3 text-danger bg-danger-subtle';
+
+                                        decisionIcon.innerHTML =
+                                            '<i class="bi bi-x-lg"></i>';
+                                    }
+
+                                    if (
+                                        decisionSubmitButton
+                                    ) {
+                                        decisionSubmitButton.className =
+                                            'btn btn-danger';
+
+                                        decisionSubmitButton.innerHTML =
+                                            '<i class="bi bi-x-lg me-1"></i>Reject Request';
+                                    }
+
+                                }
+
+                            }
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+    </script>
 
 </body>

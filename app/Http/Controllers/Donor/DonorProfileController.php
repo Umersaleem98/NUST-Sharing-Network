@@ -3,123 +3,298 @@
 namespace App\Http\Controllers\Donor;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\View\View;
+use Throwable;
 
 class DonorProfileController extends Controller
 {
-    public function index()
+    /*
+    |--------------------------------------------------------------------------
+    | Donor Profile
+    |--------------------------------------------------------------------------
+    */
+    public function index(): View
     {
         $user = Auth::user();
 
-        // Load donor profile
+        abort_if(! $user || $user->role !== 'donor', 403);
+
         $user->load('donorProfile');
 
-        return view('pages.donor.profile.index', compact('user'));
+        $profileFields = [
+            $user->name,
+            $user->email,
+            $user->phone,
+            $user->image,
+            $user->donorProfile?->organization,
+            $user->donorProfile?->designation,
+            $user->donorProfile?->country,
+            $user->donorProfile?->address,
+        ];
+
+        $completedFields = collect($profileFields)
+            ->filter(fn ($value) => filled($value))
+            ->count();
+
+        $profileCompletion = (int) round(
+            ($completedFields / count($profileFields)) * 100
+        );
+
+        return view(
+            'pages.donor.profile.index',
+            compact('user', 'profileCompletion')
+        );
     }
 
-    public function update(Request $request)
+    /*
+    |--------------------------------------------------------------------------
+    | Update Donor Profile
+    |--------------------------------------------------------------------------
+    */
+    public function update(Request $request): RedirectResponse
     {
         $user = Auth::user();
 
-        // VALIDATION
-        $request->validate([
+        abort_if(! $user || $user->role !== 'donor', 403);
 
-            'name' => 'required|string|max:255',
+        $validated = $request->validate(
+            [
+                'phone' => [
+                    'nullable',
+                    'string',
+                    'max:20',
+                ],
 
-            'email' => 'required|email|max:255|unique:users,email,'.$user->id,
-            'phone' => 'nullable|string|max:20',
+                'organization' => [
+                    'nullable',
+                    'string',
+                    'max:255',
+                ],
 
-            // DONOR PROFILE
-            'organization' => 'nullable|string|max:255',
-            'designation' => 'nullable|string|max:255',
-            'country' => 'nullable|string|max:255',
-            'address' => 'nullable|string|max:500',
+                'designation' => [
+                    'nullable',
+                    'string',
+                    'max:255',
+                ],
 
-            // IMAGE
-            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+                'country' => [
+                    'nullable',
+                    'string',
+                    'max:255',
+                ],
 
-            // PASSWORD
-            'current_password' => 'nullable|required_with:password',
-            'password' => 'nullable|min:6|confirmed',
+                'address' => [
+                    'nullable',
+                    'string',
+                    'max:500',
+                ],
 
-        ]);
+                'image' => [
+                    'nullable',
+                    'file',
+                    'image',
+                    'mimes:jpg,jpeg,png,webp',
+                    'max:200',
+                ],
 
-        // IMAGE UPLOAD
-        if ($request->hasFile('image')) {
+                'current_password' => [
+                    'nullable',
+                    'string',
+                    'required_with:password',
+                ],
 
-            $uploadPath = public_path('admins/asset/profilephoto');
+                'password' => [
+                    'nullable',
+                    'required_with:password_confirmation',
+                    'string',
+                    'min:8',
+                    'max:255',
+                    'confirmed',
+                ],
 
-            // CREATE FOLDER
-            if (! File::exists($uploadPath)) {
+                'password_confirmation' => [
+                    'nullable',
+                    'required_with:password',
+                    'string',
+                    'min:8',
+                    'max:255',
+                ],
+            ],
+            [
+                'image.image' =>
+                    'The selected profile file must be a valid image.',
 
-                File::makeDirectory($uploadPath, 0777, true);
+                'image.mimes' =>
+                    'The profile image must be a JPG, JPEG, PNG or WebP file.',
 
+                'image.max' =>
+                    'The profile image must not be larger than 200 KB.',
+
+                'current_password.required_with' =>
+                    'Please enter your current password before setting a new password.',
+
+                'password.required_with' =>
+                    'Please enter a new password.',
+
+                'password.min' =>
+                    'The new password must be at least 8 characters.',
+
+                'password.confirmed' =>
+                    'The new password and confirmation do not match.',
+
+                'password_confirmation.required_with' =>
+                    'Please confirm your new password.',
+            ]
+        );
+
+        if (
+            ! empty($validated['password'])
+            && ! Hash::check(
+                (string) ($validated['current_password'] ?? ''),
+                $user->password
+            )
+        ) {
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'current_password' =>
+                        'The current password you entered is incorrect.',
+                ]);
+        }
+
+        $uploadPath = public_path('admins/asset/profilephoto');
+        $oldImageName = $user->image;
+        $newImageName = null;
+
+        try {
+            if ($request->hasFile('image')) {
+                File::ensureDirectoryExists(
+                    $uploadPath,
+                    0755,
+                    true
+                );
+
+                if (! is_writable($uploadPath)) {
+                    throw new \RuntimeException(
+                        'Profile image directory is not writable: '.$uploadPath
+                    );
+                }
+
+                $image = $request->file('image');
+
+                if (! $image || ! $image->isValid()) {
+                    throw new \RuntimeException(
+                        'The uploaded profile image is not valid.'
+                    );
+                }
+
+                $extension = strtolower(
+                    $image->extension()
+                    ?: $image->getClientOriginalExtension()
+                );
+
+                if ($extension === 'jpeg') {
+                    $extension = 'jpg';
+                }
+
+                $newImageName =
+                    'donor-'
+                    .$user->id
+                    .'-'
+                    .Str::uuid()
+                    .'.'
+                    .$extension;
+
+                $image->move(
+                    $uploadPath,
+                    $newImageName
+                );
             }
 
-            // DELETE OLD IMAGE
-            if ($user->image) {
+            DB::transaction(
+                function () use (
+                    $user,
+                    $validated,
+                    $newImageName
+                ): void {
+                    $user->phone =
+                        $validated['phone'] ?? null;
 
-                $oldImage = $uploadPath.'/'.$user->image;
+                    if ($newImageName) {
+                        $user->image = $newImageName;
+                    }
 
-                if (File::exists($oldImage)) {
+                    if (! empty($validated['password'])) {
+                        $user->password = Hash::make(
+                            $validated['password']
+                        );
+                    }
 
-                    File::delete($oldImage);
+                    $user->save();
 
+                    $user->donorProfile()->updateOrCreate(
+                        [
+                            'user_id' => $user->id,
+                        ],
+                        [
+                            'organization' =>
+                                $validated['organization'] ?? null,
+
+                            'designation' =>
+                                $validated['designation'] ?? null,
+
+                            'country' =>
+                                $validated['country'] ?? null,
+
+                            'address' =>
+                                $validated['address'] ?? null,
+                        ]
+                    );
+                }
+            );
+
+            if (
+                $newImageName
+                && $oldImageName
+                && $oldImageName !== $newImageName
+            ) {
+                $oldImagePath =
+                    $uploadPath.DIRECTORY_SEPARATOR.$oldImageName;
+
+                if (File::exists($oldImagePath)) {
+                    File::delete($oldImagePath);
                 }
             }
 
-            // NEW FILE NAME
-            $filename = time().'_'.Str::random(10).'.'.
-                        $request->image->getClientOriginalExtension();
+            return back()->with(
+                'success',
+                'Profile updated successfully.'
+            );
+        } catch (Throwable $exception) {
+            if ($newImageName) {
+                $newImagePath =
+                    $uploadPath.DIRECTORY_SEPARATOR.$newImageName;
 
-            // MOVE FILE
-            $request->image->move($uploadPath, $filename);
-
-            // SAVE FILE NAME
-            $user->image = $filename;
-        }
-
-        // UPDATE USER
-        $user->name = $request->name;
-        $user->email = $request->email;
-        $user->phone = $request->phone;
-        // PASSWORD UPDATE
-        if ($request->filled('password')) {
-
-            if (! Hash::check($request->current_password, $user->password)) {
-
-                return back()->withErrors([
-
-                    'current_password' => 'Current password is incorrect',
-
-                ]);
+                if (File::exists($newImagePath)) {
+                    File::delete($newImagePath);
+                }
             }
 
-            $user->password = Hash::make($request->password);
+            report($exception);
+
+            return back()
+                ->withInput()
+                ->with(
+                    'error',
+                    'Your profile could not be updated. Please try again.'
+                );
         }
-
-        $user->save();
-
-        // UPDATE DONOR PROFILE
-        $user->donorProfile()->updateOrCreate(
-
-            [
-                'user_id' => $user->id,
-            ],
-
-            [
-                'organization' => $request->organization,
-                'designation' => $request->designation,
-                'country' => $request->country,
-                'address' => $request->address,
-            ]
-
-        );
-
-        return back()->with('success', 'Profile updated successfully.');
     }
 }
