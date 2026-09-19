@@ -47,6 +47,42 @@ Route::post('/cookie-accept', [CookieConsentController::class, 'accept'])->middl
 Route::post('/cookie-reject', [CookieConsentController::class, 'reject'])->middleware('throttle:10,1')->name('cookie.reject');
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
+Route::get(
+    '/forgot-password',
+    [AuthController::class, 'showForgotPasswordForm']
+)
+    ->middleware('guest')
+    ->name('password.request');
+
+
+Route::post(
+    '/forgot-password',
+    [AuthController::class, 'sendPasswordResetLink']
+)
+    ->middleware([
+        'guest',
+        'throttle:5,1',
+    ])
+    ->name('password.email');
+
+
+Route::get(
+    '/reset-password/{token}',
+    [AuthController::class, 'showResetPasswordForm']
+)
+    ->middleware('guest')
+    ->name('password.reset');
+
+
+Route::post(
+    '/reset-password',
+    [AuthController::class, 'resetPassword']
+)
+    ->middleware([
+        'guest',
+        'throttle:5,1',
+    ])
+    ->name('password.update');
 Route::get('/register', [AuthController::class,'showRegistrationForm'])->name('register');
 Route::post('/register', [AuthController::class,'register'])->name('register.post');
   Route::get('/email/verify', [AuthController::class,'showEmailVerificationNotice',])->name('verification.notice');

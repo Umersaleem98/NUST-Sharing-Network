@@ -418,6 +418,31 @@
         margin-bottom: 20px;
     }
 
+
+    .login-success {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        margin-bottom: 22px;
+        padding: 14px 16px;
+        border: 1px solid #b9e1c8;
+        border-radius: 12px;
+        color: #146c43;
+        background-color: #effaf3;
+        font-size: 0.88rem;
+    }
+
+    .forgot-password-link {
+        color: var(--auth-primary);
+        font-size: 0.88rem;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    .forgot-password-link:hover {
+        text-decoration: underline;
+    }
+
     .remember-wrapper {
         display: inline-flex;
         gap: 8px;
@@ -705,6 +730,25 @@
                 </div>
 
 
+                {{-- Success / Status Message --}}
+                @if (session('success') || session('status'))
+
+                    <div class="login-success" role="alert">
+
+                        <i class="fa fa-check-circle mt-1"></i>
+
+                        <div>
+                            {{
+                                session('success')
+                                ?? session('status')
+                            }}
+                        </div>
+
+                    </div>
+
+                @endif
+
+
                 {{-- Validation Errors --}}
                 @if ($errors->any())
 
@@ -926,7 +970,7 @@
                     </div>
 
 
-                    {{-- Remember Me --}}
+                    {{-- Remember Me / Forgot Password --}}
                     <div class="form-options">
 
                         <label class="remember-wrapper">
@@ -943,6 +987,14 @@
                             </span>
 
                         </label>
+
+
+                        <a
+                            href="{{ route('password.request') }}"
+                            class="forgot-password-link"
+                        >
+                            Forgot password?
+                        </a>
 
                     </div>
 

@@ -4,12 +4,16 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password as PasswordRule;
 use Illuminate\View\View;
 
 class AuthController extends Controller
@@ -449,6 +453,219 @@ class AuthController extends Controller
             ->with(
                 'status',
                 'A new verification link has been sent to your email address.'
+            );
+    }
+
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Display Forgot Password Form
+    |--------------------------------------------------------------------------
+    */
+
+    public function showForgotPasswordForm(): View
+    {
+        return view(
+            'pages.auth.forgotpassword'
+        );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Send Password Reset Link
+    |--------------------------------------------------------------------------
+    */
+
+    public function sendPasswordResetLink(
+        Request $request
+    ): RedirectResponse {
+        $validated = $request->validate(
+            [
+                'email' => [
+                    'required',
+                    'email',
+                    'max:255',
+                    'exists:users,email',
+                ],
+            ],
+            [
+                'email.required' =>
+                    'Please enter your registered email address.',
+
+                'email.email' =>
+                    'Please enter a valid email address.',
+
+                'email.exists' =>
+                    'No account was found with this email address.',
+            ]
+        );
+
+
+        $status = Password::sendResetLink([
+            'email' => $validated['email'],
+        ]);
+
+
+        if ($status === Password::RESET_LINK_SENT) {
+            return back()
+                ->with(
+                    'status',
+                    'A secure password reset link has been sent to your email address.'
+                )
+                ->with(
+                    'email',
+                    $validated['email']
+                );
+        }
+
+
+        return back()
+            ->withErrors([
+                'email' => __($status),
+            ])
+            ->withInput(
+                $request->only('email')
+            );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Display Reset Password Form
+    |--------------------------------------------------------------------------
+    */
+
+    public function showResetPasswordForm(
+        Request $request,
+        string $token
+    ): View {
+        return view(
+            'pages.auth.resetpassword',
+            [
+                'token' => $token,
+                'email' => $request->query('email'),
+            ]
+        );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Reset Password
+    |--------------------------------------------------------------------------
+    */
+
+    public function resetPassword(
+        Request $request
+    ): RedirectResponse {
+        $validated = $request->validate(
+            [
+                'token' => [
+                    'required',
+                    'string',
+                ],
+
+                'email' => [
+                    'required',
+                    'email',
+                    'max:255',
+                    'exists:users,email',
+                ],
+
+                'password' => [
+                    'required',
+                    'confirmed',
+                    PasswordRule::min(8)
+                        ->max(64)
+                        ->mixedCase()
+                        ->numbers()
+                        ->symbols(),
+                ],
+
+                'password_confirmation' => [
+                    'required',
+                    'string',
+                ],
+            ],
+            [
+                'token.required' =>
+                    'The password reset token is missing.',
+
+                'email.required' =>
+                    'Please enter your registered email address.',
+
+                'email.email' =>
+                    'Please enter a valid email address.',
+
+                'email.exists' =>
+                    'No account was found with this email address.',
+
+                'password.required' =>
+                    'Please enter your new password.',
+
+                'password.confirmed' =>
+                    'The password confirmation does not match.',
+
+                'password_confirmation.required' =>
+                    'Please confirm your new password.',
+            ]
+        );
+
+
+        $status = Password::reset(
+            [
+                'email' =>
+                    $validated['email'],
+
+                'password' =>
+                    $validated['password'],
+
+                'password_confirmation' =>
+                    $validated['password_confirmation'],
+
+                'token' =>
+                    $validated['token'],
+            ],
+            function (
+                User $user,
+                string $password
+            ): void {
+                $user->forceFill([
+                    'password' =>
+                        Hash::make($password),
+                ]);
+
+                $user->setRememberToken(
+                    Str::random(60)
+                );
+
+                $user->save();
+
+                event(
+                    new PasswordReset($user)
+                );
+            }
+        );
+
+
+        if ($status === Password::PASSWORD_RESET) {
+            return redirect()
+                ->route('login')
+                ->with(
+                    'success',
+                    'Your password has been reset successfully. You can now sign in with your new password.'
+                );
+        }
+
+
+        return back()
+            ->withErrors([
+                'email' => __($status),
+            ])
+            ->withInput(
+                $request->only('email')
             );
     }
 
