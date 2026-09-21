@@ -2,14 +2,22 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Models\User;
 
 class BeneficiaryProfile extends Model
 {
-    protected $fillable = [
+    use HasFactory;
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Mass Assignable Fields
+    |--------------------------------------------------------------------------
+    */
+
+    protected $fillable = [
         'user_id',
 
         // Personal Information
@@ -36,16 +44,31 @@ class BeneficiaryProfile extends Model
         'home_address',
     ];
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Attribute Casting
+    |--------------------------------------------------------------------------
+    */
+
     protected $casts = [
-        'monthly_income' => 'decimal:2',
         'cgpa' => 'decimal:2',
+        'monthly_income' => 'decimal:2',
+        'enrollment_year' => 'integer',
+        'graduation_year' => 'integer',
     ];
 
-    /**
-     * Beneficiary belongs to a user.
-     */
+
+    /*
+    |--------------------------------------------------------------------------
+    | User Relationship
+    |--------------------------------------------------------------------------
+    */
+
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(
+            User::class
+        );
     }
 }

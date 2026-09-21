@@ -10,7 +10,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
-use Throwable;
 
 class BeneficiaryProductController extends Controller
 {
@@ -19,25 +18,63 @@ class BeneficiaryProductController extends Controller
     | Available Products
     |--------------------------------------------------------------------------
     */
+
     public function index(Request $request): View
     {
-        $productsQuery = Product::query()
-            ->with('category')
+        $user = Auth::user();
+
+        abort_if(
+            ! $user || $user->role !== 'beneficiary',
+            403
+        );
+
+        $validated = $request->validate([
+            'category_id' => [
+                'nullable',
+                'integer',
+                'exists:categories,id',
+            ],
+
+            'search' => [
+                'nullable',
+                'string',
+                'max:100',
+            ],
+        ]);
+
+        $productsQuery = Product::with('category')
             ->where('status', 'active');
 
-        if ($request->filled('category_id')) {
+
+        /*
+        |--------------------------------------------------------------------------
+        | Category Filter
+        |--------------------------------------------------------------------------
+        */
+
+        if (! empty($validated['category_id'])) {
+
             $productsQuery->where(
                 'category_id',
-                $request->input('category_id')
+                $validated['category_id']
             );
         }
 
-        if ($request->filled('search')) {
+
+        /*
+        |--------------------------------------------------------------------------
+        | Search
+        |--------------------------------------------------------------------------
+        */
+
+        if (! empty($validated['search'])) {
+
             $search = trim(
-                (string) $request->input('search')
+                $validated['search']
             );
 
             if ($search !== '') {
+
                 $productsQuery->whereAny(
                     [
                         'name',
@@ -49,14 +86,28 @@ class BeneficiaryProductController extends Controller
             }
         }
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | Products
+        |--------------------------------------------------------------------------
+        */
+
         $products = $productsQuery
             ->latest()
             ->paginate(12)
             ->withQueryString();
 
-        $categories = Category::query()
-            ->orderBy('name')
+
+        /*
+        |--------------------------------------------------------------------------
+        | Categories
+        |--------------------------------------------------------------------------
+        */
+
+        $categories = Category::orderBy('name')
             ->get();
+
 
         return view(
             'pages.beneficiary.products.index',
@@ -73,25 +124,65 @@ class BeneficiaryProductController extends Controller
     | Product Details
     |--------------------------------------------------------------------------
     */
+
     public function show(int $id): View
     {
-        $product = Product::query()
-            ->with('category')
+        $user = Auth::user();
+
+        abort_if(
+            ! $user || $user->role !== 'beneficiary',
+            403
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Product
+        |--------------------------------------------------------------------------
+        */
+
+        $product = Product::with('category')
             ->findOrFail($id);
 
-        $requestExists = ProductRequest::query()
-            ->where('product_id', $product->id)
-            ->where('beneficiary_id', Auth::id())
+
+        /*
+        |--------------------------------------------------------------------------
+        | Check Existing Request
+        |--------------------------------------------------------------------------
+        */
+
+        $requestExists = ProductRequest::where(
+            'product_id',
+            $product->id
+        )
+            ->where(
+                'beneficiary_id',
+                $user->id
+            )
             ->exists();
 
-        $relatedProducts = Product::query()
-            ->with('category')
+
+        /*
+        |--------------------------------------------------------------------------
+        | Related Products
+        |--------------------------------------------------------------------------
+        */
+
+        $relatedProducts = Product::with('category')
             ->where('status', 'active')
-            ->where('category_id', $product->category_id)
-            ->where('id', '!=', $product->id)
+            ->where(
+                'category_id',
+                $product->category_id
+            )
+            ->where(
+                'id',
+                '!=',
+                $product->id
+            )
             ->latest()
             ->limit(6)
             ->get();
+
 
         return view(
             'pages.beneficiary.products.show',
@@ -106,94 +197,168 @@ class BeneficiaryProductController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | Submit Product Request
+    | Send Product Request
     |--------------------------------------------------------------------------
     */
+
     public function sendRequest(int $id): RedirectResponse
     {
-        $product = Product::query()
-            ->findOrFail($id);
+        /*
+        |--------------------------------------------------------------------------
+        | Authenticated Beneficiary
+        |--------------------------------------------------------------------------
+        */
+
+        $user = Auth::user();
+
+        abort_if(
+            ! $user || $user->role !== 'beneficiary',
+            403
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Find Product
+        |--------------------------------------------------------------------------
+        */
+
+        $product = Product::findOrFail($id);
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Check Product Availability
+        |--------------------------------------------------------------------------
+        */
 
         if ($product->status !== 'active') {
+
             return back()->with(
                 'error',
                 'This product is currently unavailable and cannot be requested.'
             );
         }
 
-        $requestAlreadyExists = ProductRequest::query()
-            ->where('product_id', $product->id)
-            ->where('beneficiary_id', Auth::id())
+
+        /*
+        |--------------------------------------------------------------------------
+        | Prevent Duplicate Request
+        |--------------------------------------------------------------------------
+        */
+
+        $requestAlreadyExists = ProductRequest::where(
+            'product_id',
+            $product->id
+        )
+            ->where(
+                'beneficiary_id',
+                $user->id
+            )
             ->exists();
 
+
         if ($requestAlreadyExists) {
+
             return back()->with(
                 'error',
                 'You have already submitted a request for this product.'
             );
         }
 
-        try {
-            $productRequest = new ProductRequest();
 
-            $productRequest->beneficiary_id =
-                Auth::id();
+        /*
+        |--------------------------------------------------------------------------
+        | Create Product Request
+        |--------------------------------------------------------------------------
+        |
+        | Workflow:
+        |
+        | Beneficiary Request
+        |       ↓
+        | Admin = Pending
+        |       ↓
+        | Admin Approves
+        |       ↓
+        | Donor = Pending
+        |       ↓
+        | Donor Approves / Rejects
+        |
+        */
 
-            $productRequest->product_id =
-                $product->id;
+        $productRequest = new ProductRequest();
 
-            $productRequest->donor_id =
-                $product->user_id;
+        $productRequest->beneficiary_id =
+            $user->id;
 
-            $productRequest->status =
-                'pending';
+        $productRequest->product_id =
+            $product->id;
 
-            $productRequest->admin_status =
-                'pending';
+        $productRequest->donor_id =
+            $product->user_id;
 
-            $productRequest->donor_status =
-                'pending';
+        $productRequest->admin_status =
+            'pending';
 
-            $productRequest->donor_information_allowed =
-                false;
+        $productRequest->donor_status =
+            'pending';
 
-            $productRequest->save();
+        $productRequest->donor_information_allowed =
+            false;
 
-        } catch (Throwable $exception) {
-            report($exception);
+        $productRequest->save();
 
-            return back()->with(
-                'error',
-                'Your request could not be submitted. Please try again.'
-            );
-        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Redirect
+        |--------------------------------------------------------------------------
+        */
 
         return redirect()
             ->route('beneficiary.my.requests')
             ->with(
                 'success',
-                'Your product request was submitted successfully.'
+                'Your product request has been submitted successfully and is awaiting administrator approval.'
             );
     }
 
 
     /*
     |--------------------------------------------------------------------------
-    | Beneficiary Request History
+    | My Requests
     |--------------------------------------------------------------------------
     */
+
     public function myRequests(): View
     {
-        $beneficiaryId =
-            Auth::id();
+        /*
+        |--------------------------------------------------------------------------
+        | Authenticated Beneficiary
+        |--------------------------------------------------------------------------
+        */
 
-        $requests = ProductRequest::query()
-            ->with([
-                'product.category',
-            ])
+        $user = Auth::user();
+
+        abort_if(
+            ! $user || $user->role !== 'beneficiary',
+            403
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Beneficiary Requests
+        |--------------------------------------------------------------------------
+        */
+
+        $requests = ProductRequest::with([
+            'product.category',
+            'donor.donorProfile',
+        ])
             ->where(
                 'beneficiary_id',
-                $beneficiaryId
+                $user->id
             )
             ->latest()
             ->paginate(10);
@@ -201,39 +366,27 @@ class BeneficiaryProductController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Secure Donor Information Loading
+        | Protect Donor Information
         |--------------------------------------------------------------------------
+        |
+        | Donor information is visible only when:
+        |
+        | 1. Admin approved request
+        | 2. Donor approved request
+        | 3. Donor explicitly allowed information sharing
+        |
         */
+
         foreach ($requests as $productRequest) {
-            $adminAllowed =
-                $productRequest->admin_status ===
-                'approved';
 
-            $donorAccepted =
-                in_array(
-                    $productRequest->donor_status,
-                    [
-                        'accepted',
-                        'approved',
-                    ],
-                    true
-                );
+            $canViewDonorInformation =
+                $productRequest->admin_status === 'approved'
+                && $productRequest->donor_status === 'approved'
+                && (bool) $productRequest->donor_information_allowed;
 
-            $informationAllowed =
-                (bool) (
-                    $productRequest->donor_information_allowed
-                    ?? false
-                );
 
-            if (
-                $adminAllowed
-                && $donorAccepted
-                && $informationAllowed
-            ) {
-                $productRequest->loadMissing([
-                    'donor.donorProfile',
-                ]);
-            } else {
+            if (! $canViewDonorInformation) {
+
                 $productRequest->unsetRelation(
                     'donor'
                 );
@@ -241,74 +394,110 @@ class BeneficiaryProductController extends Controller
         }
 
 
+        /*
+        |--------------------------------------------------------------------------
+        | Request Statistics
+        |--------------------------------------------------------------------------
+        */
+
         $requestStats = [
-            'total' =>
-                ProductRequest::query()
-                    ->where(
-                        'beneficiary_id',
-                        $beneficiaryId
-                    )
-                    ->count(),
 
-            'admin_pending' =>
-                ProductRequest::query()
-                    ->where(
-                        'beneficiary_id',
-                        $beneficiaryId
-                    )
-                    ->where(
-                        'admin_status',
-                        'pending'
-                    )
-                    ->count(),
+            /*
+            |--------------------------------------------------------------------------
+            | Total
+            |--------------------------------------------------------------------------
+            */
 
-            'awaiting_donor' =>
-                ProductRequest::query()
-                    ->where(
-                        'beneficiary_id',
-                        $beneficiaryId
-                    )
-                    ->where(
-                        'admin_status',
-                        'approved'
-                    )
-                    ->where(
-                        'donor_status',
-                        'pending'
-                    )
-                    ->count(),
+            'total' => ProductRequest::where(
+                'beneficiary_id',
+                $user->id
+            )->count(),
 
-            'accepted' =>
-                ProductRequest::query()
-                    ->where(
-                        'beneficiary_id',
-                        $beneficiaryId
-                    )
-                    ->whereIn(
-                        'donor_status',
-                        [
-                            'accepted',
-                            'approved',
-                        ]
-                    )
-                    ->count(),
 
-            'rejected' =>
-                ProductRequest::query()
-                    ->where(
-                        'beneficiary_id',
-                        $beneficiaryId
-                    )
-                    ->whereAny(
-                        [
+            /*
+            |--------------------------------------------------------------------------
+            | Pending Admin Approval
+            |--------------------------------------------------------------------------
+            */
+
+            'admin_pending' => ProductRequest::where(
+                'beneficiary_id',
+                $user->id
+            )
+                ->where(
+                    'admin_status',
+                    'pending'
+                )
+                ->count(),
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Waiting For Donor
+            |--------------------------------------------------------------------------
+            */
+
+            'awaiting_donor' => ProductRequest::where(
+                'beneficiary_id',
+                $user->id
+            )
+                ->where(
+                    'admin_status',
+                    'approved'
+                )
+                ->where(
+                    'donor_status',
+                    'pending'
+                )
+                ->count(),
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Approved By Donor
+            |--------------------------------------------------------------------------
+            */
+
+            'accepted' => ProductRequest::where(
+                'beneficiary_id',
+                $user->id
+            )
+                ->where(
+                    'admin_status',
+                    'approved'
+                )
+                ->where(
+                    'donor_status',
+                    'approved'
+                )
+                ->count(),
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Rejected
+            |--------------------------------------------------------------------------
+            */
+
+            'rejected' => ProductRequest::where(
+                'beneficiary_id',
+                $user->id
+            )
+                ->where(function ($query) {
+
+                    $query
+                        ->where(
                             'admin_status',
+                            'rejected'
+                        )
+                        ->orWhere(
                             'donor_status',
-                        ],
-                        '=',
-                        'rejected'
-                    )
-                    ->count(),
+                            'rejected'
+                        );
+                })
+                ->count(),
         ];
+
 
         return view(
             'pages.beneficiary.myrequest.index',

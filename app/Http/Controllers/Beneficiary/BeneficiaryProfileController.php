@@ -6,13 +6,11 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
-use Throwable;
 
 class BeneficiaryProfileController extends Controller
 {
@@ -21,9 +19,15 @@ class BeneficiaryProfileController extends Controller
     | Beneficiary Profile
     |--------------------------------------------------------------------------
     */
+
     public function index(): View
     {
         $user = Auth::user();
+
+        abort_if(
+            ! $user || $user->role !== 'beneficiary',
+            403
+        );
 
         $user->load('beneficiaryProfile');
 
@@ -39,15 +43,23 @@ class BeneficiaryProfileController extends Controller
     | Update Beneficiary Profile
     |--------------------------------------------------------------------------
     */
+
     public function update(Request $request): RedirectResponse
     {
         $user = Auth::user();
+
+        abort_if(
+            ! $user || $user->role !== 'beneficiary',
+            403
+        );
+
 
         /*
         |--------------------------------------------------------------------------
         | Validation
         |--------------------------------------------------------------------------
         */
+
         $validated = $request->validate(
             [
                 'name' => [
@@ -164,7 +176,6 @@ class BeneficiaryProfileController extends Controller
 
                 'image' => [
                     'nullable',
-                    'file',
                     'image',
                     'mimes:jpg,jpeg,png,webp',
                     'max:200',
@@ -200,11 +211,29 @@ class BeneficiaryProfileController extends Controller
                 'gender.required' =>
                     'Please select your gender.',
 
+                'gender.in' =>
+                    'Please select a valid gender.',
+
+                'institution.required' =>
+                    'Please enter your institution.',
+
                 'degree_level.required' =>
                     'Please select your degree level.',
 
+                'degree_level.in' =>
+                    'Please select a valid degree level.',
+
                 'enrollment_year.required' =>
                     'Please enter your enrollment year.',
+
+                'father_status.required' =>
+                    'Please enter your father status.',
+
+                'province.required' =>
+                    'Please select your province.',
+
+                'home_address.required' =>
+                    'Please enter your home address.',
 
                 'image.image' =>
                     'The profile photo must be a valid image.',
@@ -216,19 +245,19 @@ class BeneficiaryProfileController extends Controller
                     'The profile photo must not exceed 200 KB.',
 
                 'current_password.required_with' =>
-                    'Current password is required when changing your password.',
+                    'Please enter your current password before changing your password.',
 
                 'password.required_with' =>
-                    'Please enter the new password.',
+                    'Please enter your new password.',
 
                 'password.min' =>
-                    'The new password must be at least 8 characters.',
+                    'The new password must contain at least 8 characters.',
 
                 'password.confirmed' =>
-                    'The new password confirmation does not match.',
+                    'The new password and confirmation do not match.',
 
                 'password_confirmation.required_with' =>
-                    'Please confirm the new password.',
+                    'Please confirm your new password.',
             ]
         );
 
@@ -238,6 +267,7 @@ class BeneficiaryProfileController extends Controller
         | Verify Current Password
         |--------------------------------------------------------------------------
         */
+
         if (
             ! empty($validated['password'])
             && ! Hash::check(
@@ -246,10 +276,6 @@ class BeneficiaryProfileController extends Controller
             )
         ) {
             return back()
-                ->withErrors([
-                    'current_password' =>
-                        'Current password is incorrect.',
-                ])
                 ->withInput(
                     $request->except([
                         'current_password',
@@ -257,7 +283,11 @@ class BeneficiaryProfileController extends Controller
                         'password_confirmation',
                         'image',
                     ])
-                );
+                )
+                ->withErrors([
+                    'current_password' =>
+                        'The current password you entered is incorrect.',
+                ]);
         }
 
 
@@ -266,9 +296,8 @@ class BeneficiaryProfileController extends Controller
         | Calculate Graduation Year
         |--------------------------------------------------------------------------
         */
-        $degreeDuration = match (
-            $validated['degree_level']
-        ) {
+
+        $degreeDuration = match ($validated['degree_level']) {
             'UG' => 4,
             'PG' => 2,
             'PhD' => 2,
@@ -282,254 +311,243 @@ class BeneficiaryProfileController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Image Setup
+        | Profile Image
         |--------------------------------------------------------------------------
+        |
+        | Physical location:
+        |
+        | public/admins/asset/profilephoto/
+        |
+        | Database:
+        |
+        | beneficiary-5-uuid.jpg
+        |
         */
-        $uploadPath =
-            public_path('admins/asset/profilephoto');
 
-        $oldImageName =
-            $user->image;
+        $oldImageName = $user->image
+            ? basename($user->image)
+            : null;
 
-        $newImageName =
-            null;
-
-        $transactionStarted =
-            false;
+        $newImageName = null;
 
 
-        try {
-            /*
-            |--------------------------------------------------------------------------
-            | Upload New Profile Image
-            |--------------------------------------------------------------------------
-            */
-            if ($request->hasFile('image')) {
-                File::ensureDirectoryExists(
-                    $uploadPath,
-                    0775,
-                    true
-                );
+        if ($request->hasFile('image')) {
 
-                if (! is_writable($uploadPath)) {
-                    throw new \RuntimeException(
-                        'Profile image directory is not writable: '
-                        . $uploadPath
-                    );
-                }
-
-                $image =
-                    $request->file('image');
-
-                $extension =
-                    strtolower(
-                        $image->extension()
-                        ?: $image->getClientOriginalExtension()
-                    );
-
-                if ($extension === 'jpeg') {
-                    $extension = 'jpg';
-                }
-
-                $newImageName =
-                    'beneficiary-'
-                    . $user->id
-                    . '-'
-                    . Str::uuid()
-                    . '.'
-                    . $extension;
-
-                $image->move(
-                    $uploadPath,
-                    $newImageName
-                );
-            }
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Database Update
-            |--------------------------------------------------------------------------
-            */
-            DB::beginTransaction();
-
-            $transactionStarted =
-                true;
-
-
-            $user->name =
-                trim($validated['name']);
-
-            $user->email =
-                trim($validated['email']);
-
-            $user->phone =
-                ! empty($validated['phone'])
-                    ? trim($validated['phone'])
-                    : null;
-
-
-            if ($newImageName) {
-                $user->image =
-                    $newImageName;
-            }
-
-
-            if (! empty($validated['password'])) {
-                $user->password =
-                    Hash::make(
-                        $validated['password']
-                    );
-            }
-
-
-            $user->save();
-
-
-            $user
-                ->beneficiaryProfile()
-                ->updateOrCreate(
-                    [
-                        'user_id' =>
-                            $user->id,
-                    ],
-                    [
-                        'gender' =>
-                            $validated['gender'],
-
-                        'institution' =>
-                            $validated['institution'],
-
-                        'degree_level' =>
-                            $validated['degree_level'],
-
-                        'degree_program' =>
-                            ! empty($validated['degree_program'])
-                                ? trim($validated['degree_program'])
-                                : null,
-
-                        'department' =>
-                            ! empty($validated['department'])
-                                ? trim($validated['department'])
-                                : null,
-
-                        'semester' =>
-                            ! empty($validated['semester'])
-                                ? trim($validated['semester'])
-                                : null,
-
-                        'cgpa' =>
-                            $validated['cgpa']
-                            ?? null,
-
-                        'enrollment_year' =>
-                            $validated['enrollment_year'],
-
-                        'graduation_year' =>
-                            $graduationYear,
-
-                        'father_status' =>
-                            $validated['father_status'],
-
-                        'guardian_profession' =>
-                            ! empty($validated['guardian_profession'])
-                                ? trim($validated['guardian_profession'])
-                                : null,
-
-                        'monthly_income' =>
-                            $validated['monthly_income']
-                            ?? null,
-
-                        'province' =>
-                            $validated['province'],
-
-                        'domicile' =>
-                            ! empty($validated['domicile'])
-                                ? trim($validated['domicile'])
-                                : null,
-
-                        'home_address' =>
-                            trim($validated['home_address']),
-                    ]
-                );
-
-
-            DB::commit();
-
-            $transactionStarted =
-                false;
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Delete Previous Image After Successful Update
-            |--------------------------------------------------------------------------
-            */
-            if (
-                $newImageName
-                && $oldImageName
-                && $oldImageName !== $newImageName
-            ) {
-                $oldImagePath =
-                    $uploadPath
-                    . DIRECTORY_SEPARATOR
-                    . basename($oldImageName);
-
-                if (File::exists($oldImagePath)) {
-                    File::delete($oldImagePath);
-                }
-            }
-
-
-            return back()->with(
-                'success',
-                'Profile updated successfully.'
+            $uploadPath = public_path(
+                'admins/asset/profilephoto'
             );
 
-        } catch (Throwable $exception) {
-            /*
-            |--------------------------------------------------------------------------
-            | Roll Back Database
-            |--------------------------------------------------------------------------
-            */
-            if ($transactionStarted) {
-                DB::rollBack();
-            }
-
 
             /*
             |--------------------------------------------------------------------------
-            | Delete Newly Uploaded Image If Update Failed
+            | Create Directory If Missing
             |--------------------------------------------------------------------------
             */
-            if ($newImageName) {
-                $newImagePath =
-                    $uploadPath
-                    . DIRECTORY_SEPARATOR
-                    . $newImageName;
 
-                if (File::exists($newImagePath)) {
-                    File::delete($newImagePath);
-                }
+            File::ensureDirectoryExists(
+                $uploadPath,
+                0775,
+                true
+            );
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Prepare Image
+            |--------------------------------------------------------------------------
+            */
+
+            $image = $request->file('image');
+
+            $extension = strtolower(
+                $image->getClientOriginalExtension()
+            );
+
+            if ($extension === 'jpeg') {
+                $extension = 'jpg';
             }
 
 
-            report($exception);
+            $newImageName =
+                'beneficiary-'
+                . $user->id
+                . '-'
+                . Str::uuid()
+                . '.'
+                . $extension;
 
 
-            return back()
-                ->withInput(
-                    $request->except([
-                        'current_password',
-                        'password',
-                        'password_confirmation',
-                        'image',
-                    ])
-                )
-                ->with(
-                    'error',
-                    'Profile could not be updated. Please try again.'
-                );
+            /*
+            |--------------------------------------------------------------------------
+            | Upload Image
+            |--------------------------------------------------------------------------
+            */
+
+            $image->move(
+                $uploadPath,
+                $newImageName
+            );
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Update User Image
+            |--------------------------------------------------------------------------
+            */
+
+            $user->image = $newImageName;
         }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Update User Information
+        |--------------------------------------------------------------------------
+        */
+
+        $user->name =
+            trim($validated['name']);
+
+        $user->email =
+            strtolower(
+                trim($validated['email'])
+            );
+
+        $user->phone =
+            ! empty($validated['phone'])
+                ? trim($validated['phone'])
+                : null;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Update Password
+        |--------------------------------------------------------------------------
+        */
+
+        if (! empty($validated['password'])) {
+
+            $user->password = Hash::make(
+                $validated['password']
+            );
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Save User
+        |--------------------------------------------------------------------------
+        */
+
+        $user->save();
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Update Beneficiary Profile
+        |--------------------------------------------------------------------------
+        */
+
+        $user->beneficiaryProfile()->updateOrCreate(
+            [
+                'user_id' => $user->id,
+            ],
+            [
+                'gender' =>
+                    $validated['gender'],
+
+                'institution' =>
+                    trim($validated['institution']),
+
+                'degree_level' =>
+                    $validated['degree_level'],
+
+                'degree_program' =>
+                    ! empty($validated['degree_program'])
+                        ? trim($validated['degree_program'])
+                        : null,
+
+                'department' =>
+                    ! empty($validated['department'])
+                        ? trim($validated['department'])
+                        : null,
+
+                'semester' =>
+                    ! empty($validated['semester'])
+                        ? trim($validated['semester'])
+                        : null,
+
+                'cgpa' =>
+                    $validated['cgpa'] ?? null,
+
+                'enrollment_year' =>
+                    $validated['enrollment_year'],
+
+                'graduation_year' =>
+                    $graduationYear,
+
+                'father_status' =>
+                    trim($validated['father_status']),
+
+                'guardian_profession' =>
+                    ! empty($validated['guardian_profession'])
+                        ? trim($validated['guardian_profession'])
+                        : null,
+
+                'monthly_income' =>
+                    $validated['monthly_income'] ?? null,
+
+                'province' =>
+                    trim($validated['province']),
+
+                'domicile' =>
+                    ! empty($validated['domicile'])
+                        ? trim($validated['domicile'])
+                        : null,
+
+                'home_address' =>
+                    trim($validated['home_address']),
+            ]
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Delete Old Image
+        |--------------------------------------------------------------------------
+        |
+        | Delete only after the new image and database information
+        | have been saved successfully.
+        |
+        */
+
+        if (
+            $newImageName
+            && $oldImageName
+            && $oldImageName !== $newImageName
+        ) {
+
+            $oldImagePath = public_path(
+                'admins/asset/profilephoto/'
+                . $oldImageName
+            );
+
+            if (File::exists($oldImagePath)) {
+
+                File::delete($oldImagePath);
+            }
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Success
+        |--------------------------------------------------------------------------
+        */
+
+        return back()->with(
+            'success',
+            'Profile updated successfully.'
+        );
     }
 }

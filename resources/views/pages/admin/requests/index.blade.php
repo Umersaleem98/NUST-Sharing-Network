@@ -779,6 +779,42 @@
                     'blocked' => 'status-rejected',
                     default => 'status-neutral',
                 };
+
+            $beneficiaryHistory = $beneficiary
+                ? ($beneficiaryRequestHistory->get($beneficiary->id) ?? collect())
+                : collect();
+
+            $beneficiaryStats = $beneficiary
+                ? ($beneficiaryRequestStats[$beneficiary->id] ?? [
+                    'total' => 0,
+                    'pending' => 0,
+                    'approved' => 0,
+                    'rejected' => 0,
+                ])
+                : [
+                    'total' => 0,
+                    'pending' => 0,
+                    'approved' => 0,
+                    'rejected' => 0,
+                ];
+
+            $donorHistory = $donor
+                ? ($donorRequestHistory->get($donor->id) ?? collect())
+                : collect();
+
+            $donorStats = $donor
+                ? ($donorRequestStats[$donor->id] ?? [
+                    'total' => 0,
+                    'waiting' => 0,
+                    'approved' => 0,
+                    'rejected' => 0,
+                ])
+                : [
+                    'total' => 0,
+                    'waiting' => 0,
+                    'approved' => 0,
+                    'rejected' => 0,
+                ];
         @endphp
 
 
@@ -901,6 +937,78 @@
 
                                         </div>
 
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            {{-- Beneficiary Request Summary --}}
+                            <div class="request-history-summary mb-4">
+
+                                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+
+                                    <div>
+                                        <h6 class="fw-bold text-dark mb-1">
+                                            Request Activity
+                                        </h6>
+
+                                        <p class="text-secondary small mb-0">
+                                            Complete request history for this beneficiary.
+                                        </p>
+                                    </div>
+
+                                    <span class="badge rounded-pill bg-info-subtle text-info-emphasis px-3 py-2">
+                                        <i class="bi bi-send-check me-1"></i>
+                                        {{ number_format($beneficiaryStats['total']) }} Requests Sent
+                                    </span>
+
+                                </div>
+
+                                <div class="profile-request-stat-grid">
+
+                                    <div class="profile-request-stat is-total">
+                                        <span class="profile-request-stat-icon">
+                                            <i class="bi bi-collection"></i>
+                                        </span>
+
+                                        <div>
+                                            <small>Total Sent</small>
+                                            <strong>{{ number_format($beneficiaryStats['total']) }}</strong>
+                                        </div>
+                                    </div>
+
+                                    <div class="profile-request-stat is-pending">
+                                        <span class="profile-request-stat-icon">
+                                            <i class="bi bi-hourglass-split"></i>
+                                        </span>
+
+                                        <div>
+                                            <small>Admin Pending</small>
+                                            <strong>{{ number_format($beneficiaryStats['pending']) }}</strong>
+                                        </div>
+                                    </div>
+
+                                    <div class="profile-request-stat is-approved">
+                                        <span class="profile-request-stat-icon">
+                                            <i class="bi bi-check-circle"></i>
+                                        </span>
+
+                                        <div>
+                                            <small>Admin Approved</small>
+                                            <strong>{{ number_format($beneficiaryStats['approved']) }}</strong>
+                                        </div>
+                                    </div>
+
+                                    <div class="profile-request-stat is-rejected">
+                                        <span class="profile-request-stat-icon">
+                                            <i class="bi bi-x-circle"></i>
+                                        </span>
+
+                                        <div>
+                                            <small>Rejected</small>
+                                            <strong>{{ number_format($beneficiaryStats['rejected']) }}</strong>
+                                        </div>
                                     </div>
 
                                 </div>
@@ -1137,6 +1245,139 @@
                                 </div>
 
 
+
+                                {{-- Previous Beneficiary Requests --}}
+                                <div class="col-12">
+
+                                    <div class="profile-detail-card">
+
+                                        <div class="profile-detail-header">
+
+                                            <span class="profile-section-icon bg-dark-subtle text-dark">
+                                                <i class="bi bi-clock-history"></i>
+                                            </span>
+
+                                            <div class="flex-grow-1">
+                                                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                                                    <div>
+                                                        <h6 class="fw-bold text-dark mb-1">
+                                                            Previous Request Records
+                                                        </h6>
+
+                                                        <small class="text-secondary">
+                                                            Latest 10 requests submitted by this beneficiary
+                                                        </small>
+                                                    </div>
+
+                                                    <span class="badge bg-light text-dark border">
+                                                        {{ number_format($beneficiaryStats['total']) }} total
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                        </div>
+
+                                        <div class="table-responsive">
+
+                                            <table class="table table-sm align-middle history-table mb-0">
+
+                                                <thead>
+                                                    <tr>
+                                                        <th>Request</th>
+                                                        <th>Product</th>
+                                                        <th>Admin</th>
+                                                        <th>Donor</th>
+                                                        <th>Date</th>
+                                                    </tr>
+                                                </thead>
+
+                                                <tbody>
+
+                                                    @forelse ($beneficiaryHistory->take(10) as $historyRequest)
+
+                                                        @php
+                                                            $historyAdminStatus = $historyRequest->admin_status ?? 'pending';
+                                                            $historyDonorStatus = $historyRequest->donor_status ?? 'pending';
+
+                                                            $historyAdminClass = match ($historyAdminStatus) {
+                                                                'approved' => 'status-approved',
+                                                                'rejected' => 'status-rejected',
+                                                                default => 'status-pending',
+                                                            };
+
+                                                            $historyDonorClass = match ($historyDonorStatus) {
+                                                                'approved', 'accepted' => 'status-approved',
+                                                                'rejected' => 'status-rejected',
+                                                                default => 'status-waiting',
+                                                            };
+                                                        @endphp
+
+                                                        <tr class="{{ $historyRequest->id === $productRequest->id ? 'history-current-row' : '' }}">
+                                                            <td>
+                                                                <div class="d-flex align-items-center gap-2">
+                                                                    <strong>#{{ $historyRequest->id }}</strong>
+
+                                                                    @if ($historyRequest->id === $productRequest->id)
+                                                                        <span class="badge rounded-pill bg-primary-subtle text-primary">
+                                                                            Current
+                                                                        </span>
+                                                                    @endif
+                                                                </div>
+                                                            </td>
+
+                                                            <td>
+                                                                <div class="fw-semibold text-dark">
+                                                                    {{ $historyRequest->product?->name ?? 'Product unavailable' }}
+                                                                </div>
+
+                                                                <small class="text-secondary">
+                                                                    {{ $historyRequest->product?->category?->name ?? 'No category' }}
+                                                                </small>
+                                                            </td>
+
+                                                            <td>
+                                                                <span class="request-status {{ $historyAdminClass }}">
+                                                                    {{ ucfirst($historyAdminStatus) }}
+                                                                </span>
+                                                            </td>
+
+                                                            <td>
+                                                                <span class="request-status {{ $historyDonorClass }}">
+                                                                    {{ $historyDonorStatus === 'accepted' ? 'Approved' : ucfirst($historyDonorStatus) }}
+                                                                </span>
+                                                            </td>
+
+                                                            <td class="text-nowrap">
+                                                                <div class="fw-semibold small">
+                                                                    {{ optional($historyRequest->created_at)->format('d M Y') ?? '—' }}
+                                                                </div>
+
+                                                                <small class="text-secondary">
+                                                                    {{ optional($historyRequest->created_at)->format('h:i A') ?? '' }}
+                                                                </small>
+                                                            </td>
+                                                        </tr>
+
+                                                    @empty
+
+                                                        <tr>
+                                                            <td colspan="5" class="text-center text-secondary py-4">
+                                                                No previous request records found.
+                                                            </td>
+                                                        </tr>
+
+                                                    @endforelse
+
+                                                </tbody>
+
+                                            </table>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
                                 {{-- Request Context --}}
                                 <div class="col-12">
 
@@ -1343,6 +1584,78 @@
 
                             </div>
 
+                            {{-- Donor Request Summary --}}
+                            <div class="request-history-summary mb-4">
+
+                                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+
+                                    <div>
+                                        <h6 class="fw-bold text-dark mb-1">
+                                            Request Activity
+                                        </h6>
+
+                                        <p class="text-secondary small mb-0">
+                                            Request records linked to this donor.
+                                        </p>
+                                    </div>
+
+                                    <span class="badge rounded-pill bg-primary-subtle text-primary px-3 py-2">
+                                        <i class="bi bi-inbox me-1"></i>
+                                        {{ number_format($donorStats['total']) }} Total Requests
+                                    </span>
+
+                                </div>
+
+                                <div class="profile-request-stat-grid">
+
+                                    <div class="profile-request-stat is-total">
+                                        <span class="profile-request-stat-icon">
+                                            <i class="bi bi-collection"></i>
+                                        </span>
+
+                                        <div>
+                                            <small>Total Requests</small>
+                                            <strong>{{ number_format($donorStats['total']) }}</strong>
+                                        </div>
+                                    </div>
+
+                                    <div class="profile-request-stat is-pending">
+                                        <span class="profile-request-stat-icon">
+                                            <i class="bi bi-clock-history"></i>
+                                        </span>
+
+                                        <div>
+                                            <small>Waiting Decision</small>
+                                            <strong>{{ number_format($donorStats['waiting']) }}</strong>
+                                        </div>
+                                    </div>
+
+                                    <div class="profile-request-stat is-approved">
+                                        <span class="profile-request-stat-icon">
+                                            <i class="bi bi-check-circle"></i>
+                                        </span>
+
+                                        <div>
+                                            <small>Approved</small>
+                                            <strong>{{ number_format($donorStats['approved']) }}</strong>
+                                        </div>
+                                    </div>
+
+                                    <div class="profile-request-stat is-rejected">
+                                        <span class="profile-request-stat-icon">
+                                            <i class="bi bi-x-circle"></i>
+                                        </span>
+
+                                        <div>
+                                            <small>Rejected</small>
+                                            <strong>{{ number_format($donorStats['rejected']) }}</strong>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                            </div>
+
 
                             <div class="row g-4">
 
@@ -1491,6 +1804,139 @@
 
                                 </div>
 
+
+
+                                {{-- Previous Donor Requests --}}
+                                <div class="col-12">
+
+                                    <div class="profile-detail-card">
+
+                                        <div class="profile-detail-header">
+
+                                            <span class="profile-section-icon bg-dark-subtle text-dark">
+                                                <i class="bi bi-clock-history"></i>
+                                            </span>
+
+                                            <div class="flex-grow-1">
+                                                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                                                    <div>
+                                                        <h6 class="fw-bold text-dark mb-1">
+                                                            Previous Request Records
+                                                        </h6>
+
+                                                        <small class="text-secondary">
+                                                            Latest 10 requests linked to this donor
+                                                        </small>
+                                                    </div>
+
+                                                    <span class="badge bg-light text-dark border">
+                                                        {{ number_format($donorStats['total']) }} total
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                        </div>
+
+                                        <div class="table-responsive">
+
+                                            <table class="table table-sm align-middle history-table mb-0">
+
+                                                <thead>
+                                                    <tr>
+                                                        <th>Request</th>
+                                                        <th>Product</th>
+                                                        <th>Admin</th>
+                                                        <th>Donor</th>
+                                                        <th>Date</th>
+                                                    </tr>
+                                                </thead>
+
+                                                <tbody>
+
+                                                    @forelse ($donorHistory->take(10) as $historyRequest)
+
+                                                        @php
+                                                            $historyAdminStatus = $historyRequest->admin_status ?? 'pending';
+                                                            $historyDonorStatus = $historyRequest->donor_status ?? 'pending';
+
+                                                            $historyAdminClass = match ($historyAdminStatus) {
+                                                                'approved' => 'status-approved',
+                                                                'rejected' => 'status-rejected',
+                                                                default => 'status-pending',
+                                                            };
+
+                                                            $historyDonorClass = match ($historyDonorStatus) {
+                                                                'approved', 'accepted' => 'status-approved',
+                                                                'rejected' => 'status-rejected',
+                                                                default => 'status-waiting',
+                                                            };
+                                                        @endphp
+
+                                                        <tr class="{{ $historyRequest->id === $productRequest->id ? 'history-current-row' : '' }}">
+                                                            <td>
+                                                                <div class="d-flex align-items-center gap-2">
+                                                                    <strong>#{{ $historyRequest->id }}</strong>
+
+                                                                    @if ($historyRequest->id === $productRequest->id)
+                                                                        <span class="badge rounded-pill bg-primary-subtle text-primary">
+                                                                            Current
+                                                                        </span>
+                                                                    @endif
+                                                                </div>
+                                                            </td>
+
+                                                            <td>
+                                                                <div class="fw-semibold text-dark">
+                                                                    {{ $historyRequest->product?->name ?? 'Product unavailable' }}
+                                                                </div>
+
+                                                                <small class="text-secondary">
+                                                                    {{ $historyRequest->product?->category?->name ?? 'No category' }}
+                                                                </small>
+                                                            </td>
+
+                                                            <td>
+                                                                <span class="request-status {{ $historyAdminClass }}">
+                                                                    {{ ucfirst($historyAdminStatus) }}
+                                                                </span>
+                                                            </td>
+
+                                                            <td>
+                                                                <span class="request-status {{ $historyDonorClass }}">
+                                                                    {{ $historyDonorStatus === 'accepted' ? 'Approved' : ucfirst($historyDonorStatus) }}
+                                                                </span>
+                                                            </td>
+
+                                                            <td class="text-nowrap">
+                                                                <div class="fw-semibold small">
+                                                                    {{ optional($historyRequest->created_at)->format('d M Y') ?? '—' }}
+                                                                </div>
+
+                                                                <small class="text-secondary">
+                                                                    {{ optional($historyRequest->created_at)->format('h:i A') ?? '' }}
+                                                                </small>
+                                                            </td>
+                                                        </tr>
+
+                                                    @empty
+
+                                                        <tr>
+                                                            <td colspan="5" class="text-center text-secondary py-4">
+                                                                No previous request records found.
+                                                            </td>
+                                                        </tr>
+
+                                                    @endforelse
+
+                                                </tbody>
+
+                                            </table>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
 
                                 {{-- Request --}}
                                 <div class="col-12 col-lg-6">
@@ -2119,6 +2565,125 @@
         }
 
 
+
+
+        .request-history-summary {
+            padding: 18px;
+            background: #ffffff;
+            border: 1px solid #edf0f3;
+            border-radius: 16px;
+            box-shadow: 0 3px 14px rgba(31, 45, 61, 0.04);
+        }
+
+
+        .profile-request-stat-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+
+        .profile-request-stat {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            min-width: 0;
+            padding: 14px;
+            border: 1px solid #edf0f3;
+            border-radius: 14px;
+            background: #f8f9fb;
+        }
+
+
+        .profile-request-stat-icon {
+            width: 40px;
+            height: 40px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            border-radius: 12px;
+            font-size: 1rem;
+        }
+
+
+        .profile-request-stat small {
+            display: block;
+            color: #6c757d;
+            font-size: 0.72rem;
+            margin-bottom: 2px;
+        }
+
+
+        .profile-request-stat strong {
+            display: block;
+            color: #212529;
+            font-size: 1.2rem;
+            line-height: 1.2;
+        }
+
+
+        .profile-request-stat.is-total .profile-request-stat-icon {
+            color: #0d6efd;
+            background: #e7f1ff;
+        }
+
+
+        .profile-request-stat.is-pending .profile-request-stat-icon {
+            color: #8a5a00;
+            background: #fff3cd;
+        }
+
+
+        .profile-request-stat.is-approved .profile-request-stat-icon {
+            color: #137333;
+            background: #e8f5e9;
+        }
+
+
+        .profile-request-stat.is-rejected .profile-request-stat-icon {
+            color: #b3261e;
+            background: #fce8e6;
+        }
+
+
+        .history-table {
+            min-width: 760px;
+        }
+
+
+        .history-table thead th {
+            padding: 11px 14px;
+            color: #6c757d;
+            background: #f8f9fb;
+            border-bottom: 1px solid #edf0f3;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            white-space: nowrap;
+        }
+
+
+        .history-table tbody td {
+            padding: 12px 14px;
+            border-color: #edf0f3;
+            vertical-align: middle;
+            font-size: 0.82rem;
+        }
+
+
+        .history-current-row {
+            background: #eef6ff !important;
+            box-shadow: inset 4px 0 0 #0d6efd;
+        }
+
+
+        .history-current-row:hover {
+            background: #e8f2ff !important;
+        }
+
+
         .decision-modal-icon {
             width: 56px;
             height: 56px;
@@ -2137,6 +2702,11 @@
 
 
         @media (max-width: 767.98px) {
+
+
+            .profile-request-stat-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
 
             .request-stat-card {
                 padding: 15px;

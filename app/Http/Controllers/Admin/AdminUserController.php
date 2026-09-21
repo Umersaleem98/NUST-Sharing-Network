@@ -17,13 +17,9 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
-use Throwable;
 
 class AdminUserController extends Controller
 {
-    /**
-     * Display users.
-     */
     public function index(Request $request)
     {
         $validated = $request->validate([
@@ -38,21 +34,18 @@ class AdminUserController extends Controller
         $role = $validated['role'] ?? null;
         $status = $validated['status'] ?? null;
 
-        $query = User::query()->with([
+        $query = User::with([
             'statusChangedBy',
             'beneficiaryProfile',
             'donorProfile',
         ]);
 
         if ($search !== '') {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('phone', 'like', "%{$search}%")
-                    ->orWhere('qalam_id', 'like', "%{$search}%")
-                    ->orWhere('role', 'like', "%{$search}%")
-                    ->orWhere('account_status', 'like', "%{$search}%");
-            });
+            $query->whereAny(
+                ['name', 'email', 'phone', 'qalam_id', 'role', 'account_status'],
+                'like',
+                "%{$search}%"
+            );
         }
 
         if ($role) {
@@ -90,9 +83,6 @@ class AdminUserController extends Controller
         ));
     }
 
-    /**
-     * Show create user page.
-     */
     public function create()
     {
         abort_unless(
@@ -104,9 +94,6 @@ class AdminUserController extends Controller
         return view('pages.admin.users.create');
     }
 
-    /**
-     * Store a new user.
-     */
     public function store(Request $request): RedirectResponse
     {
         abort_unless(
@@ -128,13 +115,7 @@ class AdminUserController extends Controller
             ],
             'password' => ['required', 'string', 'min:8', 'max:255', 'confirmed'],
             'role' => ['required', Rule::in(['admin', 'donor', 'beneficiary'])],
-            'image' => [
-                'nullable',
-                'file',
-                'image',
-                'mimes:jpg,jpeg,png,webp',
-                'max:200',
-            ],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:200'],
         ], [
             'email.unique' => 'A user with this email address already exists.',
             'qalam_id.unique' => 'A user with this Qalam ID already exists.',
@@ -146,69 +127,40 @@ class AdminUserController extends Controller
         ]);
 
         $imageName = null;
-        $uploadDirectory = public_path('admins/asset/profilephoto');
 
-        try {
-            if ($request->hasFile('image')) {
-                $image = $request->file('image');
+        if ($request->hasFile('image')) {
+            $uploadDirectory = public_path('admins/asset/profilephoto');
+            File::ensureDirectoryExists($uploadDirectory);
 
-                if (! $image->isValid()) {
-                    return back()->withInput()->with('error', 'The selected profile image is not valid.');
-                }
+            $image = $request->file('image');
+            $extension = strtolower($image->getClientOriginalExtension());
+            $extension = $extension === 'jpeg' ? 'jpg' : $extension;
 
-                File::ensureDirectoryExists($uploadDirectory, 0755, true);
-
-                if (! File::isWritable($uploadDirectory)) {
-                    throw new \RuntimeException(
-                        'Profile image directory is not writable: ' . $uploadDirectory
-                    );
-                }
-
-                $extension = strtolower($image->extension() ?: $image->getClientOriginalExtension());
-                $extension = $extension === 'jpeg' ? 'jpg' : $extension;
-                $imageName = 'user-' . Str::uuid() . '.' . $extension;
-                $image->move($uploadDirectory, $imageName);
-            }
-
-            User::create([
-                'name' => trim($validated['name']),
-                'email' => strtolower(trim($validated['email'])),
-                'phone' => filled($validated['phone'] ?? null) ? trim($validated['phone']) : null,
-                'qalam_id' => $validated['role'] === 'beneficiary'
-                    ? (filled($validated['qalam_id'] ?? null) ? trim($validated['qalam_id']) : null)
-                    : null,
-                'password' => Hash::make($validated['password']),
-                'role' => $validated['role'],
-                'image' => $imageName,
-                'account_status' => 'active',
-                'status_reason' => null,
-                'status_changed_at' => now(),
-                'status_changed_by' => auth()->id(),
-            ]);
-
-            return redirect()
-                ->route('admin.user.index')
-                ->with('success', 'User created successfully.');
-        } catch (Throwable $exception) {
-            if ($imageName) {
-                $uploadedImage = $uploadDirectory . DIRECTORY_SEPARATOR . basename($imageName);
-
-                if (File::exists($uploadedImage)) {
-                    File::delete($uploadedImage);
-                }
-            }
-
-            report($exception);
-
-            return back()
-                ->withInput()
-                ->with('error', 'The user could not be created. Please check the server log.');
+            $imageName = 'user-' . Str::uuid() . '.' . $extension;
+            $image->move($uploadDirectory, $imageName);
         }
+
+        User::create([
+            'name' => trim($validated['name']),
+            'email' => strtolower(trim($validated['email'])),
+            'phone' => filled($validated['phone'] ?? null) ? trim($validated['phone']) : null,
+            'qalam_id' => $validated['role'] === 'beneficiary'
+                ? (filled($validated['qalam_id'] ?? null) ? trim($validated['qalam_id']) : null)
+                : null,
+            'password' => Hash::make($validated['password']),
+            'role' => $validated['role'],
+            'image' => $imageName,
+            'account_status' => 'active',
+            'status_reason' => null,
+            'status_changed_at' => now(),
+            'status_changed_by' => auth()->id(),
+        ]);
+
+        return redirect()
+            ->route('admin.user.index')
+            ->with('success', 'User created successfully.');
     }
 
-    /**
-     * Show edit user page.
-     */
     public function edit(int $id)
     {
         abort_unless(
@@ -232,9 +184,6 @@ class AdminUserController extends Controller
         return view('pages.admin.users.edit', compact('user', 'profileImageUrl'));
     }
 
-    /**
-     * Update user.
-     */
     public function update(Request $request, int $id): RedirectResponse
     {
         abort_unless(
@@ -262,30 +211,10 @@ class AdminUserController extends Controller
                 'max:100',
                 Rule::unique('users', 'qalam_id')->ignore($user->id),
             ],
-            'password' => [
-                'nullable',
-                'required_with:password_confirmation',
-                'string',
-                'min:8',
-                'max:255',
-                'confirmed',
-            ],
-            'password_confirmation' => [
-                'nullable',
-                'required_with:password',
-                'string',
-                'min:8',
-                'max:255',
-            ],
-            'image' => [
-                'nullable',
-                'file',
-                'image',
-                'mimes:jpg,jpeg,png,webp',
-                'max:200',
-            ],
+            'password' => ['nullable', 'string', 'min:8', 'max:255', 'confirmed'],
+            'password_confirmation' => ['nullable', 'string', 'min:8', 'max:255'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:200'],
 
-            // Beneficiary profile
             'gender' => ['required_if:role,beneficiary', 'nullable', Rule::in(['male', 'female', 'other'])],
             'institution' => ['required_if:role,beneficiary', 'nullable', 'string', 'max:255'],
             'degree_level' => ['required_if:role,beneficiary', 'nullable', Rule::in(['UG', 'PG', 'PhD'])],
@@ -306,8 +235,6 @@ class AdminUserController extends Controller
             'qalam_id.unique' => 'A user with this Qalam ID already exists.',
             'qalam_id.required_if' => 'Qalam ID is required for beneficiary users.',
             'password.confirmed' => 'The password confirmation does not match.',
-            'password.required_with' => 'Please enter the new password when confirming a password.',
-            'password_confirmation.required_with' => 'Please confirm the new password.',
             'image.max' => 'The profile image cannot exceed 200 KB.',
             'image.mimes' => 'The profile image must be JPG, JPEG, PNG or WebP.',
             'gender.required_if' => 'Gender is required for beneficiary users.',
@@ -340,112 +267,73 @@ class AdminUserController extends Controller
             }
         }
 
-        $uploadDirectory = public_path('admins/asset/profilephoto');
         $oldImageName = $user->image ? basename($user->image) : null;
         $newImageName = null;
 
-        try {
-            if ($request->hasFile('image')) {
-                $image = $request->file('image');
+        if ($request->hasFile('image')) {
+            $uploadDirectory = public_path('admins/asset/profilephoto');
+            File::ensureDirectoryExists($uploadDirectory);
 
-                if (! $image->isValid()) {
-                    return back()->withInput()->with('error', 'The selected profile image is not valid.');
-                }
+            $image = $request->file('image');
+            $extension = strtolower($image->getClientOriginalExtension());
+            $extension = $extension === 'jpeg' ? 'jpg' : $extension;
 
-                File::ensureDirectoryExists($uploadDirectory, 0755, true);
+            $newImageName = 'user-' . Str::uuid() . '.' . $extension;
+            $image->move($uploadDirectory, $newImageName);
 
-                if (! File::isWritable($uploadDirectory)) {
-                    throw new \RuntimeException(
-                        'Profile image directory is not writable: ' . $uploadDirectory
-                    );
-                }
-
-                $extension = strtolower($image->extension() ?: $image->getClientOriginalExtension());
-                $extension = $extension === 'jpeg' ? 'jpg' : $extension;
-                $newImageName = 'user-' . Str::uuid() . '.' . $extension;
-                $image->move($uploadDirectory, $newImageName);
-            }
-
-            DB::beginTransaction();
-
-            $user->name = trim($validated['name']);
-            $user->email = strtolower(trim($validated['email']));
-            $user->phone = filled($validated['phone'] ?? null) ? trim($validated['phone']) : null;
-            $user->role = $validated['role'];
-            $user->qalam_id = $validated['role'] === 'beneficiary'
-                ? (filled($validated['qalam_id'] ?? null) ? trim($validated['qalam_id']) : null)
-                : null;
-
-            if ($newImageName) {
-                $user->image = $newImageName;
-            }
-
-            if (! empty($validated['password'])) {
-                $user->password = Hash::make($validated['password']);
-            }
-
-            $user->save();
-
-            if ($validated['role'] === 'beneficiary') {
-                $user->beneficiaryProfile()->updateOrCreate(
-                    ['user_id' => $user->id],
-                    [
-                        'gender' => $validated['gender'] ?? null,
-                        'institution' => $validated['institution'] ?? null,
-                        'degree_level' => $validated['degree_level'] ?? null,
-                        'degree_program' => $validated['degree_program'] ?? null,
-                        'department' => $validated['department'] ?? null,
-                        'semester' => $validated['semester'] ?? null,
-                        'cgpa' => $validated['cgpa'] ?? null,
-                        'enrollment_year' => $validated['enrollment_year'] ?? null,
-                        'graduation_year' => $graduationYear,
-                        'father_status' => $validated['father_status'] ?? null,
-                        'guardian_profession' => $validated['guardian_profession'] ?? null,
-                        'monthly_income' => $validated['monthly_income'] ?? null,
-                        'province' => $validated['province'] ?? null,
-                        'domicile' => $validated['domicile'] ?? null,
-                        'home_address' => $validated['home_address'] ?? null,
-                    ]
-                );
-            }
-
-            DB::commit();
-
-            if ($newImageName && $oldImageName) {
-                $oldImagePath = $uploadDirectory . DIRECTORY_SEPARATOR . $oldImageName;
-
-                if (File::exists($oldImagePath)) {
-                    File::delete($oldImagePath);
-                }
-            }
-
-            return redirect()
-                ->route('admin.user.index')
-                ->with('success', 'User updated successfully.');
-        } catch (Throwable $exception) {
-            if (DB::transactionLevel() > 0) {
-                DB::rollBack();
-            }
-
-            if ($newImageName) {
-                $newImagePath = $uploadDirectory . DIRECTORY_SEPARATOR . basename($newImageName);
-
-                if (File::exists($newImagePath)) {
-                    File::delete($newImagePath);
-                }
-            }
-
-            report($exception);
-
-            return back()
-                ->withInput()
-                ->with('error', 'The user could not be updated. Please check the server log.');
+            $user->image = $newImageName;
         }
+
+        $user->name = trim($validated['name']);
+        $user->email = strtolower(trim($validated['email']));
+        $user->phone = filled($validated['phone'] ?? null) ? trim($validated['phone']) : null;
+        $user->role = $validated['role'];
+        $user->qalam_id = $validated['role'] === 'beneficiary'
+            ? (filled($validated['qalam_id'] ?? null) ? trim($validated['qalam_id']) : null)
+            : null;
+
+        if (! empty($validated['password'])) {
+            $user->password = Hash::make($validated['password']);
+        }
+
+        $user->save();
+
+        if ($validated['role'] === 'beneficiary') {
+            $user->beneficiaryProfile()->updateOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'gender' => $validated['gender'] ?? null,
+                    'institution' => $validated['institution'] ?? null,
+                    'degree_level' => $validated['degree_level'] ?? null,
+                    'degree_program' => $validated['degree_program'] ?? null,
+                    'department' => $validated['department'] ?? null,
+                    'semester' => $validated['semester'] ?? null,
+                    'cgpa' => $validated['cgpa'] ?? null,
+                    'enrollment_year' => $validated['enrollment_year'] ?? null,
+                    'graduation_year' => $graduationYear,
+                    'father_status' => $validated['father_status'] ?? null,
+                    'guardian_profession' => $validated['guardian_profession'] ?? null,
+                    'monthly_income' => $validated['monthly_income'] ?? null,
+                    'province' => $validated['province'] ?? null,
+                    'domicile' => $validated['domicile'] ?? null,
+                    'home_address' => $validated['home_address'] ?? null,
+                ]
+            );
+        }
+
+        if ($newImageName && $oldImageName) {
+            $oldImagePath = public_path('admins/asset/profilephoto/' . $oldImageName);
+
+            if (File::exists($oldImagePath)) {
+                File::delete($oldImagePath);
+            }
+        }
+
+        return redirect()
+            ->route('admin.user.index')
+            ->with('success', 'User updated successfully.');
     }
 
-    /**
-     * Update user account status.
-     */
     public function updateAccountStatus(Request $request, User $user): RedirectResponse
     {
         abort_unless(
@@ -477,52 +365,35 @@ class AdminUserController extends Controller
             'status_reason.max' => 'The status reason cannot exceed 1000 characters.',
         ]);
 
-        try {
-            DB::beginTransaction();
+        $newStatus = $validated['account_status'];
 
-            $newStatus = $validated['account_status'];
+        $user->update([
+            'account_status' => $newStatus,
+            'status_reason' => $newStatus === 'active'
+                ? null
+                : trim($validated['status_reason']),
+            'status_changed_at' => now(),
+            'status_changed_by' => auth()->id(),
+        ]);
 
-            $user->update([
-                'account_status' => $newStatus,
-                'status_reason' => $newStatus === 'active'
-                    ? null
-                    : trim($validated['status_reason']),
-                'status_changed_at' => now(),
-                'status_changed_by' => auth()->id(),
-            ]);
-
-            if (
-                in_array($newStatus, ['suspended', 'blocked'], true)
-                && config('session.driver') === 'database'
-                && Schema::hasTable('sessions')
-                && Schema::hasColumn('sessions', 'user_id')
-            ) {
-                DB::table('sessions')->where('user_id', $user->id)->delete();
-            }
-
-            DB::commit();
-
-            $message = match ($newStatus) {
-                'active' => "{$user->name}'s account has been activated.",
-                'suspended' => "{$user->name}'s account has been suspended.",
-                'blocked' => "{$user->name}'s account has been blocked.",
-            };
-
-            return back()->with('success', $message);
-        } catch (Throwable $exception) {
-            if (DB::transactionLevel() > 0) {
-                DB::rollBack();
-            }
-
-            report($exception);
-
-            return back()->with('error', 'The account status could not be updated.');
+        if (
+            in_array($newStatus, ['suspended', 'blocked'], true)
+            && config('session.driver') === 'database'
+            && Schema::hasTable('sessions')
+            && Schema::hasColumn('sessions', 'user_id')
+        ) {
+            DB::table('sessions')->where('user_id', $user->id)->delete();
         }
+
+        $message = match ($newStatus) {
+            'active' => "{$user->name}'s account has been activated.",
+            'suspended' => "{$user->name}'s account has been suspended.",
+            'blocked' => "{$user->name}'s account has been blocked.",
+        };
+
+        return back()->with('success', $message);
     }
 
-    /**
-     * Delete one user.
-     */
     public function destroy(int $id): RedirectResponse
     {
         abort_unless(
@@ -537,149 +408,105 @@ class AdminUserController extends Controller
             return back()->with('error', 'You cannot delete your own account.');
         }
 
-        $userIds = collect([$user->id]);
+        $userId = $user->id;
         $imageName = $user->image ? basename($user->image) : null;
 
-        try {
-            DB::beginTransaction();
-
-            if (Schema::hasTable('sessions') && Schema::hasColumn('sessions', 'user_id')) {
-                DB::table('sessions')->whereIn('user_id', $userIds)->delete();
-            }
-
-            if (Schema::hasColumn('users', 'status_changed_by')) {
-                User::query()
-                    ->whereIn('status_changed_by', $userIds)
-                    ->update(['status_changed_by' => null]);
-            }
-
-            if (Schema::hasTable('notifications') && Schema::hasColumn('notifications', 'notifiable_id')) {
-                $notificationQuery = DB::table('notifications')->whereIn('notifiable_id', $userIds);
-
-                if (Schema::hasColumn('notifications', 'notifiable_type')) {
-                    $notificationQuery->whereIn('notifiable_type', [User::class, 'App\\Models\\User']);
-                }
-
-                $notificationQuery->delete();
-            }
-
-            if (Schema::hasTable('personal_access_tokens') && Schema::hasColumn('personal_access_tokens', 'tokenable_id')) {
-                $tokenQuery = DB::table('personal_access_tokens')->whereIn('tokenable_id', $userIds);
-
-                if (Schema::hasColumn('personal_access_tokens', 'tokenable_type')) {
-                    $tokenQuery->whereIn('tokenable_type', [User::class, 'App\\Models\\User']);
-                }
-
-                $tokenQuery->delete();
-            }
-
-            $productIds = collect();
-
-            if (
-                Schema::hasTable('products')
-                && Schema::hasColumn('products', 'user_id')
-                && Schema::hasColumn('products', 'id')
-            ) {
-                $productIds = DB::table('products')->whereIn('user_id', $userIds)->pluck('id');
-            }
-
-            if (Schema::hasTable('product_requests')) {
-                $requestQuery = DB::table('product_requests');
-                $hasFilter = false;
-
-                $requestQuery->where(function ($q) use ($userIds, $productIds, &$hasFilter) {
-                    foreach (['donor_id', 'beneficiary_id', 'user_id'] as $column) {
-                        if (Schema::hasColumn('product_requests', $column)) {
-                            if (! $hasFilter) {
-                                $q->whereIn($column, $userIds);
-                                $hasFilter = true;
-                            } else {
-                                $q->orWhereIn($column, $userIds);
-                            }
-                        }
-                    }
-
-                    if ($productIds->isNotEmpty() && Schema::hasColumn('product_requests', 'product_id')) {
-                        if (! $hasFilter) {
-                            $q->whereIn('product_id', $productIds);
-                            $hasFilter = true;
-                        } else {
-                            $q->orWhereIn('product_id', $productIds);
-                        }
-                    }
-                });
-
-                if ($hasFilter) {
-                    $requestQuery->delete();
-                }
-            }
-
-            foreach ([
-                'beneficiary_profiles' => ['user_id'],
-                'donor_profiles' => ['user_id'],
-                'donor_term_acceptances' => ['donor_id', 'user_id'],
-            ] as $table => $possibleColumns) {
-                if (! Schema::hasTable($table)) {
-                    continue;
-                }
-
-                $availableColumns = [];
-
-                foreach ($possibleColumns as $column) {
-                    if (Schema::hasColumn($table, $column)) {
-                        $availableColumns[] = $column;
-                    }
-                }
-
-                if ($availableColumns === []) {
-                    continue;
-                }
-
-                DB::table($table)->where(function ($q) use ($availableColumns, $userIds) {
-                    foreach ($availableColumns as $index => $column) {
-                        $index === 0
-                            ? $q->whereIn($column, $userIds)
-                            : $q->orWhereIn($column, $userIds);
-                    }
-                })->delete();
-            }
-
-            if (Schema::hasTable('products') && Schema::hasColumn('products', 'user_id')) {
-                DB::table('products')->whereIn('user_id', $userIds)->delete();
-            }
-
-            $user->delete();
-
-            DB::commit();
-
-            if ($imageName) {
-                $imagePath = public_path('admins/asset/profilephoto/' . $imageName);
-
-                if (File::exists($imagePath)) {
-                    File::delete($imagePath);
-                }
-            }
-
-            return redirect()
-                ->route('admin.user.index')
-                ->with('success', 'User deleted successfully.');
-        } catch (Throwable $exception) {
-            if (DB::transactionLevel() > 0) {
-                DB::rollBack();
-            }
-
-            report($exception);
-
-            return back()->with(
-                'error',
-                'The user could not be deleted. Please check the Laravel log for a related-record constraint.'
-            );
+        if (Schema::hasTable('sessions') && Schema::hasColumn('sessions', 'user_id')) {
+            DB::table('sessions')->where('user_id', $userId)->delete();
         }
+
+        if (Schema::hasColumn('users', 'status_changed_by')) {
+            User::where('status_changed_by', $userId)
+                ->update(['status_changed_by' => null]);
+        }
+
+        if (Schema::hasTable('notifications') && Schema::hasColumn('notifications', 'notifiable_id')) {
+            $notifications = DB::table('notifications')->where('notifiable_id', $userId);
+
+            if (Schema::hasColumn('notifications', 'notifiable_type')) {
+                $notifications->whereIn('notifiable_type', [User::class, 'App\\Models\\User']);
+            }
+
+            $notifications->delete();
+        }
+
+        if (Schema::hasTable('personal_access_tokens') && Schema::hasColumn('personal_access_tokens', 'tokenable_id')) {
+            $tokens = DB::table('personal_access_tokens')->where('tokenable_id', $userId);
+
+            if (Schema::hasColumn('personal_access_tokens', 'tokenable_type')) {
+                $tokens->whereIn('tokenable_type', [User::class, 'App\\Models\\User']);
+            }
+
+            $tokens->delete();
+        }
+
+        $productIds = collect();
+
+        if (
+            Schema::hasTable('products')
+            && Schema::hasColumn('products', 'user_id')
+            && Schema::hasColumn('products', 'id')
+        ) {
+            $productIds = DB::table('products')
+                ->where('user_id', $userId)
+                ->pluck('id');
+        }
+
+        if (Schema::hasTable('product_requests')) {
+            if (Schema::hasColumn('product_requests', 'donor_id')) {
+                DB::table('product_requests')->where('donor_id', $userId)->delete();
+            }
+
+            if (Schema::hasColumn('product_requests', 'beneficiary_id')) {
+                DB::table('product_requests')->where('beneficiary_id', $userId)->delete();
+            }
+
+            if (Schema::hasColumn('product_requests', 'user_id')) {
+                DB::table('product_requests')->where('user_id', $userId)->delete();
+            }
+
+            if ($productIds->isNotEmpty() && Schema::hasColumn('product_requests', 'product_id')) {
+                DB::table('product_requests')->whereIn('product_id', $productIds)->delete();
+            }
+        }
+
+        if (Schema::hasTable('beneficiary_profiles') && Schema::hasColumn('beneficiary_profiles', 'user_id')) {
+            DB::table('beneficiary_profiles')->where('user_id', $userId)->delete();
+        }
+
+        if (Schema::hasTable('donor_profiles') && Schema::hasColumn('donor_profiles', 'user_id')) {
+            DB::table('donor_profiles')->where('user_id', $userId)->delete();
+        }
+
+        if (Schema::hasTable('donor_term_acceptances')) {
+            if (Schema::hasColumn('donor_term_acceptances', 'donor_id')) {
+                DB::table('donor_term_acceptances')->where('donor_id', $userId)->delete();
+            }
+
+            if (Schema::hasColumn('donor_term_acceptances', 'user_id')) {
+                DB::table('donor_term_acceptances')->where('user_id', $userId)->delete();
+            }
+        }
+
+        if (Schema::hasTable('products') && Schema::hasColumn('products', 'user_id')) {
+            DB::table('products')->where('user_id', $userId)->delete();
+        }
+
+        $user->delete();
+
+        if ($imageName) {
+            $imagePath = public_path('admins/asset/profilephoto/' . $imageName);
+
+            if (File::exists($imagePath)) {
+                File::delete($imagePath);
+            }
+        }
+
+        return redirect()
+            ->route('admin.user.index')
+            ->with('success', 'User deleted successfully.');
     }
 
-    /**
-     * Delete selected users.
-     */
     public function deleteSelected(Request $request): RedirectResponse
     {
         abort_unless(
@@ -697,178 +524,150 @@ class AdminUserController extends Controller
             'ids.*.exists' => 'One of the selected users does not exist.',
         ]);
 
-        $requestedIds = collect($validated['ids'])
-            ->map(fn ($id) => (int) $id)
-            ->unique()
-            ->values();
+        $requestedIds = [];
 
-        $userIds = $requestedIds
-            ->reject(fn (int $id) => $id === auth()->id())
-            ->values();
+        foreach ($validated['ids'] as $id) {
+            $id = (int) $id;
 
-        if ($userIds->isEmpty()) {
+            if (! in_array($id, $requestedIds, true)) {
+                $requestedIds[] = $id;
+            }
+        }
+
+        $userIds = [];
+
+        foreach ($requestedIds as $id) {
+            if ($id !== auth()->id()) {
+                $userIds[] = $id;
+            }
+        }
+
+        if (empty($userIds)) {
             return back()->with(
                 'error',
                 'No deletable users were selected. Your own account cannot be deleted.'
             );
         }
 
-        $users = User::query()->whereIn('id', $userIds)->get();
+        $users = User::whereIn('id', $userIds)->get();
 
         if ($users->isEmpty()) {
             return back()->with('error', 'No matching users were found to delete.');
         }
 
-        $imageNames = $users->pluck('image')->filter()->map(fn ($name) => basename($name))->values();
-        $deletedCount = $users->count();
-        $skippedOwnAccount = $requestedIds->contains(auth()->id());
+        $imageNames = [];
 
-        try {
-            DB::beginTransaction();
-
-            if (Schema::hasTable('sessions') && Schema::hasColumn('sessions', 'user_id')) {
-                DB::table('sessions')->whereIn('user_id', $userIds)->delete();
+        foreach ($users as $user) {
+            if ($user->image) {
+                $imageNames[] = basename($user->image);
             }
-
-            if (Schema::hasColumn('users', 'status_changed_by')) {
-                User::query()
-                    ->whereIn('status_changed_by', $userIds)
-                    ->update(['status_changed_by' => null]);
-            }
-
-            if (Schema::hasTable('notifications') && Schema::hasColumn('notifications', 'notifiable_id')) {
-                $notificationQuery = DB::table('notifications')->whereIn('notifiable_id', $userIds);
-
-                if (Schema::hasColumn('notifications', 'notifiable_type')) {
-                    $notificationQuery->whereIn('notifiable_type', [User::class, 'App\\Models\\User']);
-                }
-
-                $notificationQuery->delete();
-            }
-
-            if (Schema::hasTable('personal_access_tokens') && Schema::hasColumn('personal_access_tokens', 'tokenable_id')) {
-                $tokenQuery = DB::table('personal_access_tokens')->whereIn('tokenable_id', $userIds);
-
-                if (Schema::hasColumn('personal_access_tokens', 'tokenable_type')) {
-                    $tokenQuery->whereIn('tokenable_type', [User::class, 'App\\Models\\User']);
-                }
-
-                $tokenQuery->delete();
-            }
-
-            $productIds = collect();
-
-            if (
-                Schema::hasTable('products')
-                && Schema::hasColumn('products', 'user_id')
-                && Schema::hasColumn('products', 'id')
-            ) {
-                $productIds = DB::table('products')->whereIn('user_id', $userIds)->pluck('id');
-            }
-
-            if (Schema::hasTable('product_requests')) {
-                $requestQuery = DB::table('product_requests');
-                $hasFilter = false;
-
-                $requestQuery->where(function ($q) use ($userIds, $productIds, &$hasFilter) {
-                    foreach (['donor_id', 'beneficiary_id', 'user_id'] as $column) {
-                        if (Schema::hasColumn('product_requests', $column)) {
-                            if (! $hasFilter) {
-                                $q->whereIn($column, $userIds);
-                                $hasFilter = true;
-                            } else {
-                                $q->orWhereIn($column, $userIds);
-                            }
-                        }
-                    }
-
-                    if ($productIds->isNotEmpty() && Schema::hasColumn('product_requests', 'product_id')) {
-                        if (! $hasFilter) {
-                            $q->whereIn('product_id', $productIds);
-                            $hasFilter = true;
-                        } else {
-                            $q->orWhereIn('product_id', $productIds);
-                        }
-                    }
-                });
-
-                if ($hasFilter) {
-                    $requestQuery->delete();
-                }
-            }
-
-            foreach ([
-                'beneficiary_profiles' => ['user_id'],
-                'donor_profiles' => ['user_id'],
-                'donor_term_acceptances' => ['donor_id', 'user_id'],
-            ] as $table => $possibleColumns) {
-                if (! Schema::hasTable($table)) {
-                    continue;
-                }
-
-                $availableColumns = [];
-
-                foreach ($possibleColumns as $column) {
-                    if (Schema::hasColumn($table, $column)) {
-                        $availableColumns[] = $column;
-                    }
-                }
-
-                if ($availableColumns === []) {
-                    continue;
-                }
-
-                DB::table($table)->where(function ($q) use ($availableColumns, $userIds) {
-                    foreach ($availableColumns as $index => $column) {
-                        $index === 0
-                            ? $q->whereIn($column, $userIds)
-                            : $q->orWhereIn($column, $userIds);
-                    }
-                })->delete();
-            }
-
-            if (Schema::hasTable('products') && Schema::hasColumn('products', 'user_id')) {
-                DB::table('products')->whereIn('user_id', $userIds)->delete();
-            }
-
-            User::query()->whereIn('id', $userIds)->delete();
-
-            DB::commit();
-
-            foreach ($imageNames as $imageName) {
-                $imagePath = public_path('admins/asset/profilephoto/' . $imageName);
-
-                if (File::exists($imagePath)) {
-                    File::delete($imagePath);
-                }
-            }
-
-            $message = "{$deletedCount} user(s) deleted successfully.";
-
-            if ($skippedOwnAccount) {
-                $message .= ' Your own account was skipped.';
-            }
-
-            return redirect()
-                ->route('admin.user.index')
-                ->with('success', $message);
-        } catch (Throwable $exception) {
-            if (DB::transactionLevel() > 0) {
-                DB::rollBack();
-            }
-
-            report($exception);
-
-            return back()->with(
-                'error',
-                'The selected users could not be deleted. Please check the Laravel log for a related-record constraint.'
-            );
         }
+
+        $deletedCount = $users->count();
+        $skippedOwnAccount = in_array(auth()->id(), $requestedIds, true);
+
+        if (Schema::hasTable('sessions') && Schema::hasColumn('sessions', 'user_id')) {
+            DB::table('sessions')->whereIn('user_id', $userIds)->delete();
+        }
+
+        if (Schema::hasColumn('users', 'status_changed_by')) {
+            User::whereIn('status_changed_by', $userIds)
+                ->update(['status_changed_by' => null]);
+        }
+
+        if (Schema::hasTable('notifications') && Schema::hasColumn('notifications', 'notifiable_id')) {
+            $notifications = DB::table('notifications')->whereIn('notifiable_id', $userIds);
+
+            if (Schema::hasColumn('notifications', 'notifiable_type')) {
+                $notifications->whereIn('notifiable_type', [User::class, 'App\\Models\\User']);
+            }
+
+            $notifications->delete();
+        }
+
+        if (Schema::hasTable('personal_access_tokens') && Schema::hasColumn('personal_access_tokens', 'tokenable_id')) {
+            $tokens = DB::table('personal_access_tokens')->whereIn('tokenable_id', $userIds);
+
+            if (Schema::hasColumn('personal_access_tokens', 'tokenable_type')) {
+                $tokens->whereIn('tokenable_type', [User::class, 'App\\Models\\User']);
+            }
+
+            $tokens->delete();
+        }
+
+        $productIds = collect();
+
+        if (
+            Schema::hasTable('products')
+            && Schema::hasColumn('products', 'user_id')
+            && Schema::hasColumn('products', 'id')
+        ) {
+            $productIds = DB::table('products')
+                ->whereIn('user_id', $userIds)
+                ->pluck('id');
+        }
+
+        if (Schema::hasTable('product_requests')) {
+            if (Schema::hasColumn('product_requests', 'donor_id')) {
+                DB::table('product_requests')->whereIn('donor_id', $userIds)->delete();
+            }
+
+            if (Schema::hasColumn('product_requests', 'beneficiary_id')) {
+                DB::table('product_requests')->whereIn('beneficiary_id', $userIds)->delete();
+            }
+
+            if (Schema::hasColumn('product_requests', 'user_id')) {
+                DB::table('product_requests')->whereIn('user_id', $userIds)->delete();
+            }
+
+            if ($productIds->isNotEmpty() && Schema::hasColumn('product_requests', 'product_id')) {
+                DB::table('product_requests')->whereIn('product_id', $productIds)->delete();
+            }
+        }
+
+        if (Schema::hasTable('beneficiary_profiles') && Schema::hasColumn('beneficiary_profiles', 'user_id')) {
+            DB::table('beneficiary_profiles')->whereIn('user_id', $userIds)->delete();
+        }
+
+        if (Schema::hasTable('donor_profiles') && Schema::hasColumn('donor_profiles', 'user_id')) {
+            DB::table('donor_profiles')->whereIn('user_id', $userIds)->delete();
+        }
+
+        if (Schema::hasTable('donor_term_acceptances')) {
+            if (Schema::hasColumn('donor_term_acceptances', 'donor_id')) {
+                DB::table('donor_term_acceptances')->whereIn('donor_id', $userIds)->delete();
+            }
+
+            if (Schema::hasColumn('donor_term_acceptances', 'user_id')) {
+                DB::table('donor_term_acceptances')->whereIn('user_id', $userIds)->delete();
+            }
+        }
+
+        if (Schema::hasTable('products') && Schema::hasColumn('products', 'user_id')) {
+            DB::table('products')->whereIn('user_id', $userIds)->delete();
+        }
+
+        User::whereIn('id', $userIds)->delete();
+
+        foreach ($imageNames as $imageName) {
+            $imagePath = public_path('admins/asset/profilephoto/' . $imageName);
+
+            if (File::exists($imagePath)) {
+                File::delete($imagePath);
+            }
+        }
+
+        $message = "{$deletedCount} user(s) deleted successfully.";
+
+        if ($skippedOwnAccount) {
+            $message .= ' Your own account was skipped.';
+        }
+
+        return redirect()
+            ->route('admin.user.index')
+            ->with('success', $message);
     }
 
-    /**
-     * Preview Excel/CSV user import.
-     */
     public function preview(Request $request): RedirectResponse
     {
         abort_unless(
@@ -881,28 +680,24 @@ class AdminUserController extends Controller
             'file' => ['required', 'file', 'mimes:xlsx,xls,csv', 'max:5120'],
         ]);
 
-        try {
-            $sheets = Excel::toCollection(null, $request->file('file'));
-            $sheet = $sheets->first();
-        } catch (Throwable $exception) {
-            report($exception);
+        $sheets = Excel::toCollection(null, $request->file('file'));
+        $sheet = $sheets->first();
 
+        if (! $sheet || $sheet->isEmpty()) {
             return back()->withErrors([
-                'file' => 'The spreadsheet could not be read. Please use a valid XLSX, XLS, or CSV file.',
+                'file' => 'The selected spreadsheet is empty.',
             ]);
         }
 
-        if (! $sheet || $sheet->isEmpty()) {
-            return back()->withErrors(['file' => 'The selected spreadsheet is empty.']);
-        }
+        $headings = [];
 
-        $headings = collect($sheet->first())
-            ->map(fn ($heading) => Str::of((string) $heading)
+        foreach ($sheet->first() as $heading) {
+            $headings[] = Str::of((string) $heading)
                 ->trim()
                 ->lower()
                 ->replace(' ', '_')
-                ->value())
-            ->all();
+                ->value();
+        }
 
         $requiredHeadings = [
             'name',
@@ -932,23 +727,26 @@ class AdminUserController extends Controller
 
         foreach ($dataRows as $index => $row) {
             $excelRow = $index + 2;
-            $row = collect($headings)
-                ->combine(collect($row)->pad(count($headings), null))
-                ->all();
+            $rowValues = collect($row)->pad(count($headings), null)->all();
+            $rowData = [];
 
-            $name = filled($row['name'] ?? null) ? trim((string) $row['name']) : null;
-            $email = filled($row['email'] ?? null) ? Str::lower(trim((string) $row['email'])) : null;
-            $phone = filled($row['phone'] ?? null) ? trim((string) $row['phone']) : null;
-            $password = filled($row['password'] ?? null) ? trim((string) $row['password']) : null;
-            $role = Str::lower(filled($row['role'] ?? null) ? trim((string) $row['role']) : 'beneficiary');
-            $qalamId = filled($row['qalam_id'] ?? null) ? Str::upper(trim((string) $row['qalam_id'])) : null;
+            foreach ($headings as $headingIndex => $heading) {
+                $rowData[$heading] = $rowValues[$headingIndex] ?? null;
+            }
+
+            $name = filled($rowData['name'] ?? null) ? trim((string) $rowData['name']) : null;
+            $email = filled($rowData['email'] ?? null) ? Str::lower(trim((string) $rowData['email'])) : null;
+            $phone = filled($rowData['phone'] ?? null) ? trim((string) $rowData['phone']) : null;
+            $password = filled($rowData['password'] ?? null) ? trim((string) $rowData['password']) : null;
+            $role = Str::lower(filled($rowData['role'] ?? null) ? trim((string) $rowData['role']) : 'beneficiary');
+            $qalamId = filled($rowData['qalam_id'] ?? null) ? Str::upper(trim((string) $rowData['qalam_id'])) : null;
             $accountStatus = Str::lower(
-                filled($row['account_status'] ?? null)
-                    ? trim((string) $row['account_status'])
+                filled($rowData['account_status'] ?? null)
+                    ? trim((string) $rowData['account_status'])
                     : 'active'
             );
-            $statusReason = filled($row['status_reason'] ?? null)
-                ? trim((string) $row['status_reason'])
+            $statusReason = filled($rowData['status_reason'] ?? null)
+                ? trim((string) $rowData['status_reason'])
                 : null;
 
             $data = [
@@ -1015,7 +813,7 @@ class AdminUserController extends Controller
                 }
             }
 
-            if ($reasons !== []) {
+            if (! empty($reasons)) {
                 $duplicates[] = [
                     'row' => $excelRow,
                     'name' => $data['name'],
@@ -1053,9 +851,6 @@ class AdminUserController extends Controller
         ]);
     }
 
-    /**
-     * Confirm Excel/CSV user import.
-     */
     public function confirm(Request $request): RedirectResponse
     {
         abort_unless(
@@ -1078,7 +873,9 @@ class AdminUserController extends Controller
         ) {
             return redirect()
                 ->route('admin.user.index')
-                ->withErrors(['file' => 'The import preview expired. Please upload the file again.']);
+                ->withErrors([
+                    'file' => 'The import preview expired. Please upload the file again.',
+                ]);
         }
 
         if (($pendingImport['created_at'] ?? 0) < now()->subMinutes(30)->timestamp) {
@@ -1094,53 +891,37 @@ class AdminUserController extends Controller
         $inserted = 0;
         $raceDuplicates = 0;
 
-        try {
-            DB::beginTransaction();
+        foreach ($pendingImport['rows'] as $data) {
+            $duplicateExists = User::where('email', $data['email'])->exists();
 
-            foreach ($pendingImport['rows'] as $data) {
-                $duplicateQuery = User::query()->where('email', $data['email']);
-
-                if (filled($data['qalam_id'])) {
-                    $duplicateQuery->orWhere('qalam_id', $data['qalam_id']);
-                }
-
-                if ($duplicateQuery->lockForUpdate()->exists()) {
-                    $raceDuplicates++;
-                    continue;
-                }
-
-                $plainPassword = filled($data['password'])
-                    ? $data['password']
-                    : Str::password(12);
-
-                User::create([
-                    'name' => $data['name'],
-                    'email' => $data['email'],
-                    'phone' => $data['phone'],
-                    'password' => Hash::make($plainPassword),
-                    'image' => null,
-                    'role' => $data['role'],
-                    'qalam_id' => $data['qalam_id'],
-                    'account_status' => $data['account_status'],
-                    'status_reason' => $data['status_reason'],
-                    'status_changed_at' => $data['account_status'] === 'active' ? null : now(),
-                    'status_changed_by' => auth()->id(),
-                ]);
-
-                $inserted++;
+            if (! $duplicateExists && filled($data['qalam_id'])) {
+                $duplicateExists = User::where('qalam_id', $data['qalam_id'])->exists();
             }
 
-            DB::commit();
-        } catch (Throwable $exception) {
-            if (DB::transactionLevel() > 0) {
-                DB::rollBack();
+            if ($duplicateExists) {
+                $raceDuplicates++;
+                continue;
             }
 
-            report($exception);
+            $plainPassword = filled($data['password'])
+                ? $data['password']
+                : Str::password(12);
 
-            return redirect()
-                ->route('admin.user.index')
-                ->withErrors(['file' => 'The user import failed. Please check the Laravel log.']);
+            User::create([
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'phone' => $data['phone'],
+                'password' => Hash::make($plainPassword),
+                'image' => null,
+                'role' => $data['role'],
+                'qalam_id' => $data['qalam_id'],
+                'account_status' => $data['account_status'],
+                'status_reason' => $data['status_reason'],
+                'status_changed_at' => $data['account_status'] === 'active' ? null : now(),
+                'status_changed_by' => auth()->id(),
+            ]);
+
+            $inserted++;
         }
 
         session()->forget('pending_user_import');
@@ -1156,9 +937,6 @@ class AdminUserController extends Controller
             ->with('success', $message);
     }
 
-    /**
-     * Cancel pending user import.
-     */
     public function cancel(): RedirectResponse
     {
         abort_unless(
@@ -1174,9 +952,6 @@ class AdminUserController extends Controller
             ->with('info', 'User import was cancelled.');
     }
 
-    /**
-     * Export all users.
-     */
     public function exportUsers(): BinaryFileResponse
     {
         abort_unless(
@@ -1185,12 +960,12 @@ class AdminUserController extends Controller
             'Only administrators can perform this action.'
         );
 
-        return Excel::download(new UsersExport(), 'users.xlsx');
+        return Excel::download(
+            new UsersExport(),
+            'users.xlsx'
+        );
     }
 
-    /**
-     * Export selected users.
-     */
     public function exportSelected(Request $request): BinaryFileResponse|RedirectResponse
     {
         abort_unless(

@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AdminCategorytController;
 use App\Http\Controllers\Admin\AdminContactController;
 use App\Http\Controllers\Admin\AdminProductsController;
 use App\Http\Controllers\Admin\AdminRequestController;
+use App\Http\Controllers\Admin\AdminStoryController;
 use App\Http\Controllers\Admin\AdminTrafficReportController;
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Auth\AuthController;
@@ -19,6 +20,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OurImpectController;
 use Illuminate\Support\Facades\Route;
+
 
 
 
@@ -361,3 +363,56 @@ Route::delete(
             ->name('beneficiary.my.requests');
     });
 });
+
+/*
+|--------------------------------------------------------------------------
+| Admin Student Stories
+|--------------------------------------------------------------------------
+*/
+
+Route::get(
+    '/admin/student-stories',
+    [AdminStoryController::class, 'index']
+)
+    ->middleware(['auth', 'role:admin'])
+    ->name('admin.student.stories.index');
+
+
+Route::get(
+    '/admin/student-stories/create',
+    [AdminStoryController::class, 'create']
+)
+    ->middleware(['auth', 'role:admin'])
+    ->name('admin.student.stories.create');
+
+
+Route::post(
+    '/admin/student-stories',
+    [AdminStoryController::class, 'store']
+)
+    ->middleware(['auth', 'role:admin'])
+    ->name('admin.student.stories.store');
+
+
+Route::get(
+    '/admin/student-stories/{story}/edit',
+    [AdminStoryController::class, 'edit']
+)
+    ->middleware(['auth', 'role:admin'])
+    ->name('admin.student.stories.edit');
+
+
+Route::put(
+    '/admin/student-stories/{story}',
+    [AdminStoryController::class, 'update']
+)
+    ->middleware(['auth', 'role:admin'])
+    ->name('admin.student.stories.update');
+
+
+Route::delete(
+    '/admin/student-stories/{story}',
+    [AdminStoryController::class, 'destroy']
+)
+    ->middleware(['auth', 'role:admin'])
+    ->name('admin.student.stories.destroy');

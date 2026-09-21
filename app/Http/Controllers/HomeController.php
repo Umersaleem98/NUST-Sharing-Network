@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Contact;
+use App\Models\StudentStory;
 use App\Models\User;
 use App\Notifications\ContactMessageNotification;
 use Illuminate\Http\Request;
@@ -18,7 +19,13 @@ class HomeController extends Controller
 
     public function index()
     {
-        return view('index');
+        $stories = StudentStory::query()
+            ->active()
+            ->ordered()
+            ->limit(6)
+            ->get();
+
+        return view('index', compact('stories'));
     }
 
 
@@ -165,19 +172,15 @@ class HomeController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $admins = User::where(
-            'role',
-            'admin'
-        )->get();
+        $admins = User::where('role', 'admin')
+            ->get();
 
 
         if ($admins->isNotEmpty()) {
-
             Notification::send(
                 $admins,
                 new ContactMessageNotification($contact)
             );
-
         }
 
 

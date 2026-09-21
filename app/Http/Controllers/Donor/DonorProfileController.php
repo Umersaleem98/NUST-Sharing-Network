@@ -6,12 +6,10 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
-use Throwable;
 
 class DonorProfileController extends Controller
 {
@@ -20,11 +18,15 @@ class DonorProfileController extends Controller
     | Donor Profile
     |--------------------------------------------------------------------------
     */
+
     public function index(): View
     {
         $user = Auth::user();
 
-        abort_if(! $user || $user->role !== 'donor', 403);
+        abort_if(
+            ! $user || $user->role !== 'donor',
+            403
+        );
 
         $user->load('donorProfile');
 
@@ -40,7 +42,7 @@ class DonorProfileController extends Controller
         ];
 
         $completedFields = collect($profileFields)
-            ->filter(fn ($value) => filled($value))
+            ->filter()
             ->count();
 
         $profileCompletion = (int) round(
@@ -49,20 +51,41 @@ class DonorProfileController extends Controller
 
         return view(
             'pages.donor.profile.index',
-            compact('user', 'profileCompletion')
+            compact(
+                'user',
+                'profileCompletion'
+            )
         );
     }
+
 
     /*
     |--------------------------------------------------------------------------
     | Update Donor Profile
     |--------------------------------------------------------------------------
     */
+
     public function update(Request $request): RedirectResponse
     {
+        /*
+        |--------------------------------------------------------------------------
+        | Get Authenticated Donor
+        |--------------------------------------------------------------------------
+        */
+
         $user = Auth::user();
 
-        abort_if(! $user || $user->role !== 'donor', 403);
+        abort_if(
+            ! $user || $user->role !== 'donor',
+            403
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Validate Request
+        |--------------------------------------------------------------------------
+        */
 
         $validated = $request->validate(
             [
@@ -98,7 +121,6 @@ class DonorProfileController extends Controller
 
                 'image' => [
                     'nullable',
-                    'file',
                     'image',
                     'mimes:jpg,jpeg,png,webp',
                     'max:200',
@@ -106,8 +128,8 @@ class DonorProfileController extends Controller
 
                 'current_password' => [
                     'nullable',
-                    'string',
                     'required_with:password',
+                    'string',
                 ],
 
                 'password' => [
@@ -132,10 +154,10 @@ class DonorProfileController extends Controller
                     'The selected profile file must be a valid image.',
 
                 'image.mimes' =>
-                    'The profile image must be a JPG, JPEG, PNG or WebP file.',
+                    'The profile image must be JPG, JPEG, PNG or WebP.',
 
                 'image.max' =>
-                    'The profile image must not be larger than 200 KB.',
+                    'The profile image must not exceed 200 KB.',
 
                 'current_password.required_with' =>
                     'Please enter your current password before setting a new password.',
@@ -154,10 +176,17 @@ class DonorProfileController extends Controller
             ]
         );
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | Verify Current Password
+        |--------------------------------------------------------------------------
+        */
+
         if (
             ! empty($validated['password'])
             && ! Hash::check(
-                (string) ($validated['current_password'] ?? ''),
+                $validated['current_password'] ?? '',
                 $user->password
             )
         ) {
@@ -169,132 +198,147 @@ class DonorProfileController extends Controller
                 ]);
         }
 
-        $uploadPath = public_path('admins/asset/profilephoto');
-        $oldImageName = $user->image;
-        $newImageName = null;
 
-        try {
-            if ($request->hasFile('image')) {
-                File::ensureDirectoryExists(
-                    $uploadPath,
-                    0755,
-                    true
-                );
+        /*
+        |--------------------------------------------------------------------------
+        | Profile Image
+        |--------------------------------------------------------------------------
+        |
+        | Image location:
+        |
+        | public/admins/asset/profilephoto/
+        |
+        */
 
-                if (! is_writable($uploadPath)) {
-                    throw new \RuntimeException(
-                        'Profile image directory is not writable: '.$uploadPath
-                    );
-                }
+        $oldImage = $user->image;
 
-                $image = $request->file('image');
+        if ($request->hasFile('image')) {
 
-                if (! $image || ! $image->isValid()) {
-                    throw new \RuntimeException(
-                        'The uploaded profile image is not valid.'
-                    );
-                }
-
-                $extension = strtolower(
-                    $image->extension()
-                    ?: $image->getClientOriginalExtension()
-                );
-
-                if ($extension === 'jpeg') {
-                    $extension = 'jpg';
-                }
-
-                $newImageName =
-                    'donor-'
-                    .$user->id
-                    .'-'
-                    .Str::uuid()
-                    .'.'
-                    .$extension;
-
-                $image->move(
-                    $uploadPath,
-                    $newImageName
-                );
-            }
-
-            DB::transaction(
-                function () use (
-                    $user,
-                    $validated,
-                    $newImageName
-                ): void {
-                    $user->phone =
-                        $validated['phone'] ?? null;
-
-                    if ($newImageName) {
-                        $user->image = $newImageName;
-                    }
-
-                    if (! empty($validated['password'])) {
-                        $user->password = Hash::make(
-                            $validated['password']
-                        );
-                    }
-
-                    $user->save();
-
-                    $user->donorProfile()->updateOrCreate(
-                        [
-                            'user_id' => $user->id,
-                        ],
-                        [
-                            'organization' =>
-                                $validated['organization'] ?? null,
-
-                            'designation' =>
-                                $validated['designation'] ?? null,
-
-                            'country' =>
-                                $validated['country'] ?? null,
-
-                            'address' =>
-                                $validated['address'] ?? null,
-                        ]
-                    );
-                }
+            $uploadPath = public_path(
+                'admins/asset/profilephoto'
             );
 
-            if (
-                $newImageName
-                && $oldImageName
-                && $oldImageName !== $newImageName
-            ) {
-                $oldImagePath =
-                    $uploadPath.DIRECTORY_SEPARATOR.$oldImageName;
+            File::ensureDirectoryExists(
+                $uploadPath
+            );
+
+            $image = $request->file('image');
+
+            $extension = strtolower(
+                $image->getClientOriginalExtension()
+            );
+
+            if ($extension === 'jpeg') {
+                $extension = 'jpg';
+            }
+
+            $imageName =
+                'donor-'
+                . $user->id
+                . '-'
+                . Str::uuid()
+                . '.'
+                . $extension;
+
+            $image->move(
+                $uploadPath,
+                $imageName
+            );
+
+            /*
+            |--------------------------------------------------------------------------
+            | Delete Old Image
+            |--------------------------------------------------------------------------
+            */
+
+            if ($oldImage) {
+
+                $oldImagePath = public_path(
+                    'admins/asset/profilephoto/'
+                    . basename($oldImage)
+                );
 
                 if (File::exists($oldImagePath)) {
+
                     File::delete($oldImagePath);
                 }
             }
 
-            return back()->with(
-                'success',
-                'Profile updated successfully.'
-            );
-        } catch (Throwable $exception) {
-            if ($newImageName) {
-                $newImagePath =
-                    $uploadPath.DIRECTORY_SEPARATOR.$newImageName;
-
-                if (File::exists($newImagePath)) {
-                    File::delete($newImagePath);
-                }
-            }
-
-            report($exception);
-
-            return back()
-                ->withInput()
-                ->with(
-                    'error',
-                    'Your profile could not be updated. Please try again.'
-                );
+            $user->image = $imageName;
         }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Update User
+        |--------------------------------------------------------------------------
+        */
+
+        $user->phone = ! empty($validated['phone'])
+            ? trim($validated['phone'])
+            : null;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Update Password
+        |--------------------------------------------------------------------------
+        */
+
+        if (! empty($validated['password'])) {
+
+            $user->password = Hash::make(
+                $validated['password']
+            );
+        }
+
+
+        $user->save();
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Update Donor Profile
+        |--------------------------------------------------------------------------
+        */
+
+        $user->donorProfile()->updateOrCreate(
+            [
+                'user_id' => $user->id,
+            ],
+            [
+                'organization' =>
+                    ! empty($validated['organization'])
+                        ? trim($validated['organization'])
+                        : null,
+
+                'designation' =>
+                    ! empty($validated['designation'])
+                        ? trim($validated['designation'])
+                        : null,
+
+                'country' =>
+                    ! empty($validated['country'])
+                        ? trim($validated['country'])
+                        : null,
+
+                'address' =>
+                    ! empty($validated['address'])
+                        ? trim($validated['address'])
+                        : null,
+            ]
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Success
+        |--------------------------------------------------------------------------
+        */
+
+        return back()->with(
+            'success',
+            'Profile updated successfully.'
+        );
     }
 }
