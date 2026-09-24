@@ -4,114 +4,113 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Contact;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Notifications\DatabaseNotification;
+use Illuminate\View\View;
 
 class AdminContactController extends Controller
 {
     /*
     |--------------------------------------------------------------------------
-    | Contact Messages Index
+    | All Contact Messages
     |--------------------------------------------------------------------------
     */
 
-    public function index(Request $request)
+    public function index(Request $request): View
     {
-        $query = Contact::query();
+        $contacts = Contact::query()
+            ->when(
+                $request->filled('search'),
+                function ($query) use ($request) {
 
+                    $search = trim(
+                        $request->search
+                    );
 
-        /*
-        |--------------------------------------------------------------------------
-        | Search
-        |--------------------------------------------------------------------------
-        */
+                    $query->where(
+                        function ($query) use ($search) {
 
-        if ($request->filled('search')) {
+                            $query
+                                ->where(
+                                    'name',
+                                    'like',
+                                    "%{$search}%"
+                                )
+                                ->orWhere(
+                                    'email',
+                                    'like',
+                                    "%{$search}%"
+                                )
+                                ->orWhere(
+                                    'phone',
+                                    'like',
+                                    "%{$search}%"
+                                )
+                                ->orWhere(
+                                    'subject',
+                                    'like',
+                                    "%{$search}%"
+                                )
+                                ->orWhere(
+                                    'message',
+                                    'like',
+                                    "%{$search}%"
+                                );
+                        }
+                    );
+                }
+            )
+            ->when(
+                $request->filled('status'),
+                function ($query) use ($request) {
 
-            $search = trim($request->search);
+                    if (
+                        in_array(
+                            $request->status,
+                            [
+                                'new',
+                                'read',
+                                'resolved',
+                            ],
+                            true
+                        )
+                    ) {
 
-            $query->where(function ($q) use ($search) {
+                        $query->where(
+                            'status',
+                            $request->status
+                        );
+                    }
+                }
+            )
+            ->when(
+                $request->filled('inquiry_type'),
+                function ($query) use ($request) {
 
-                $q->where(
-                    'name',
-                    'like',
-                    '%' . $search . '%'
-                )
-                ->orWhere(
-                    'email',
-                    'like',
-                    '%' . $search . '%'
-                )
-                ->orWhere(
-                    'phone',
-                    'like',
-                    '%' . $search . '%'
-                )
-                ->orWhere(
-                    'subject',
-                    'like',
-                    '%' . $search . '%'
-                )
-                ->orWhere(
-                    'message',
-                    'like',
-                    '%' . $search . '%'
-                );
+                    if (
+                        in_array(
+                            $request->inquiry_type,
+                            [
+                                'general',
+                                'donor_support',
+                                'beneficiary_support',
+                                'account_support',
+                                'technical',
+                                'feedback',
+                                'other',
+                            ],
+                            true
+                        )
+                    ) {
 
-            });
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Status Filter
-        |--------------------------------------------------------------------------
-        */
-
-        if ($request->filled('status')) {
-
-            $request->validate([
-                'status' => [
-                    'in:new,read,resolved',
-                ],
-            ]);
-
-            $query->where(
-                'status',
-                $request->status
-            );
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Inquiry Type Filter
-        |--------------------------------------------------------------------------
-        */
-
-        if ($request->filled('inquiry_type')) {
-
-            $request->validate([
-                'inquiry_type' => [
-                    'in:general,donor_support,beneficiary_support,account_support,technical,feedback,other',
-                ],
-            ]);
-
-            $query->where(
-                'inquiry_type',
-                $request->inquiry_type
-            );
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Latest Messages First
-        |--------------------------------------------------------------------------
-        */
-
-        $contacts = $query
-            ->orderByDesc('created_at')
+                        $query->where(
+                            'inquiry_type',
+                            $request->inquiry_type
+                        );
+                    }
+                }
+            )
+            ->latest()
             ->paginate(15)
             ->withQueryString();
 
@@ -122,32 +121,33 @@ class AdminContactController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $totalContacts = Contact::count();
-
-        $newContacts = Contact::where(
-            'status',
-            'new'
-        )->count();
-
-        $readContacts = Contact::where(
-            'status',
-            'read'
-        )->count();
-
-        $resolvedContacts = Contact::where(
-            'status',
-            'resolved'
-        )->count();
+        $totalContacts =
+            Contact::count();
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Return View
-        |--------------------------------------------------------------------------
-        */
+        $newContacts =
+            Contact::where(
+                'status',
+                'new'
+            )->count();
+
+
+        $readContacts =
+            Contact::where(
+                'status',
+                'read'
+            )->count();
+
+
+        $resolvedContacts =
+            Contact::where(
+                'status',
+                'resolved'
+            )->count();
+
 
         return view(
-            'pages.admin.contact.index',
+            'pages.admins.contacts.index',
             compact(
                 'contacts',
                 'totalContacts',
@@ -161,22 +161,17 @@ class AdminContactController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | Show Contact Message
+    | View Contact Message
     |--------------------------------------------------------------------------
     */
 
-    public function show(Contact $contact)
+    public function show(Contact $contact): View
     {
-        /*
-        |--------------------------------------------------------------------------
-        | Mark Contact Message As Read
-        |--------------------------------------------------------------------------
-        */
-
         if ($contact->status === 'new') {
 
             $contact->update([
                 'status' => 'read',
+                'read_at' => now(),
             ]);
         }
 
@@ -187,34 +182,36 @@ class AdminContactController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $notification = auth()
-            ->user()
+        auth()->user()
             ->unreadNotifications()
             ->get()
-            ->first(function ($notification) use ($contact) {
+            ->filter(
+                function ($notification) use ($contact) {
 
-                $contactId =
-                    $notification->data['contact_id']
-                    ?? null;
+                    return
+                        ($notification->data['type'] ?? null)
+                            === 'contact_message'
+                        &&
+                        (int) (
+                            $notification->data['contact_id']
+                            ?? 0
+                        )
+                            === (int) $contact->id;
+                }
+            )
+            ->each(
+                function ($notification) {
 
-                return $contactId
-                    &&
-                    (int) $contactId
-                    ===
-                    (int) $contact->id;
-
-            });
+                    $notification->markAsRead();
+                }
+            );
 
 
-        if ($notification) {
-
-            $notification->markAsRead();
-
-        }
+        $contact->refresh();
 
 
         return view(
-            'pages.admin.contact.show',
+            'pages.admins.contacts.show',
             compact('contact')
         );
     }
@@ -222,221 +219,77 @@ class AdminContactController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | Update Contact Status
+    | Mark Contact As Resolved
     |--------------------------------------------------------------------------
     */
 
-    public function updateStatus(
-        Request $request,
-        Contact $contact
-    ) {
-        $validated = $request->validate(
-            [
-                'status' => [
-                    'required',
-                    'in:new,read,resolved',
-                ],
-            ],
-            [
-                'status.required' =>
-                    'Please select a status.',
-
-                'status.in' =>
-                    'Please select a valid status.',
-            ]
-        );
-
-
+    public function resolve(Contact $contact): RedirectResponse
+    {
         $contact->update([
-            'status' => $validated['status'],
+            'status' => 'resolved',
+
+            'read_at' =>
+                $contact->read_at
+                    ?? now(),
         ]);
 
 
         return redirect()
-            ->back()
+            ->route('admin.contacts.show', $contact)
             ->with(
                 'success',
-                'Contact message status updated successfully.'
+                'Contact message marked as resolved successfully.'
             );
     }
 
 
     /*
     |--------------------------------------------------------------------------
-    | Delete Single Contact Message
+    | Delete Contact Message
     |--------------------------------------------------------------------------
     */
 
-    public function destroy(Contact $contact)
+    public function destroy(Contact $contact): RedirectResponse
     {
         /*
         |--------------------------------------------------------------------------
-        | Delete Related Notifications
+        | Remove Related Notifications
         |--------------------------------------------------------------------------
         */
 
-        $this->deleteContactNotifications([
-            $contact->id,
-        ]);
+        auth()->user()
+            ->notifications()
+            ->get()
+            ->filter(
+                function ($notification) use ($contact) {
 
+                    return
+                        ($notification->data['type'] ?? null)
+                            === 'contact_message'
+                        &&
+                        (int) (
+                            $notification->data['contact_id']
+                            ?? 0
+                        )
+                            === (int) $contact->id;
+                }
+            )
+            ->each(
+                function ($notification) {
 
-        /*
-        |--------------------------------------------------------------------------
-        | Delete Contact
-        |--------------------------------------------------------------------------
-        */
+                    $notification->delete();
+                }
+            );
+
 
         $contact->delete();
 
 
         return redirect()
-            ->route('admin.contact.index')
+            ->route('admin.contacts.index')
             ->with(
                 'success',
                 'Contact message deleted successfully.'
             );
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Delete Selected Contact Messages
-    |--------------------------------------------------------------------------
-    */
-
-    public function destroySelected(Request $request)
-    {
-        /*
-        |--------------------------------------------------------------------------
-        | Validate Selected IDs
-        |--------------------------------------------------------------------------
-        */
-
-        $validated = $request->validate(
-            [
-                'ids' => [
-                    'required',
-                    'array',
-                    'min:1',
-                ],
-
-                'ids.*' => [
-                    'required',
-                    'integer',
-                    'distinct',
-                    'exists:contacts,id',
-                ],
-            ],
-            [
-                'ids.required' =>
-                    'Please select at least one contact message.',
-
-                'ids.array' =>
-                    'Invalid contact selection.',
-
-                'ids.min' =>
-                    'Please select at least one contact message.',
-
-                'ids.*.exists' =>
-                    'One or more selected contact messages no longer exist.',
-            ]
-        );
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Normalize Contact IDs
-        |--------------------------------------------------------------------------
-        */
-
-        $contactIds = collect(
-            $validated['ids']
-        )
-            ->map(
-                fn ($id) => (int) $id
-            )
-            ->unique()
-            ->values()
-            ->all();
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Delete Related Notifications
-        |--------------------------------------------------------------------------
-        */
-
-        $this->deleteContactNotifications(
-            $contactIds
-        );
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Delete Selected Contacts
-        |--------------------------------------------------------------------------
-        */
-
-        $deletedCount = Contact::whereIn(
-            'id',
-            $contactIds
-        )->delete();
-
-
-        return redirect()
-            ->route('admin.contact.index')
-            ->with(
-                'success',
-                $deletedCount .
-                ' contact message(s) deleted successfully.'
-            );
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Delete Contact Notifications
-    |--------------------------------------------------------------------------
-    |
-    | Removes database notifications associated with deleted contact
-    | messages so the notification dropdown does not contain broken links.
-    |
-    */
-
-    private function deleteContactNotifications(
-        array $contactIds
-    ): void {
-        $contactIds = collect(
-            $contactIds
-        )
-            ->map(
-                fn ($id) => (int) $id
-            );
-
-
-        DatabaseNotification::query()
-            ->get()
-            ->filter(function ($notification) use ($contactIds) {
-
-                $contactId =
-                    $notification->data['contact_id']
-                    ?? null;
-
-
-                if (!$contactId) {
-                    return false;
-                }
-
-
-                return $contactIds->contains(
-                    (int) $contactId
-                );
-
-            })
-            ->each(function ($notification) {
-
-                $notification->delete();
-
-            });
     }
 }

@@ -2,22 +2,36 @@
 
 namespace App\Models;
 
-use App\Models\User;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class DonorProfile extends Model
 {
-      
-   protected $fillable = [
+    use HasFactory;
+
+    protected $fillable = [
         'user_id',
+        'phone',
         'organization',
         'designation',
         'country',
-        'address',
+        'state',
+        'city',
+        'profile_image',
     ];
 
-    public function user()
+
+    /*
+    |--------------------------------------------------------------------------
+    | User
+    |--------------------------------------------------------------------------
+    */
+
+    public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(
+            User::class
+        );
     }
 }

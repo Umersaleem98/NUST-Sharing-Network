@@ -3,55 +3,81 @@
 namespace App\Http\Controllers\Beneficiary;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\RedirectResponse;
+use App\Models\BeneficiaryProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
-use Illuminate\View\View;
+use Illuminate\Support\Str;
 
 class BeneficiaryProfileController extends Controller
 {
     /*
     |--------------------------------------------------------------------------
-    | Beneficiary Profile
+    | Profile
     |--------------------------------------------------------------------------
     */
 
-    public function index(): View
+    public function index()
     {
         $user = Auth::user();
 
-        abort_if(
-            ! $user || $user->role !== 'beneficiary',
-            403
-        );
 
-        $user->load('beneficiaryProfile');
+        $profile = BeneficiaryProfile::firstOrCreate([
+            'user_id' => $user->id,
+        ]);
+
 
         return view(
             'pages.beneficiary.profile.index',
-            compact('user')
+            compact(
+                'user',
+                'profile'
+            )
         );
     }
 
 
     /*
     |--------------------------------------------------------------------------
-    | Update Beneficiary Profile
+    | Edit Profile
     |--------------------------------------------------------------------------
     */
 
-    public function update(Request $request): RedirectResponse
+    public function edit()
     {
         $user = Auth::user();
 
-        abort_if(
-            ! $user || $user->role !== 'beneficiary',
-            403
+
+        $profile = BeneficiaryProfile::firstOrCreate([
+            'user_id' => $user->id,
+        ]);
+
+
+        return view(
+            'pages.beneficiary.profile.edit',
+            compact(
+                'user',
+                'profile'
+            )
         );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Update Profile
+    |--------------------------------------------------------------------------
+    */
+
+    public function update(Request $request)
+    {
+        $user = Auth::user();
+
+
+        $profile = BeneficiaryProfile::firstOrCreate([
+            'user_id' => $user->id,
+        ]);
 
 
         /*
@@ -60,384 +86,236 @@ class BeneficiaryProfileController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $validated = $request->validate(
-            [
-                'name' => [
-                    'required',
-                    'string',
-                    'max:255',
-                ],
+        $request->validate([
 
-                'email' => [
-                    'required',
-                    'email',
-                    'max:255',
-                    Rule::unique('users', 'email')
-                        ->ignore($user->id),
-                ],
+            /*
+            |--------------------------------------------------------------------------
+            | User
+            |--------------------------------------------------------------------------
+            */
 
-                'phone' => [
-                    'nullable',
-                    'string',
-                    'max:20',
-                ],
-
-                'gender' => [
-                    'required',
-                    Rule::in([
-                        'male',
-                        'female',
-                        'other',
-                    ]),
-                ],
-
-                'institution' => [
-                    'required',
-                    'string',
-                    'max:255',
-                ],
-
-                'degree_level' => [
-                    'required',
-                    Rule::in([
-                        'UG',
-                        'PG',
-                        'PhD',
-                    ]),
-                ],
-
-                'degree_program' => [
-                    'nullable',
-                    'string',
-                    'max:255',
-                ],
-
-                'department' => [
-                    'nullable',
-                    'string',
-                    'max:255',
-                ],
-
-                'semester' => [
-                    'nullable',
-                    'string',
-                    'max:50',
-                ],
-
-                'cgpa' => [
-                    'nullable',
-                    'numeric',
-                    'min:0',
-                    'max:4',
-                ],
-
-                'enrollment_year' => [
-                    'required',
-                    'integer',
-                    'min:2000',
-                    'max:2100',
-                ],
-
-                'father_status' => [
-                    'required',
-                    'string',
-                    'max:255',
-                ],
-
-                'guardian_profession' => [
-                    'nullable',
-                    'string',
-                    'max:255',
-                ],
-
-                'monthly_income' => [
-                    'nullable',
-                    'numeric',
-                    'min:0',
-                ],
-
-                'province' => [
-                    'required',
-                    'string',
-                    'max:255',
-                ],
-
-                'domicile' => [
-                    'nullable',
-                    'string',
-                    'max:255',
-                ],
-
-                'home_address' => [
-                    'required',
-                    'string',
-                    'max:1000',
-                ],
-
-                'image' => [
-                    'nullable',
-                    'image',
-                    'mimes:jpg,jpeg,png,webp',
-                    'max:200',
-                ],
-
-                'current_password' => [
-                    'nullable',
-                    'string',
-                    'required_with:password',
-                ],
-
-                'password' => [
-                    'nullable',
-                    'required_with:password_confirmation',
-                    'string',
-                    'min:8',
-                    'max:255',
-                    'confirmed',
-                ],
-
-                'password_confirmation' => [
-                    'nullable',
-                    'required_with:password',
-                    'string',
-                    'min:8',
-                    'max:255',
-                ],
+            'name' => [
+                'required',
+                'string',
+                'max:255',
             ],
-            [
-                'email.unique' =>
-                    'A user with this email address already exists.',
 
-                'gender.required' =>
-                    'Please select your gender.',
+            'email' => [
+                'required',
+                'email',
+                'max:255',
 
-                'gender.in' =>
-                    'Please select a valid gender.',
+                Rule::unique(
+                    'users',
+                    'email'
+                )->ignore(
+                    $user->id
+                ),
+            ],
 
-                'institution.required' =>
-                    'Please enter your institution.',
 
-                'degree_level.required' =>
-                    'Please select your degree level.',
+            /*
+            |--------------------------------------------------------------------------
+            | Personal
+            |--------------------------------------------------------------------------
+            */
 
-                'degree_level.in' =>
-                    'Please select a valid degree level.',
+            'phone' => [
+                'nullable',
+                'string',
+                'max:30',
+            ],
 
-                'enrollment_year.required' =>
-                    'Please enter your enrollment year.',
+            'gender' => [
+                'nullable',
 
-                'father_status.required' =>
-                    'Please enter your father status.',
+                Rule::in([
+                    'male',
+                    'female',
+                    'other',
+                ]),
+            ],
 
-                'province.required' =>
-                    'Please select your province.',
 
-                'home_address.required' =>
-                    'Please enter your home address.',
+            /*
+            |--------------------------------------------------------------------------
+            | Academic
+            |--------------------------------------------------------------------------
+            */
 
-                'image.image' =>
-                    'The profile photo must be a valid image.',
+            'institution' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
 
-                'image.mimes' =>
-                    'The profile photo must be JPG, JPEG, PNG or WebP.',
+            'degree' => [
+                'nullable',
 
-                'image.max' =>
-                    'The profile photo must not exceed 200 KB.',
+                Rule::in([
+                    'UG',
+                    'PG',
+                    'PhD',
+                ]),
+            ],
 
-                'current_password.required_with' =>
-                    'Please enter your current password before changing your password.',
+            'enrollment_year' => [
+                'nullable',
+                'integer',
+                'digits:4',
+                'min:2000',
+                'max:2100',
+            ],
 
-                'password.required_with' =>
-                    'Please enter your new password.',
+            'graduation_year' => [
+                'nullable',
+                'integer',
+                'digits:4',
+                'min:2000',
+                'max:2100',
+                'gte:enrollment_year',
+            ],
 
-                'password.min' =>
-                    'The new password must contain at least 8 characters.',
 
-                'password.confirmed' =>
-                    'The new password and confirmation do not match.',
+            /*
+            |--------------------------------------------------------------------------
+            | Family / Financial
+            |--------------------------------------------------------------------------
+            */
 
-                'password_confirmation.required_with' =>
-                    'Please confirm your new password.',
-            ]
-        );
+            'father_status' => [
+                'nullable',
+
+                Rule::in([
+                    'alive',
+                    'deceased',
+                    'not_applicable',
+                ]),
+            ],
+
+            'guardian_profession' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+
+            'monthly_income' => [
+                'nullable',
+                'numeric',
+                'min:0',
+            ],
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Location
+            |--------------------------------------------------------------------------
+            */
+
+            'province' => [
+                'nullable',
+
+                Rule::in([
+                    'Punjab',
+                    'Sindh',
+                    'Khyber Pakhtunkhwa',
+                    'Balochistan',
+                    'Islamabad Capital Territory',
+                    'Gilgit-Baltistan',
+                    'Azad Jammu and Kashmir',
+                ]),
+            ],
+
+            'domicile' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+
+            'home_address' => [
+                'nullable',
+                'string',
+                'max:2000',
+            ],
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Image
+            |--------------------------------------------------------------------------
+            */
+
+            'profile_image' => [
+                'nullable',
+                'image',
+                'mimes:jpg,jpeg,png,webp',
+                'max:2048',
+            ],
+        ], [
+            'graduation_year.gte' =>
+                'Graduation year must be greater than or equal to enrollment year.',
+
+            'profile_image.max' =>
+                'Profile image must not exceed 2 MB.',
+        ]);
 
 
         /*
         |--------------------------------------------------------------------------
-        | Verify Current Password
+        | Email
         |--------------------------------------------------------------------------
         */
 
-        if (
-            ! empty($validated['password'])
-            && ! Hash::check(
-                $validated['current_password'] ?? '',
-                $user->password
-            )
-        ) {
-            return back()
-                ->withInput(
-                    $request->except([
-                        'current_password',
-                        'password',
-                        'password_confirmation',
-                        'image',
-                    ])
+        $oldEmail =
+            strtolower(
+                trim(
+                    $user->email
                 )
-                ->withErrors([
-                    'current_password' =>
-                        'The current password you entered is incorrect.',
-                ]);
-        }
+            );
+
+
+        $newEmail =
+            strtolower(
+                trim(
+                    $request->email
+                )
+            );
 
 
         /*
         |--------------------------------------------------------------------------
-        | Calculate Graduation Year
-        |--------------------------------------------------------------------------
-        */
-
-        $degreeDuration = match ($validated['degree_level']) {
-            'UG' => 4,
-            'PG' => 2,
-            'PhD' => 2,
-            default => 0,
-        };
-
-        $graduationYear =
-            (int) $validated['enrollment_year']
-            + $degreeDuration;
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Profile Image
-        |--------------------------------------------------------------------------
-        |
-        | Physical location:
-        |
-        | public/admins/asset/profilephoto/
-        |
-        | Database:
-        |
-        | beneficiary-5-uuid.jpg
-        |
-        */
-
-        $oldImageName = $user->image
-            ? basename($user->image)
-            : null;
-
-        $newImageName = null;
-
-
-        if ($request->hasFile('image')) {
-
-            $uploadPath = public_path(
-                'admins/asset/profilephoto'
-            );
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Create Directory If Missing
-            |--------------------------------------------------------------------------
-            */
-
-            File::ensureDirectoryExists(
-                $uploadPath,
-                0775,
-                true
-            );
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Prepare Image
-            |--------------------------------------------------------------------------
-            */
-
-            $image = $request->file('image');
-
-            $extension = strtolower(
-                $image->getClientOriginalExtension()
-            );
-
-            if ($extension === 'jpeg') {
-                $extension = 'jpg';
-            }
-
-
-            $newImageName =
-                'beneficiary-'
-                . $user->id
-                . '-'
-                . Str::uuid()
-                . '.'
-                . $extension;
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Upload Image
-            |--------------------------------------------------------------------------
-            */
-
-            $image->move(
-                $uploadPath,
-                $newImageName
-            );
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Update User Image
-            |--------------------------------------------------------------------------
-            */
-
-            $user->image = $newImageName;
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Update User Information
+        | Update User
         |--------------------------------------------------------------------------
         */
 
         $user->name =
-            trim($validated['name']);
+            trim(
+                $request->name
+            );
+
 
         $user->email =
-            strtolower(
-                trim($validated['email'])
-            );
-
-        $user->phone =
-            ! empty($validated['phone'])
-                ? trim($validated['phone'])
-                : null;
+            $newEmail;
 
 
         /*
         |--------------------------------------------------------------------------
-        | Update Password
+        | Reset Verification If Email Changed
         |--------------------------------------------------------------------------
         */
 
-        if (! empty($validated['password'])) {
+        if ($oldEmail !== $newEmail) {
 
-            $user->password = Hash::make(
-                $validated['password']
-            );
+            $user->email_verified_at =
+                null;
+
+            $user->email_verification_token =
+                null;
+
+            $user->email_verification_token_expires_at =
+                null;
         }
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Save User
-        |--------------------------------------------------------------------------
-        */
 
         $user->save();
 
@@ -448,106 +326,155 @@ class BeneficiaryProfileController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $user->beneficiaryProfile()->updateOrCreate(
-            [
-                'user_id' => $user->id,
-            ],
-            [
-                'gender' =>
-                    $validated['gender'],
+        $profile->phone =
+            $request->phone;
 
-                'institution' =>
-                    trim($validated['institution']),
 
-                'degree_level' =>
-                    $validated['degree_level'],
+        $profile->gender =
+            $request->gender;
 
-                'degree_program' =>
-                    ! empty($validated['degree_program'])
-                        ? trim($validated['degree_program'])
-                        : null,
 
-                'department' =>
-                    ! empty($validated['department'])
-                        ? trim($validated['department'])
-                        : null,
+        $profile->institution =
+            $request->institution;
 
-                'semester' =>
-                    ! empty($validated['semester'])
-                        ? trim($validated['semester'])
-                        : null,
 
-                'cgpa' =>
-                    $validated['cgpa'] ?? null,
+        $profile->degree =
+            $request->degree;
 
-                'enrollment_year' =>
-                    $validated['enrollment_year'],
 
-                'graduation_year' =>
-                    $graduationYear,
+        $profile->enrollment_year =
+            $request->enrollment_year;
 
-                'father_status' =>
-                    trim($validated['father_status']),
 
-                'guardian_profession' =>
-                    ! empty($validated['guardian_profession'])
-                        ? trim($validated['guardian_profession'])
-                        : null,
+        $profile->graduation_year =
+            $request->graduation_year;
 
-                'monthly_income' =>
-                    $validated['monthly_income'] ?? null,
 
-                'province' =>
-                    trim($validated['province']),
+        $profile->father_status =
+            $request->father_status;
 
-                'domicile' =>
-                    ! empty($validated['domicile'])
-                        ? trim($validated['domicile'])
-                        : null,
 
-                'home_address' =>
-                    trim($validated['home_address']),
-            ]
-        );
+        $profile->guardian_profession =
+            $request->guardian_profession;
+
+
+        $profile->monthly_income =
+            $request->monthly_income;
+
+
+        $profile->province =
+            $request->province;
+
+
+        $profile->domicile =
+            $request->domicile;
+
+
+        $profile->home_address =
+            $request->home_address;
 
 
         /*
         |--------------------------------------------------------------------------
-        | Delete Old Image
+        | Profile Image
         |--------------------------------------------------------------------------
-        |
-        | Delete only after the new image and database information
-        | have been saved successfully.
-        |
         */
 
-        if (
-            $newImageName
-            && $oldImageName
-            && $oldImageName !== $newImageName
-        ) {
+        if ($request->hasFile('profile_image')) {
 
-            $oldImagePath = public_path(
-                'admins/asset/profilephoto/'
-                . $oldImageName
+            /*
+            |--------------------------------------------------------------------------
+            | Delete Previous Image
+            |--------------------------------------------------------------------------
+            */
+
+            if ($profile->profile_image) {
+
+                $oldImagePath =
+                    public_path(
+                        'beneficiaries/images/profiles/'
+                        .$profile->profile_image
+                    );
+
+
+                if (File::exists($oldImagePath)) {
+
+                    File::delete(
+                        $oldImagePath
+                    );
+                }
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Destination
+            |--------------------------------------------------------------------------
+            */
+
+            $destinationPath =
+                public_path(
+                    'beneficiaries/images/profiles'
+                );
+
+
+            if (!File::exists($destinationPath)) {
+
+                File::makeDirectory(
+                    $destinationPath,
+                    0755,
+                    true
+                );
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Image Name
+            |--------------------------------------------------------------------------
+            */
+
+            $image =
+                $request->file(
+                    'profile_image'
+                );
+
+
+            $imageName =
+                time()
+                .'_beneficiary_'
+                .Str::random(12)
+                .'.'
+                .$image->getClientOriginalExtension();
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Move
+            |--------------------------------------------------------------------------
+            */
+
+            $image->move(
+                $destinationPath,
+                $imageName
             );
 
-            if (File::exists($oldImagePath)) {
 
-                File::delete($oldImagePath);
-            }
+            $profile->profile_image =
+                $imageName;
         }
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Success
-        |--------------------------------------------------------------------------
-        */
+        $profile->save();
 
-        return back()->with(
-            'success',
-            'Profile updated successfully.'
-        );
+
+        return redirect()
+            ->route(
+                'beneficiary.profile.index'
+            )
+            ->with(
+                'success',
+                'Profile updated successfully.'
+            );
     }
 }

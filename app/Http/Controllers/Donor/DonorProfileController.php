@@ -3,57 +3,38 @@
 namespace App\Http\Controllers\Donor;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\RedirectResponse;
+use App\Models\DonorProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Str;
-use Illuminate\View\View;
 
 class DonorProfileController extends Controller
 {
     /*
     |--------------------------------------------------------------------------
-    | Donor Profile
+    | Profile
     |--------------------------------------------------------------------------
     */
 
-    public function index(): View
+    public function show()
     {
         $user = Auth::user();
 
-        abort_if(
-            ! $user || $user->role !== 'donor',
-            403
+
+        $profile = DonorProfile::firstOrCreate(
+            [
+                'user_id' => $user->id,
+            ]
         );
 
-        $user->load('donorProfile');
-
-        $profileFields = [
-            $user->name,
-            $user->email,
-            $user->phone,
-            $user->image,
-            $user->donorProfile?->organization,
-            $user->donorProfile?->designation,
-            $user->donorProfile?->country,
-            $user->donorProfile?->address,
-        ];
-
-        $completedFields = collect($profileFields)
-            ->filter()
-            ->count();
-
-        $profileCompletion = (int) round(
-            ($completedFields / count($profileFields)) * 100
-        );
 
         return view(
-            'pages.donor.profile.index',
+            'pages.donor.profile.show',
             compact(
                 'user',
-                'profileCompletion'
+                'profile'
             )
         );
     }
@@ -61,211 +42,189 @@ class DonorProfileController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | Update Donor Profile
+    | Edit Profile
     |--------------------------------------------------------------------------
     */
 
-    public function update(Request $request): RedirectResponse
+    public function edit()
     {
-        /*
-        |--------------------------------------------------------------------------
-        | Get Authenticated Donor
-        |--------------------------------------------------------------------------
-        */
-
         $user = Auth::user();
 
-        abort_if(
-            ! $user || $user->role !== 'donor',
-            403
+
+        $profile = DonorProfile::firstOrCreate(
+            [
+                'user_id' => $user->id,
+            ]
         );
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Validate Request
-        |--------------------------------------------------------------------------
-        */
+        return view(
+            'pages.donor.profile.edit',
+            compact(
+                'user',
+                'profile'
+            )
+        );
+    }
 
-        $validated = $request->validate(
+
+    /*
+    |--------------------------------------------------------------------------
+    | Update Profile
+    |--------------------------------------------------------------------------
+    */
+
+    public function update(Request $request)
+    {
+        $user = Auth::user();
+
+
+        $profile = DonorProfile::firstOrCreate(
             [
-                'phone' => [
-                    'nullable',
-                    'string',
-                    'max:20',
-                ],
-
-                'organization' => [
-                    'nullable',
-                    'string',
-                    'max:255',
-                ],
-
-                'designation' => [
-                    'nullable',
-                    'string',
-                    'max:255',
-                ],
-
-                'country' => [
-                    'nullable',
-                    'string',
-                    'max:255',
-                ],
-
-                'address' => [
-                    'nullable',
-                    'string',
-                    'max:500',
-                ],
-
-                'image' => [
-                    'nullable',
-                    'image',
-                    'mimes:jpg,jpeg,png,webp',
-                    'max:200',
-                ],
-
-                'current_password' => [
-                    'nullable',
-                    'required_with:password',
-                    'string',
-                ],
-
-                'password' => [
-                    'nullable',
-                    'required_with:password_confirmation',
-                    'string',
-                    'min:8',
-                    'max:255',
-                    'confirmed',
-                ],
-
-                'password_confirmation' => [
-                    'nullable',
-                    'required_with:password',
-                    'string',
-                    'min:8',
-                    'max:255',
-                ],
-            ],
-            [
-                'image.image' =>
-                    'The selected profile file must be a valid image.',
-
-                'image.mimes' =>
-                    'The profile image must be JPG, JPEG, PNG or WebP.',
-
-                'image.max' =>
-                    'The profile image must not exceed 200 KB.',
-
-                'current_password.required_with' =>
-                    'Please enter your current password before setting a new password.',
-
-                'password.required_with' =>
-                    'Please enter a new password.',
-
-                'password.min' =>
-                    'The new password must be at least 8 characters.',
-
-                'password.confirmed' =>
-                    'The new password and confirmation do not match.',
-
-                'password_confirmation.required_with' =>
-                    'Please confirm your new password.',
+                'user_id' => $user->id,
             ]
         );
 
 
         /*
         |--------------------------------------------------------------------------
-        | Verify Current Password
+        | Validation
         |--------------------------------------------------------------------------
         */
 
-        if (
-            ! empty($validated['password'])
-            && ! Hash::check(
-                $validated['current_password'] ?? '',
-                $user->password
-            )
-        ) {
-            return back()
-                ->withInput()
-                ->withErrors([
-                    'current_password' =>
-                        'The current password you entered is incorrect.',
-                ]);
-        }
+        $request->validate([
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+
+            'email' => [
+                'required',
+                'email',
+                'max:255',
+
+                Rule::unique(
+                    'users',
+                    'email'
+                )->ignore(
+                    $user->id
+                ),
+            ],
+
+            'phone' => [
+                'nullable',
+                'string',
+                'max:30',
+            ],
+
+            'organization' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+
+            'designation' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+
+            /*
+            |--------------------------------------------------------------------------
+            | Country Type
+            |--------------------------------------------------------------------------
+            */
+
+            'country_type' => [
+                'required',
+
+                Rule::in([
+                    'pakistan',
+                    'other',
+                ]),
+            ],
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Pakistan Location
+            |--------------------------------------------------------------------------
+            */
+
+            'pakistan_state' => [
+                'required_if:country_type,pakistan',
+                'nullable',
+                'string',
+                'max:255',
+            ],
+
+            'pakistan_city' => [
+                'required_if:country_type,pakistan',
+                'nullable',
+                'string',
+                'max:255',
+            ],
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Other Country
+            |--------------------------------------------------------------------------
+            */
+
+            'manual_country' => [
+                'required_if:country_type,other',
+                'nullable',
+                'string',
+                'max:255',
+            ],
+
+            'manual_state' => [
+                'required_if:country_type,other',
+                'nullable',
+                'string',
+                'max:255',
+            ],
+
+            'manual_city' => [
+                'required_if:country_type,other',
+                'nullable',
+                'string',
+                'max:255',
+            ],
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Profile Image
+            |--------------------------------------------------------------------------
+            */
+
+            'profile_image' => [
+                'nullable',
+                'image',
+                'mimes:jpg,jpeg,png,webp',
+                'max:2048',
+            ],
+        ]);
 
 
         /*
         |--------------------------------------------------------------------------
-        | Profile Image
+        | Detect Email Change
         |--------------------------------------------------------------------------
-        |
-        | Image location:
-        |
-        | public/admins/asset/profilephoto/
-        |
         */
 
-        $oldImage = $user->image;
+        $oldEmail =
+            $user->email;
 
-        if ($request->hasFile('image')) {
-
-            $uploadPath = public_path(
-                'admins/asset/profilephoto'
+        $newEmail =
+            strtolower(
+                trim(
+                    $request->email
+                )
             );
-
-            File::ensureDirectoryExists(
-                $uploadPath
-            );
-
-            $image = $request->file('image');
-
-            $extension = strtolower(
-                $image->getClientOriginalExtension()
-            );
-
-            if ($extension === 'jpeg') {
-                $extension = 'jpg';
-            }
-
-            $imageName =
-                'donor-'
-                . $user->id
-                . '-'
-                . Str::uuid()
-                . '.'
-                . $extension;
-
-            $image->move(
-                $uploadPath,
-                $imageName
-            );
-
-            /*
-            |--------------------------------------------------------------------------
-            | Delete Old Image
-            |--------------------------------------------------------------------------
-            */
-
-            if ($oldImage) {
-
-                $oldImagePath = public_path(
-                    'admins/asset/profilephoto/'
-                    . basename($oldImage)
-                );
-
-                if (File::exists($oldImagePath)) {
-
-                    File::delete($oldImagePath);
-                }
-            }
-
-            $user->image = $imageName;
-        }
 
 
         /*
@@ -274,22 +233,31 @@ class DonorProfileController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $user->phone = ! empty($validated['phone'])
-            ? trim($validated['phone'])
-            : null;
+        $user->name =
+            trim(
+                $request->name
+            );
+
+        $user->email =
+            $newEmail;
 
 
         /*
         |--------------------------------------------------------------------------
-        | Update Password
+        | Reset Verification When Email Changes
         |--------------------------------------------------------------------------
         */
 
-        if (! empty($validated['password'])) {
+        if ($oldEmail !== $newEmail) {
 
-            $user->password = Hash::make(
-                $validated['password']
-            );
+            $user->email_verified_at =
+                null;
+
+            $user->email_verification_token =
+                null;
+
+            $user->email_verification_token_expires_at =
+                null;
         }
 
 
@@ -298,47 +266,172 @@ class DonorProfileController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Update Donor Profile
+        | Location
         |--------------------------------------------------------------------------
         */
 
-        $user->donorProfile()->updateOrCreate(
-            [
-                'user_id' => $user->id,
-            ],
-            [
-                'organization' =>
-                    ! empty($validated['organization'])
-                        ? trim($validated['organization'])
-                        : null,
+        if ($request->country_type === 'pakistan') {
 
-                'designation' =>
-                    ! empty($validated['designation'])
-                        ? trim($validated['designation'])
-                        : null,
+            $country =
+                'Pakistan';
 
-                'country' =>
-                    ! empty($validated['country'])
-                        ? trim($validated['country'])
-                        : null,
+            $state =
+                trim(
+                    $request->pakistan_state
+                );
 
-                'address' =>
-                    ! empty($validated['address'])
-                        ? trim($validated['address'])
-                        : null,
-            ]
-        );
+            $city =
+                trim(
+                    $request->pakistan_city
+                );
+
+        } else {
+
+            $country =
+                trim(
+                    $request->manual_country
+                );
+
+            $state =
+                trim(
+                    $request->manual_state
+                );
+
+            $city =
+                trim(
+                    $request->manual_city
+                );
+        }
 
 
         /*
         |--------------------------------------------------------------------------
-        | Success
+        | Update Profile
         |--------------------------------------------------------------------------
         */
 
-        return back()->with(
-            'success',
-            'Profile updated successfully.'
-        );
+        $profile->phone =
+            $request->phone;
+
+        $profile->organization =
+            $request->organization;
+
+        $profile->designation =
+            $request->designation;
+
+        $profile->country =
+            $country;
+
+        $profile->state =
+            $state;
+
+        $profile->city =
+            $city;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Profile Image
+        |--------------------------------------------------------------------------
+        */
+
+        if ($request->hasFile('profile_image')) {
+
+            /*
+            |--------------------------------------------------------------------------
+            | Delete Old Image
+            |--------------------------------------------------------------------------
+            */
+
+            if ($profile->profile_image) {
+
+                $oldImagePath =
+                    public_path(
+                        'donors/images/profiles/'
+                        .$profile->profile_image
+                    );
+
+
+                if (
+                    File::exists(
+                        $oldImagePath
+                    )
+                ) {
+
+                    File::delete(
+                        $oldImagePath
+                    );
+                }
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Destination
+            |--------------------------------------------------------------------------
+            */
+
+            $destinationPath =
+                public_path(
+                    'donors/images/profiles'
+                );
+
+
+            if (!File::exists($destinationPath)) {
+
+                File::makeDirectory(
+                    $destinationPath,
+                    0755,
+                    true
+                );
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | New File Name
+            |--------------------------------------------------------------------------
+            */
+
+            $image =
+                $request->file(
+                    'profile_image'
+                );
+
+
+            $imageName =
+                time()
+                .'_'
+                .Str::random(12)
+                .'.'
+                .$image->getClientOriginalExtension();
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Upload
+            |--------------------------------------------------------------------------
+            */
+
+            $image->move(
+                $destinationPath,
+                $imageName
+            );
+
+
+            $profile->profile_image =
+                $imageName;
+        }
+
+
+        $profile->save();
+
+
+        return redirect()
+            ->route('donor.profile.show')
+            ->with(
+                'success',
+                'Profile updated successfully.'
+            );
     }
 }

@@ -2,30 +2,48 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ProductRequest extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
-        'beneficiary_id',
         'product_id',
+        'beneficiary_id',
         'donor_id',
+        'beneficiary_message',
         'admin_status',
+        'admin_message',
         'donor_status',
-        'donor_information_allowed',
-        'message',
+        'donor_message',
     ];
 
-    protected $casts = [
-        'donor_information_allowed' => 'boolean',
-    ];
 
-    public function product()
+    /*
+    |--------------------------------------------------------------------------
+    | Product
+    |--------------------------------------------------------------------------
+    */
+
+    public function product(): BelongsTo
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(
+            Product::class,
+            'product_id'
+        );
     }
 
-    public function beneficiary()
+
+    /*
+    |--------------------------------------------------------------------------
+    | Beneficiary
+    |--------------------------------------------------------------------------
+    */
+
+    public function beneficiary(): BelongsTo
     {
         return $this->belongsTo(
             User::class,
@@ -33,7 +51,14 @@ class ProductRequest extends Model
         );
     }
 
-    public function donor()
+
+    /*
+    |--------------------------------------------------------------------------
+    | Donor
+    |--------------------------------------------------------------------------
+    */
+
+    public function donor(): BelongsTo
     {
         return $this->belongsTo(
             User::class,

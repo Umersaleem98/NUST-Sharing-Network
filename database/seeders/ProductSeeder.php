@@ -2,70 +2,335 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\Product;
 use App\Models\Category;
+use App\Models\Product;
 use App\Models\User;
-use Illuminate\Support\Str;
+use Illuminate\Database\Seeder;
 
 class ProductSeeder extends Seeder
 {
     public function run(): void
     {
-        // ONLY DONORS
-        $donors = User::where('role', 'donor')->get();
+        /*
+        |--------------------------------------------------------------------------
+        | Admin User
+        |--------------------------------------------------------------------------
+        */
 
-        $categories = Category::all();
+        $admin = User::where(
+            'role',
+            'admin'
+        )->first();
+
+
+        if (!$admin) {
+            return;
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Categories
+        |--------------------------------------------------------------------------
+        */
+
+        $electronics = Category::where(
+            'name',
+            'Electronics'
+        )->first();
+
+
+        $books = Category::where(
+            'name',
+            'Books'
+        )->first();
+
+
+        $clothing = Category::where(
+            'name',
+            'Clothing'
+        )->first();
+
+
+        $furniture = Category::where(
+            'name',
+            'Furniture'
+        )->first();
+
+
+        $stationery = Category::where(
+            'name',
+            'Stationery'
+        )->first();
+
+
+        $household = Category::where(
+            'name',
+            'Household Items'
+        )->first();
+
+
+        $sports = Category::where(
+            'name',
+            'Sports'
+        )->first();
+
+
+        $others = Category::where(
+            'name',
+            'Others'
+        )->first();
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Products
+        |--------------------------------------------------------------------------
+        */
 
         $products = [
+
             [
-                'name' => 'iPhone 14 Pro',
-                'description' => 'Latest Apple iPhone with A16 chip and amazing camera.',
-                'category' => 'Electronics',
-                'status' => 'active',
+                'category_id' =>
+                    $electronics?->id,
+
+                'name' =>
+                    'Laptop',
+
+                'description' =>
+                    'Used laptop in working condition suitable for academic and educational use.',
+
+                'image' =>
+                    null,
+
+                'status' =>
+                    'active',
             ],
+
             [
-                'name' => 'Nike Running Shoes',
-                'description' => 'Comfortable and durable running shoes.',
-                'category' => 'Sports',
-                'status' => 'active',
+                'category_id' =>
+                    $electronics?->id,
+
+                'name' =>
+                    'Computer Monitor',
+
+                'description' =>
+                    'Working computer monitor suitable for study or office use.',
+
+                'image' =>
+                    null,
+
+                'status' =>
+                    'active',
             ],
+
             [
-                'name' => 'Wooden Sofa Set',
-                'description' => 'Premium quality wooden sofa set for living room.',
-                'category' => 'Furniture',
-                'status' => 'active',
+                'category_id' =>
+                    $books?->id,
+
+                'name' =>
+                    'Programming Books',
+
+                'description' =>
+                    'Collection of programming and software development books for students.',
+
+                'image' =>
+                    null,
+
+                'status' =>
+                    'active',
             ],
+
             [
-                'name' => 'Fashion Jacket',
-                'description' => 'Stylish winter jacket for men and women.',
-                'category' => 'Clothing',
-                'status' => 'active',
+                'category_id' =>
+                    $books?->id,
+
+                'name' =>
+                    'Engineering Textbooks',
+
+                'description' =>
+                    'Used engineering textbooks in good condition.',
+
+                'image' =>
+                    null,
+
+                'status' =>
+                    'active',
             ],
+
             [
-                'name' => 'Laravel Guide Book',
-                'description' => 'Complete guide to learn Laravel from beginner to advanced.',
-                'category' => 'Books',
-                'status' => 'active',
+                'category_id' =>
+                    $clothing?->id,
+
+                'name' =>
+                    'Winter Jacket',
+
+                'description' =>
+                    'Warm winter jacket in reusable condition.',
+
+                'image' =>
+                    null,
+
+                'status' =>
+                    'active',
+            ],
+
+            [
+                'category_id' =>
+                    $furniture?->id,
+
+                'name' =>
+                    'Study Table',
+
+                'description' =>
+                    'Wooden study table suitable for students.',
+
+                'image' =>
+                    null,
+
+                'status' =>
+                    'active',
+            ],
+
+            [
+                'category_id' =>
+                    $furniture?->id,
+
+                'name' =>
+                    'Study Chair',
+
+                'description' =>
+                    'Comfortable chair suitable for studying or office work.',
+
+                'image' =>
+                    null,
+
+                'status' =>
+                    'active',
+            ],
+
+            [
+                'category_id' =>
+                    $stationery?->id,
+
+                'name' =>
+                    'Stationery Set',
+
+                'description' =>
+                    'Basic stationery set containing notebooks, pens and educational supplies.',
+
+                'image' =>
+                    null,
+
+                'status' =>
+                    'active',
+            ],
+
+            [
+                'category_id' =>
+                    $household?->id,
+
+                'name' =>
+                    'Electric Kettle',
+
+                'description' =>
+                    'Used electric kettle in working condition.',
+
+                'image' =>
+                    null,
+
+                'status' =>
+                    'active',
+            ],
+
+            [
+                'category_id' =>
+                    $sports?->id,
+
+                'name' =>
+                    'Cricket Bat',
+
+                'description' =>
+                    'Used cricket bat suitable for recreational sports activities.',
+
+                'image' =>
+                    null,
+
+                'status' =>
+                    'active',
+            ],
+
+            [
+                'category_id' =>
+                    $sports?->id,
+
+                'name' =>
+                    'Football',
+
+                'description' =>
+                    'Football in usable condition.',
+
+                'image' =>
+                    null,
+
+                'status' =>
+                    'inactive',
+            ],
+
+            [
+                'category_id' =>
+                    $others?->id,
+
+                'name' =>
+                    'Backpack',
+
+                'description' =>
+                    'Student backpack in good reusable condition.',
+
+                'image' =>
+                    null,
+
+                'status' =>
+                    'active',
             ],
         ];
 
-        foreach ($products as $index => $item) {
 
-            $category = $categories->where('name', $item['category'])->first();
+        /*
+        |--------------------------------------------------------------------------
+        | Insert Products
+        |--------------------------------------------------------------------------
+        */
 
-            // rotate donors (so products distribute among donors)
-            $donor = $donors[$index % $donors->count()] ?? null;
+        foreach ($products as $product) {
 
-            Product::create([
-                'user_id' => $donor ? $donor->id : 1,
-                'category_id' => $category->id ?? 1,
-                'name' => $item['name'],
-                'slug' => Str::slug($item['name']),
-                'description' => $item['description'],
-                'images' => json_encode(['default.jpg']),
-                'status' => $item['status'],
-            ]);
+            if (!$product['category_id']) {
+                continue;
+            }
+
+
+            Product::updateOrCreate(
+                [
+                    'name' =>
+                        $product['name'],
+
+                    'category_id' =>
+                        $product['category_id'],
+                ],
+                [
+                    'user_id' =>
+                        $admin->id,
+
+                    'description' =>
+                        $product['description'],
+
+                    'image' =>
+                        $product['image'],
+
+                    'status' =>
+                        $product['status'],
+                ]
+            );
         }
     }
 }

@@ -10,49 +10,25 @@ class BeneficiaryProfile extends Model
 {
     use HasFactory;
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | Mass Assignable Fields
-    |--------------------------------------------------------------------------
-    */
-
     protected $fillable = [
         'user_id',
-
-        // Personal Information
+        'phone',
         'gender',
-
-        // Academic Information
         'institution',
-        'degree_level',
-        'degree_program',
-        'department',
-        'semester',
-        'cgpa',
+        'degree',
         'enrollment_year',
         'graduation_year',
-
-        // Family / Guardian Information
         'father_status',
         'guardian_profession',
         'monthly_income',
-
-        // Location Information
         'province',
         'domicile',
         'home_address',
+        'profile_image',
     ];
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Attribute Casting
-    |--------------------------------------------------------------------------
-    */
-
     protected $casts = [
-        'cgpa' => 'decimal:2',
         'monthly_income' => 'decimal:2',
         'enrollment_year' => 'integer',
         'graduation_year' => 'integer',
@@ -61,14 +37,15 @@ class BeneficiaryProfile extends Model
 
     /*
     |--------------------------------------------------------------------------
-    | User Relationship
+    | User
     |--------------------------------------------------------------------------
     */
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(
-            User::class
+            User::class,
+            'user_id'
         );
     }
 }

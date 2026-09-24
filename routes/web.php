@@ -1,20 +1,18 @@
 <?php
 
-use App\Http\Controllers\Admin\AdminCategorytController;
+use App\Http\Controllers\Admin\AdminCategoryController;
 use App\Http\Controllers\Admin\AdminContactController;
-use App\Http\Controllers\Admin\AdminProductsController;
-use App\Http\Controllers\Admin\AdminRequestController;
-use App\Http\Controllers\Admin\AdminStoryController;
-use App\Http\Controllers\Admin\AdminTrafficReportController;
+use App\Http\Controllers\Admin\AdminProductController;
+use App\Http\Controllers\Admin\AdminProductRequestController;
+use App\Http\Controllers\Admin\AdminStudentStoryController;
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Auth\AuthController;
-use App\Http\Controllers\Beneficiary\BeneficiaryProductController;
+use App\Http\Controllers\Beneficiary\BeneficiaryProductsController;
 use App\Http\Controllers\Beneficiary\BeneficiaryProfileController;
-use App\Http\Controllers\CookieConsentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Donor\DonorProductController;
+use App\Http\Controllers\Donor\DonorProductRequestController;
 use App\Http\Controllers\Donor\DonorProfileController;
-use App\Http\Controllers\Donor\DonorRequestController;
 use App\Http\Controllers\ExploreNeedController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\NotificationController;
@@ -26,345 +24,423 @@ use Illuminate\Support\Facades\Route;
 
 
 
-/*
-|--------------------------------------------------------------------------
-| PUBLIC ROUTES
-|--------------------------------------------------------------------------
-*/
-
-Route::fallback(function () {
-    return response()->view(
-        'errors.404',
-        [],
-        404
-    );
-});
-
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
-Route::get('/explore-needs', [ExploreNeedController::class, 'index'])->name('explore.needs');
-Route::get('/our-impact', [OurImpectController::class, 'index'])->name('our.impact');
-Route::post('/contact', [HomeController::class, 'contactStore'])->name('contact.store');
-Route::post('/cookie-accept', [CookieConsentController::class, 'accept'])->middleware('throttle:10,1')->name('cookie.accept');
-Route::post('/cookie-reject', [CookieConsentController::class, 'reject'])->middleware('throttle:10,1')->name('cookie.reject');
-Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
-Route::post('/login', [AuthController::class, 'login'])->name('login.post');
-Route::get(
-    '/forgot-password',
-    [AuthController::class, 'showForgotPasswordForm']
-)
-    ->middleware('guest')
-    ->name('password.request');
-
+Route::get('/explore-needs',[HomeController::class, 'exploreNeed'])->name('explore.needs');
+Route::get('/our-impact',[HomeController::class, 'ourImpact'])->name('our.impact');
+Route::get('/student-stories',[HomeController::class, 'studentStories'])->name('student-stories.index');
 
 Route::post(
-    '/forgot-password',
-    [AuthController::class, 'sendPasswordResetLink']
-)
-    ->middleware([
-        'guest',
-        'throttle:5,1',
-    ])
-    ->name('password.email');
+    '/contact-us',
+    [HomeController::class, 'contactStore']
+)->name('contact.store');
 
-
-Route::get(
-    '/reset-password/{token}',
-    [AuthController::class, 'showResetPasswordForm']
-)
-    ->middleware('guest')
-    ->name('password.reset');
-
-
-Route::post(
-    '/reset-password',
-    [AuthController::class, 'resetPassword']
-)
-    ->middleware([
-        'guest',
-        'throttle:5,1',
-    ])
-    ->name('password.update');
-Route::get('/register', [AuthController::class,'showRegistrationForm'])->name('register');
-Route::post('/register', [AuthController::class,'register'])->name('register.post');
-  Route::get('/email/verify', [AuthController::class,'showEmailVerificationNotice',])->name('verification.notice');
-
-    Route::get('/email/verify/{id}/{hash}', [AuthController::class,'verifyEmail',])->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
-
-    Route::post('/email/verification-notification', [
-        AuthController::class,
-        'resendEmailVerification',
-    ])
-        ->middleware('throttle:6,1')
-        ->name('verification.send');
-
-
-Route::post('/donor/accept-terms', [DashboardController::class, 'acceptTerms'])
-    ->name('donor.accept.terms');
 
 Route::middleware('auth')->group(function () {
 
-    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-
-    Route::middleware(['auth', 'role:admin'])->group(function () {
-        Route::patch(
-            '/notifications/read-all',
-            [NotificationController::class, 'markAllAsRead']
-        )->name('notifications.read-all');
-
-        Route::patch(
-            '/notifications/{id}/read',
-            [NotificationController::class, 'markAsRead']
-        )->name('notifications.read');
-
-        Route::delete(
-            '/notifications/clear-all',
-            [NotificationController::class, 'clearAll']
-        )->name('notifications.clear-all');
-    });
+    Route::patch(
+        '/notifications/{notification}/read',
+        [NotificationController::class, 'markAsRead']
+    )->name('notifications.read');
 
 
+    Route::patch(
+        '/notifications/read-all',
+        [NotificationController::class, 'markAllAsRead']
+    )->name('notifications.read-all');
 
-    /*
-    |--------------------------------------------------------------------------
-    | ADMIN ROUTES
-    |--------------------------------------------------------------------------
-    */
-
-    Route::middleware('role:admin')->prefix('admin')->group(function () {
-
-        // CATEGORY
-        Route::get('category/index', [AdminCategorytController::class, 'index'])->name('admin.category.index');
-        Route::get('category/create', [AdminCategorytController::class, 'create'])->name('admin.category.create');
-        Route::post('category/store', [AdminCategorytController::class, 'store'])->name('admin.category.store');
-        Route::get('category/edit/{id}', [AdminCategorytController::class, 'edit'])->name('admin.category.edit');
-        Route::put('category/update/{id}', [AdminCategorytController::class, 'update'])->name('admin.category.update');
-        Route::delete('category/delete/{id}', [AdminCategorytController::class, 'destroy'])->name('admin.category.delete');
-
-        // PRODUCTS
-        Route::get('products/index', [AdminProductsController::class, 'index'])->name('admin.products.index');
-        Route::get('products/create', [AdminProductsController::class, 'create'])->name('admin.products.create');
-        Route::post('products/store', [AdminProductsController::class, 'store'])->name('admin.products.store');
-        Route::get('product/{id}/edit', [AdminProductsController::class, 'edit'])->name('admin.product.edit');
-        Route::put('products/update/{id}', [AdminProductsController::class, 'update'])->name('admin.products.update');
-        Route::delete('products/delete/{id}', [AdminProductsController::class, 'destroy'])->name('admin.products.delete');
-
-        // USERS
-
-        /*
-|--------------------------------------------------------------------------
-| Admin User Management Routes
-|--------------------------------------------------------------------------
-*/
-
-        Route::get(
-            'user/index',
-            [AdminUserController::class, 'index']
-        )->name('admin.user.index');
-
-        Route::get(
-            'user/create',
-            [AdminUserController::class, 'create']
-        )->name('admin.user.create');
-
-        Route::post(
-            'user/store',
-            [AdminUserController::class, 'store']
-        )->name('admin.user.store');
-
-        Route::get(
-            'user/edit/{id}',
-            [AdminUserController::class, 'edit']
-        )->name('admin.user.edit');
-
-        Route::put(
-            'user/update/{id}',
-            [AdminUserController::class, 'update']
-        )->name('admin.user.update');
-
-        /*
-|--------------------------------------------------------------------------
-| Activate, suspend or block user
-|--------------------------------------------------------------------------
-*/
-
-        Route::patch(
-            'user/{user}/account-status',
-            [AdminUserController::class, 'updateAccountStatus']
-        )->name('admin.user.status.update');
-
-        /*
-|--------------------------------------------------------------------------
-| Delete users
-|--------------------------------------------------------------------------
-*/
-
-        Route::delete(
-            'user/delete/{id}',
-            [AdminUserController::class, 'destroy']
-        )->name('admin.user.destroy');
-
-        Route::post(
-            'user/delete-selected',
-            [AdminUserController::class, 'deleteSelected']
-        )->name('admin.user.delete.selected');
-
-        /*
-|--------------------------------------------------------------------------
-| Excel import/export
-|--------------------------------------------------------------------------
-*/
-
-        Route::post('/admin/users/import/preview', [AdminUserController::class, 'preview'])
-            ->name('admin.user.import.preview');
-
-        Route::post('/admin/users/import/confirm', [AdminUserController::class, 'confirm'])
-            ->name('admin.user.import.confirm');
-
-        Route::post('/admin/users/import/cancel', [AdminUserController::class, 'cancel'])
-            ->name('admin.user.import.cancel');
-
-        Route::get(
-            'users/export',
-            [AdminUserController::class, 'exportUsers']
-        )->name('admin.user.export');
-
-        Route::post(
-            'users/export-selected',
-            [AdminUserController::class, 'exportSelected']
-        )->name('admin.user.export.selected');
-        // REQUESTS
-        Route::get('requests', [AdminRequestController::class, 'index'])->name('admin.requests');
-        Route::post('request/{id}/update', [AdminRequestController::class, 'update'])->name('admin.request.update');
-
-        Route::get('/reports/traffic', [AdminTrafficReportController::class, 'index'])->name('reports.traffic');
-    });
-
-Route::get(
-    '/admin/contact-messages',
-    [AdminContactController::class, 'index']
-)
-    ->middleware(['auth', 'role:admin'])
-    ->name('admin.contact.index');
-
-
-/*
-|--------------------------------------------------------------------------
-| Delete Selected Contact Messages
-|--------------------------------------------------------------------------
-*/
-
-Route::delete(
-    '/admin/contact-messages/delete-selected',
-    [AdminContactController::class, 'destroySelected']
-)
-    ->middleware(['auth', 'role:admin'])
-    ->name('admin.contact.destroy-selected');
-
-
-/*
-|--------------------------------------------------------------------------
-| Show Contact Message
-|--------------------------------------------------------------------------
-*/
-
-Route::get(
-    '/admin/contact-messages/{contact}',
-    [AdminContactController::class, 'show']
-)
-    ->middleware(['auth', 'role:admin'])
-    ->name('admin.contact.show');
-
-
-/*
-|--------------------------------------------------------------------------
-| Update Contact Status
-|--------------------------------------------------------------------------
-*/
-
-Route::patch(
-    '/admin/contact-messages/{contact}/status',
-    [AdminContactController::class, 'updateStatus']
-)
-    ->middleware(['auth', 'role:admin'])
-    ->name('admin.contact.status');
-
-
-/*
-|--------------------------------------------------------------------------
-| Delete Single Contact Message
-|--------------------------------------------------------------------------
-*/
-
-Route::delete(
-    '/admin/contact-messages/{contact}',
-    [AdminContactController::class, 'destroy']
-)
-    ->middleware(['auth', 'role:admin'])
-    ->name('admin.contact.destroy');
-    
-
-    /*
-    |--------------------------------------------------------------------------
-    | DONOR ROUTES
-    |--------------------------------------------------------------------------
-    */
-
-    Route::middleware('role:donor')->prefix('donor')->group(function () {
-
-        // PRODUCTS
-        Route::get('product/index', [DonorProductController::class, 'index'])->name('donor.product.index');
-        Route::get('product/create', [DonorProductController::class, 'create'])->name('donor.product.create');
-        Route::post('products/store', [DonorProductController::class, 'store'])->name('donor.product.store');
-        Route::get('products/edit/{id}', [DonorProductController::class, 'edit'])->name('donor.product.edit');
-        Route::put('products/update/{id}', [DonorProductController::class, 'update'])->name('donor.product.update');
-        Route::delete('products/delete/{id}', [DonorProductController::class, 'destroy'])->name('donor.products.delete');
-
-        // PROFILE
-        Route::get('profile/index', [DonorProfileController::class, 'index'])->name('donor.profile.index');
-        Route::post('profile/update', [DonorProfileController::class, 'update'])->name('donor.profile.update');
-
-        // REQUESTS
-        Route::get('requests', [DonorRequestController::class, 'donorRequests'])->name('donor.requests');
-        Route::post('request/{id}', [DonorRequestController::class, 'updateRequestStatus'])->name('donor.request.update');
-    });
-
-
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | BENEFICIARY ROUTES
-    |--------------------------------------------------------------------------
-    */
-
-    Route::middleware('role:beneficiary')->prefix('beneficiary')->group(function () {
-
-        // PRODUCTS
-        Route::get('products/index', [BeneficiaryProductController::class, 'index'])->name('beneficiary.products.index');
-
-        Route::get('products/detail/{id}', [BeneficiaryProductController::class, 'show'])
-            ->name('beneficiary.products.detail.show');
-
-        // PROFILE
-        Route::get('profile/index', [BeneficiaryProfileController::class, 'index'])
-            ->name('Beneficiary.profile.index');
-
-        Route::post('profile/update', [BeneficiaryProfileController::class, 'update'])
-            ->name('Beneficiary.profile.update');
-
-        // REQUESTS
-        Route::post('product/{id}/request', [BeneficiaryProductController::class, 'sendRequest'])
-            ->name('product.request.send');
-
-        Route::get('my-requests', [BeneficiaryProductController::class, 'myRequests'])
-            ->name('beneficiary.my.requests');
-    });
 });
 
+
+
 /*
+|--------------------------------------------------------------------------
+| Authentication
+|--------------------------------------------------------------------------
+*/
+
+Route::get(
+    '/login',
+    [AuthController::class, 'loginPage']
+)->name('login');
+
+
+Route::post(
+    '/login',
+    [AuthController::class, 'login']
+)->name('login.submit');
+
+
+Route::get(
+    '/register',
+    [AuthController::class, 'registerPage']
+)->name('register');
+
+
+Route::post(
+    '/register',
+    [AuthController::class, 'register']
+)->name('register.submit');
+
+
+/*
+|--------------------------------------------------------------------------
+| Email Verification
+|--------------------------------------------------------------------------
+*/
+
+Route::get(
+    '/email/verify',
+    [AuthController::class, 'verificationNotice']
+)->name('verification.notice');
+
+
+Route::get(
+    '/email/verify/{user}/{token}',
+    [AuthController::class, 'verifyEmail']
+)
+    ->middleware('throttle:6,1')
+    ->name('verification.verify');
+
+
+Route::post(
+    '/email/verification/resend',
+    [AuthController::class, 'resendVerification']
+)
+    ->middleware('throttle:3,1')
+    ->name('verification.resend');
+
+
+/*
+|--------------------------------------------------------------------------
+| Dashboard
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware('auth')->group(function () {
+
+    Route::get(
+        '/dashboard',
+        [DashboardController::class, 'index']
+    )->name('dashboard');
+
+});
+
+
+/*
+|--------------------------------------------------------------------------
+| Logout
+|--------------------------------------------------------------------------
+*/
+
+Route::post(
+    '/logout',
+    [AuthController::class, 'logout']
+)
+    ->middleware('auth')
+    ->name('logout');
+
+
+
+/*
+|--------------------------------------------------------------------------
+| Admin Users
+|--------------------------------------------------------------------------
+*/
+
+Route::get(
+    '/admin/users',
+    [AdminUserController::class, 'index']
+)
+    ->middleware('role:admin')
+    ->name('admin.users.index');
+
+
+Route::post(
+    '/admin/users',
+    [AdminUserController::class, 'store']
+)
+    ->middleware('role:admin')
+    ->name('admin.users.store');
+
+
+/*
+|--------------------------------------------------------------------------
+| Import
+|--------------------------------------------------------------------------
+*/
+
+Route::post(
+    '/admin/users/import',
+    [AdminUserController::class, 'import']
+)
+    ->middleware('role:admin')
+    ->name('admin.users.import');
+
+
+Route::get(
+    '/admin/users/import/template',
+    [AdminUserController::class, 'downloadTemplate']
+)
+    ->middleware('role:admin')
+    ->name('admin.users.import.template');
+
+
+/*
+|--------------------------------------------------------------------------
+| Selected Export
+|--------------------------------------------------------------------------
+*/
+
+Route::post(
+    '/admin/users/export-selected',
+    [AdminUserController::class, 'exportSelected']
+)
+    ->middleware('role:admin')
+    ->name('admin.users.export.selected');
+
+
+/*
+|--------------------------------------------------------------------------
+| Selected Delete
+|--------------------------------------------------------------------------
+*/
+
+Route::delete(
+    '/admin/users/bulk-delete',
+    [AdminUserController::class, 'bulkDestroy']
+)
+    ->middleware('role:admin')
+    ->name('admin.users.bulk.destroy');
+
+
+/*
+|--------------------------------------------------------------------------
+| Edit User Page
+|--------------------------------------------------------------------------
+*/
+
+Route::get(
+    '/admin/users/{user}/edit',
+    [AdminUserController::class, 'edit']
+)
+    ->middleware('role:admin')
+    ->name('admin.users.edit');
+
+
+/*
+|--------------------------------------------------------------------------
+| Update User
+|--------------------------------------------------------------------------
+*/
+
+Route::put(
+    '/admin/users/{user}',
+    [AdminUserController::class, 'update']
+)
+    ->middleware('role:admin')
+    ->name('admin.users.update');
+
+
+/*
+|--------------------------------------------------------------------------
+| Delete User
+|--------------------------------------------------------------------------
+*/
+
+Route::delete(
+    '/admin/users/{user}',
+    [AdminUserController::class, 'destroy']
+)
+    ->middleware('role:admin')
+    ->name('admin.users.destroy');
+
+
+    /*
+|--------------------------------------------------------------------------
+| Admin Categories
+|--------------------------------------------------------------------------
+*/
+
+Route::get(
+    '/admin/categories',
+    [AdminCategoryController::class, 'index']
+)
+    ->middleware('role:admin')
+    ->name('admin.categories.index');
+
+
+Route::get(
+    '/admin/categories/create',
+    [AdminCategoryController::class, 'create']
+)
+    ->middleware('role:admin')
+    ->name('admin.categories.create');
+
+
+Route::post(
+    '/admin/categories',
+    [AdminCategoryController::class, 'store']
+)
+    ->middleware('role:admin')
+    ->name('admin.categories.store');
+
+
+Route::get(
+    '/admin/categories/{category}/edit',
+    [AdminCategoryController::class, 'edit']
+)
+    ->middleware('role:admin')
+    ->name('admin.categories.edit');
+
+
+Route::put(
+    '/admin/categories/{category}',
+    [AdminCategoryController::class, 'update']
+)
+    ->middleware('role:admin')
+    ->name('admin.categories.update');
+
+
+Route::delete(
+    '/admin/categories/{category}',
+    [AdminCategoryController::class, 'destroy']
+)
+    ->middleware('role:admin')
+    ->name('admin.categories.destroy');
+
+    /*
+|--------------------------------------------------------------------------
+| Admin Products
+|--------------------------------------------------------------------------
+*/
+
+Route::get(
+    '/admin/products',
+    [AdminProductController::class, 'index']
+)
+    ->middleware('role:admin')
+    ->name('admin.products.index');
+
+
+Route::get(
+    '/admin/products/create',
+    [AdminProductController::class, 'create']
+)
+    ->middleware('role:admin')
+    ->name('admin.products.create');
+
+
+Route::post(
+    '/admin/products',
+    [AdminProductController::class, 'store']
+)
+    ->middleware('role:admin')
+    ->name('admin.products.store');
+
+
+Route::get(
+    '/admin/products/{product}/edit',
+    [AdminProductController::class, 'edit']
+)
+    ->middleware('role:admin')
+    ->name('admin.products.edit');
+
+
+Route::put(
+    '/admin/products/{product}',
+    [AdminProductController::class, 'update']
+)
+    ->middleware('role:admin')
+    ->name('admin.products.update');
+
+
+Route::delete(
+    '/admin/products/{product}',
+    [AdminProductController::class, 'destroy']
+)
+    ->middleware('role:admin')
+    ->name('admin.products.destroy');
+
+/*
+|--------------------------------------------------------------------------
+| Admin Product Requests
+|--------------------------------------------------------------------------
+*/
+
+Route::get(
+    '/admin/product-requests',
+    [AdminProductRequestController::class, 'index']
+)
+    ->middleware('role:admin')
+    ->name('admin.product.requests.index');
+
+
+Route::get(
+    '/admin/product-requests/{productRequest}',
+    [AdminProductRequestController::class, 'show']
+)
+    ->middleware('role:admin')
+    ->name('admin.product.requests.show');
+
+
+Route::patch(
+    '/admin/product-requests/{productRequest}/approve',
+    [AdminProductRequestController::class, 'approve']
+)
+    ->middleware('role:admin')
+    ->name('admin.product.requests.approve');
+
+
+Route::patch(
+    '/admin/product-requests/{productRequest}/reject',
+    [AdminProductRequestController::class, 'reject']
+)
+    ->middleware('role:admin')
+    ->name('admin.product.requests.reject');
+
+
+    Route::prefix('admin')
+    ->name('admin.')
+    ->middleware([
+        'auth',
+        'role:admin',
+    ])
+    ->group(function () {
+
+        /*
+        |--------------------------------------------------------------------------
+        | Contact Messages
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get(
+            '/contacts',
+            [AdminContactController::class, 'index']
+        )->name('contacts.index');
+
+
+        Route::get(
+            '/contacts/{contact}',
+            [AdminContactController::class, 'show']
+        )->name('contacts.show');
+
+
+        Route::patch(
+            '/contacts/{contact}/resolve',
+            [AdminContactController::class, 'resolve']
+        )->name('contacts.resolve');
+
+
+        Route::delete(
+            '/contacts/{contact}',
+            [AdminContactController::class, 'destroy']
+        )->name('contacts.destroy');
+
+    });
+
+
+    /*
 |--------------------------------------------------------------------------
 | Admin Student Stories
 |--------------------------------------------------------------------------
@@ -372,47 +448,241 @@ Route::delete(
 
 Route::get(
     '/admin/student-stories',
-    [AdminStoryController::class, 'index']
+    [AdminStudentStoryController::class, 'index']
 )
     ->middleware(['auth', 'role:admin'])
-    ->name('admin.student.stories.index');
+    ->name('admin.student-stories.index');
 
 
 Route::get(
     '/admin/student-stories/create',
-    [AdminStoryController::class, 'create']
+    [AdminStudentStoryController::class, 'create']
 )
     ->middleware(['auth', 'role:admin'])
-    ->name('admin.student.stories.create');
+    ->name('admin.student-stories.create');
 
 
 Route::post(
     '/admin/student-stories',
-    [AdminStoryController::class, 'store']
+    [AdminStudentStoryController::class, 'store']
 )
     ->middleware(['auth', 'role:admin'])
-    ->name('admin.student.stories.store');
+    ->name('admin.student-stories.store');
 
 
 Route::get(
-    '/admin/student-stories/{story}/edit',
-    [AdminStoryController::class, 'edit']
+    '/admin/student-stories/{studentStory}',
+    [AdminStudentStoryController::class, 'show']
 )
     ->middleware(['auth', 'role:admin'])
-    ->name('admin.student.stories.edit');
+    ->name('admin.student-stories.show');
+
+
+Route::get(
+    '/admin/student-stories/{studentStory}/edit',
+    [AdminStudentStoryController::class, 'edit']
+)
+    ->middleware(['auth', 'role:admin'])
+    ->name('admin.student-stories.edit');
 
 
 Route::put(
-    '/admin/student-stories/{story}',
-    [AdminStoryController::class, 'update']
+    '/admin/student-stories/{studentStory}',
+    [AdminStudentStoryController::class, 'update']
 )
     ->middleware(['auth', 'role:admin'])
-    ->name('admin.student.stories.update');
+    ->name('admin.student-stories.update');
 
 
 Route::delete(
-    '/admin/student-stories/{story}',
-    [AdminStoryController::class, 'destroy']
+    '/admin/student-stories/{studentStory}',
+    [AdminStudentStoryController::class, 'destroy']
 )
     ->middleware(['auth', 'role:admin'])
-    ->name('admin.student.stories.destroy');
+    ->name('admin.student-stories.destroy');
+
+
+    /*
+|--------------------------------------------------------------------------
+| Donor Profile
+|--------------------------------------------------------------------------
+*/
+
+Route::get(
+    '/donor/profile',
+    [DonorProfileController::class, 'show']
+)
+    ->middleware('role:donor')
+    ->name('donor.profile.show');
+
+
+Route::get(
+    '/donor/profile/edit',
+    [DonorProfileController::class, 'edit']
+)
+    ->middleware('role:donor')
+    ->name('donor.profile.edit');
+
+
+Route::put(
+    '/donor/profile',
+    [DonorProfileController::class, 'update']
+)
+    ->middleware('role:donor')
+    ->name('donor.profile.update');
+
+    /*
+|--------------------------------------------------------------------------
+| Donor Products
+|--------------------------------------------------------------------------
+*/
+
+Route::get(
+    '/donor/products',
+    [DonorProductController::class, 'index']
+)
+    ->middleware('role:donor')
+    ->name('donor.products.index');
+
+
+Route::get(
+    '/donor/products/create',
+    [DonorProductController::class, 'create']
+)
+    ->middleware('role:donor')
+    ->name('donor.products.create');
+
+
+Route::post(
+    '/donor/products',
+    [DonorProductController::class, 'store']
+)
+    ->middleware('role:donor')
+    ->name('donor.products.store');
+
+
+Route::get(
+    '/donor/products/{product}/edit',
+    [DonorProductController::class, 'edit']
+)
+    ->middleware('role:donor')
+    ->name('donor.products.edit');
+
+
+Route::put(
+    '/donor/products/{product}',
+    [DonorProductController::class, 'update']
+)
+    ->middleware('role:donor')
+    ->name('donor.products.update');
+
+
+Route::delete(
+    '/donor/products/{product}',
+    [DonorProductController::class, 'destroy']
+)
+    ->middleware('role:donor')
+    ->name('donor.products.destroy');
+
+
+    /*
+|--------------------------------------------------------------------------
+| Donor Product Requests
+|--------------------------------------------------------------------------
+*/
+
+Route::get(
+    '/donor/product-requests',
+    [DonorProductRequestController::class, 'index']
+)
+    ->middleware('role:donor')
+    ->name('donor.product.requests.index');
+
+
+Route::get(
+    '/donor/product-requests/{productRequest}',
+    [DonorProductRequestController::class, 'show']
+)
+    ->middleware('role:donor')
+    ->name('donor.product.requests.show');
+
+
+Route::patch(
+    '/donor/product-requests/{productRequest}/accept',
+    [DonorProductRequestController::class, 'accept']
+)
+    ->middleware('role:donor')
+    ->name('donor.product.requests.accept');
+
+
+Route::patch(
+    '/donor/product-requests/{productRequest}/reject',
+    [DonorProductRequestController::class, 'reject']
+)
+    ->middleware('role:donor')
+    ->name('donor.product.requests.reject');
+
+
+    /*
+|--------------------------------------------------------------------------
+| Beneficiary Profile
+|--------------------------------------------------------------------------
+*/
+
+Route::get(
+    '/beneficiary/profile',
+    [BeneficiaryProfileController::class, 'index']
+)
+    ->middleware('role:beneficiary')
+    ->name('beneficiary.profile.index');
+
+
+Route::get(
+    '/beneficiary/profile/edit',
+    [BeneficiaryProfileController::class, 'edit']
+)
+    ->middleware('role:beneficiary')
+    ->name('beneficiary.profile.edit');
+
+
+Route::put(
+    '/beneficiary/profile',
+    [BeneficiaryProfileController::class, 'update']
+)
+    ->middleware('role:beneficiary')
+    ->name('beneficiary.profile.update');
+
+    /*
+|--------------------------------------------------------------------------
+| Beneficiary Products
+|--------------------------------------------------------------------------
+*/
+
+Route::get(
+    '/beneficiary/products',
+    [BeneficiaryProductsController::class, 'index']
+)
+    ->middleware('role:beneficiary')
+    ->name('beneficiary.products.index');
+
+
+Route::post(
+    '/beneficiary/products/{product}/request',
+    [BeneficiaryProductsController::class, 'storeRequest']
+)
+    ->middleware('role:beneficiary')
+    ->name('beneficiary.products.request');
+
+
+/*
+|--------------------------------------------------------------------------
+| Beneficiary Product Requests
+|--------------------------------------------------------------------------
+*/
+
+Route::get(
+    '/beneficiary/requests',
+    [BeneficiaryProductsController::class, 'myRequests']
+)
+    ->middleware('role:beneficiary')
+    ->name('beneficiary.requests.index');

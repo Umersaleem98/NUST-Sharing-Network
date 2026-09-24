@@ -5,41 +5,143 @@ namespace App\Http\Controllers\Donor;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
-use App\Models\User;
-use App\Notifications\ProductCreatedNotification;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Notification;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Str;
-use Illuminate\View\View;
 
 class DonorProductController extends Controller
 {
     /*
     |--------------------------------------------------------------------------
-    | Product List
+    | My Products
     |--------------------------------------------------------------------------
     */
 
-    public function index(): View
+    public function index(Request $request)
     {
-        $user = Auth::user();
-
-        abort_if(
-            ! $user || $user->role !== 'donor',
-            403
+        $search = trim(
+            (string) $request->search
         );
 
-        $products = Product::with('category')
-            ->where('user_id', $user->id)
+        $categoryId =
+            $request->category_id;
+
+        $status =
+            $request->status;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Only Current Donor Products
+        |--------------------------------------------------------------------------
+        */
+
+        $products = Product::with([
+            'category',
+            'creator',
+        ])
+            ->where(
+                'user_id',
+                Auth::id()
+            )
+
+            /*
+            |--------------------------------------------------------------------------
+            | Search
+            |--------------------------------------------------------------------------
+            */
+
+            ->when(
+                $search,
+                function ($query) use ($search) {
+
+                    $query->where(
+                        function ($subQuery) use ($search) {
+
+                            $subQuery
+                                ->where(
+                                    'name',
+                                    'like',
+                                    "%{$search}%"
+                                )
+                                ->orWhere(
+                                    'description',
+                                    'like',
+                                    "%{$search}%"
+                                );
+                        }
+                    );
+                }
+            )
+
+            /*
+            |--------------------------------------------------------------------------
+            | Category Filter
+            |--------------------------------------------------------------------------
+            */
+
+            ->when(
+                $categoryId,
+                function ($query) use ($categoryId) {
+
+                    $query->where(
+                        'category_id',
+                        $categoryId
+                    );
+                }
+            )
+
+            /*
+            |--------------------------------------------------------------------------
+            | Status Filter
+            |--------------------------------------------------------------------------
+            */
+
+            ->when(
+                in_array(
+                    $status,
+                    [
+                        'active',
+                        'inactive',
+                    ],
+                    true
+                ),
+                function ($query) use ($status) {
+
+                    $query->where(
+                        'status',
+                        $status
+                    );
+                }
+            )
+
             ->latest()
-            ->paginate(10);
+            ->paginate(10)
+            ->withQueryString();
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Categories
+        |--------------------------------------------------------------------------
+        */
+
+        $categories = Category::where(
+            'status',
+            'active'
+        )
+            ->orderBy('name')
+            ->get();
+
 
         return view(
             'pages.donor.products.index',
-            compact('products')
+            compact(
+                'products',
+                'categories'
+            )
         );
     }
 
@@ -50,17 +152,15 @@ class DonorProductController extends Controller
     |--------------------------------------------------------------------------
     */
 
-    public function create(): View
+    public function create()
     {
-        $user = Auth::user();
-
-        abort_if(
-            ! $user || $user->role !== 'donor',
-            403
-        );
-
-        $categories = Category::orderBy('name')
+        $categories = Category::where(
+            'status',
+            'active'
+        )
+            ->orderBy('name')
             ->get();
+
 
         return view(
             'pages.donor.products.create',
@@ -75,147 +175,115 @@ class DonorProductController extends Controller
     |--------------------------------------------------------------------------
     */
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request)
     {
-        $user = $request->user();
-
-        abort_if(
-            ! $user || $user->role !== 'donor',
-            403
-        );
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Validation
-        |--------------------------------------------------------------------------
-        */
-
-        $validated = $request->validate(
-            [
-                'category_id' => [
-                    'required',
-                    'integer',
-                    'exists:categories,id',
-                ],
-
-                'name' => [
-                    'required',
-                    'string',
-                    'min:3',
-                    'max:255',
-                ],
-
-                'description' => [
-                    'nullable',
-                    'string',
-                    'max:3000',
-                ],
-
-                'images' => [
-                    'nullable',
-                    'array',
-                    'max:5',
-                ],
-
-                'images.*' => [
-                    'image',
-                    'mimes:jpg,jpeg,png,webp',
-                    'max:200',
-                ],
-
-                'status' => [
-                    'required',
-                    'in:active,inactive',
-                ],
+        $request->validate([
+            'name' => [
+                'required',
+                'string',
+                'max:255',
             ],
-            [
-                'category_id.required' =>
-                    'Please select a product category.',
 
-                'category_id.exists' =>
-                    'The selected category does not exist.',
+            'category_id' => [
+                'required',
+                'exists:categories,id',
+            ],
 
-                'name.required' =>
-                    'Please enter the product name.',
+            'description' => [
+                'nullable',
+                'string',
+            ],
 
-                'name.min' =>
-                    'The product name must contain at least 3 characters.',
+            'image' => [
+                'nullable',
+                'image',
+                'mimes:jpg,jpeg,png,webp',
+                'max:2048',
+            ],
 
-                'description.max' =>
-                    'The product description cannot exceed 3000 characters.',
+            'status' => [
+                'required',
 
-                'images.max' =>
-                    'You can upload a maximum of 5 product images.',
+                Rule::in([
+                    'active',
+                    'inactive',
+                ]),
+            ],
+        ], [
+            'name.required' =>
+                'Product name is required.',
 
-                'images.*.image' =>
-                    'Every uploaded file must be a valid image.',
+            'category_id.required' =>
+                'Please select a category.',
 
-                'images.*.mimes' =>
-                    'Product images must be JPG, JPEG, PNG or WebP.',
+            'category_id.exists' =>
+                'Selected category does not exist.',
 
-                'images.*.max' =>
-                    'Each product image must not exceed 200 KB.',
+            'image.image' =>
+                'The uploaded file must be an image.',
 
-                'status.required' =>
-                    'Please select the product status.',
+            'image.mimes' =>
+                'Image must be JPG, JPEG, PNG or WEBP.',
 
-                'status.in' =>
-                    'The selected product status is invalid.',
-            ]
-        );
+            'image.max' =>
+                'Product image must not exceed 2 MB.',
+        ]);
 
 
         /*
         |--------------------------------------------------------------------------
-        | Product Images
+        | Image
         |--------------------------------------------------------------------------
-        |
-        | Physical Location:
-        |
-        | public/admins/products/
-        |
-        | Database:
-        |
-        | ["product-uuid.jpg", "product-uuid.webp"]
-        |
         */
 
-        $imageNames = [];
+        $imageName =
+            null;
 
-        if ($request->hasFile('images')) {
 
-            $uploadPath = public_path(
-                'admins/products'
-            );
+        if ($request->hasFile('image')) {
 
-            File::ensureDirectoryExists(
-                $uploadPath
-            );
+            /*
+            |--------------------------------------------------------------------------
+            | Shared Product Image Directory
+            |--------------------------------------------------------------------------
+            |
+            | We keep the same directory used by the admin product module so
+            | Admin can display donor-created products without changing paths.
+            |
+            */
 
-            foreach ($request->file('images') as $image) {
-
-                $extension = strtolower(
-                    $image->getClientOriginalExtension()
+            $destinationPath =
+                public_path(
+                    'admins/images/products'
                 );
 
-                if ($extension === 'jpeg') {
-                    $extension = 'jpg';
-                }
 
-                $imageName =
-                    'product-'
-                    . Str::uuid()
-                    . '.'
-                    . $extension;
+            if (!File::exists($destinationPath)) {
 
-                $image->move(
-                    $uploadPath,
-                    $imageName
+                File::makeDirectory(
+                    $destinationPath,
+                    0755,
+                    true
                 );
-
-                $imageNames[] = $imageName;
             }
+
+
+            $image =
+                $request->file('image');
+
+
+            $imageName =
+                time()
+                .'_donor_'
+                .Str::random(12)
+                .'.'
+                .$image->getClientOriginalExtension();
+
+
+            $image->move(
+                $destinationPath,
+                $imageName
+            );
         }
 
 
@@ -223,65 +291,39 @@ class DonorProductController extends Controller
         |--------------------------------------------------------------------------
         | Create Product
         |--------------------------------------------------------------------------
+        |
+        | user_id automatically identifies the donor who created the product.
+        |
         */
 
-        $product = Product::create([
-            'user_id' => $user->id,
+        Product::create([
+            'user_id' =>
+                Auth::id(),
 
             'category_id' =>
-                $validated['category_id'],
+                $request->category_id,
 
             'name' =>
-                trim($validated['name']),
-
-            'slug' =>
-                Str::slug($validated['name'])
-                . '-'
-                . Str::lower(Str::random(8)),
+                trim(
+                    $request->name
+                ),
 
             'description' =>
-                ! empty($validated['description'])
-                    ? trim($validated['description'])
-                    : null,
+                $request->description,
 
-            'images' =>
-                $imageNames,
+            'image' =>
+                $imageName,
 
             'status' =>
-                $validated['status'],
+                $request->status,
         ]);
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Notify Administrators
-        |--------------------------------------------------------------------------
-        */
-
-        $admins = User::where('role', 'admin')
-            ->where('id', '!=', $user->id)
-            ->get();
-
-        if ($admins->isNotEmpty()) {
-
-            Notification::send(
-                $admins,
-                new ProductCreatedNotification($product)
-            );
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Redirect
-        |--------------------------------------------------------------------------
-        */
-
         return redirect()
-            ->route('donor.product.index')
+            ->route('donor.products.index')
             ->with(
                 'success',
-                'Product created successfully.'
+                'Product added successfully.'
             );
     }
 
@@ -292,21 +334,47 @@ class DonorProductController extends Controller
     |--------------------------------------------------------------------------
     */
 
-    public function edit(int $id): View
+    public function edit(Product $product)
     {
-        $user = Auth::user();
+        /*
+        |--------------------------------------------------------------------------
+        | Ownership Protection
+        |--------------------------------------------------------------------------
+        */
 
-        abort_if(
-            ! $user || $user->role !== 'donor',
-            403
-        );
+        if (
+            (int) $product->user_id !==
+            (int) Auth::id()
+        ) {
 
-        $product = Product::where('id', $id)
-            ->where('user_id', $user->id)
-            ->firstOrFail();
+            abort(
+                403,
+                'You are not authorized to edit this product.'
+            );
+        }
 
-        $categories = Category::orderBy('name')
+
+        /*
+        |--------------------------------------------------------------------------
+        | Categories
+        |--------------------------------------------------------------------------
+        |
+        | Include active categories plus the currently selected category in case
+        | an admin later marked that category inactive.
+        |
+        */
+
+        $categories = Category::where(
+            'status',
+            'active'
+        )
+            ->orWhere(
+                'id',
+                $product->category_id
+            )
+            ->orderBy('name')
             ->get();
+
 
         return view(
             'pages.donor.products.edit',
@@ -326,26 +394,24 @@ class DonorProductController extends Controller
 
     public function update(
         Request $request,
-        int $id
-    ): RedirectResponse {
-
-        $user = $request->user();
-
-        abort_if(
-            ! $user || $user->role !== 'donor',
-            403
-        );
-
-
+        Product $product
+    ) {
         /*
         |--------------------------------------------------------------------------
-        | Find Donor Product
+        | Ownership Protection
         |--------------------------------------------------------------------------
         */
 
-        $product = Product::where('id', $id)
-            ->where('user_id', $user->id)
-            ->firstOrFail();
+        if (
+            (int) $product->user_id !==
+            (int) Auth::id()
+        ) {
+
+            abort(
+                403,
+                'You are not authorized to update this product.'
+            );
+        }
 
 
         /*
@@ -354,149 +420,125 @@ class DonorProductController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $validated = $request->validate(
-            [
-                'category_id' => [
-                    'required',
-                    'integer',
-                    'exists:categories,id',
-                ],
-
-                'name' => [
-                    'required',
-                    'string',
-                    'min:3',
-                    'max:255',
-                ],
-
-                'description' => [
-                    'nullable',
-                    'string',
-                    'max:3000',
-                ],
-
-                'status' => [
-                    'required',
-                    'in:active,inactive',
-                ],
-
-                'images' => [
-                    'nullable',
-                    'array',
-                    'max:5',
-                ],
-
-                'images.*' => [
-                    'image',
-                    'mimes:jpg,jpeg,png,webp',
-                    'max:200',
-                ],
+        $request->validate([
+            'name' => [
+                'required',
+                'string',
+                'max:255',
             ],
-            [
-                'category_id.required' =>
-                    'Please select a product category.',
 
-                'category_id.exists' =>
-                    'The selected category does not exist.',
+            'category_id' => [
+                'required',
+                'exists:categories,id',
+            ],
 
-                'name.required' =>
-                    'Please enter the product name.',
+            'description' => [
+                'nullable',
+                'string',
+            ],
 
-                'name.min' =>
-                    'The product name must contain at least 3 characters.',
+            'image' => [
+                'nullable',
+                'image',
+                'mimes:jpg,jpeg,png,webp',
+                'max:2048',
+            ],
 
-                'description.max' =>
-                    'The product description cannot exceed 3000 characters.',
+            'status' => [
+                'required',
 
-                'status.required' =>
-                    'Please select the product status.',
-
-                'status.in' =>
-                    'The selected product status is invalid.',
-
-                'images.max' =>
-                    'You can upload a maximum of 5 product images.',
-
-                'images.*.image' =>
-                    'Every uploaded file must be a valid image.',
-
-                'images.*.mimes' =>
-                    'Product images must be JPG, JPEG, PNG or WebP.',
-
-                'images.*.max' =>
-                    'Each product image must not exceed 200 KB.',
-            ]
-        );
+                Rule::in([
+                    'active',
+                    'inactive',
+                ]),
+            ],
+        ]);
 
 
         /*
         |--------------------------------------------------------------------------
-        | Current Images
+        | Replace Product Image
         |--------------------------------------------------------------------------
         */
 
-        $oldImages = $product->images ?? [];
+        if ($request->hasFile('image')) {
 
-        $newImages = [];
+            /*
+            |--------------------------------------------------------------------------
+            | Delete Old Image
+            |--------------------------------------------------------------------------
+            */
+
+            if ($product->image) {
+
+                $oldImagePath =
+                    public_path(
+                        'admins/images/products/'
+                        .$product->image
+                    );
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Upload Replacement Images
-        |--------------------------------------------------------------------------
-        */
+                if (
+                    File::exists(
+                        $oldImagePath
+                    )
+                ) {
 
-        if ($request->hasFile('images')) {
-
-            $uploadPath = public_path(
-                'admins/products'
-            );
-
-            File::ensureDirectoryExists(
-                $uploadPath
-            );
-
-            foreach ($request->file('images') as $image) {
-
-                $extension = strtolower(
-                    $image->getClientOriginalExtension()
-                );
-
-                if ($extension === 'jpeg') {
-                    $extension = 'jpg';
+                    File::delete(
+                        $oldImagePath
+                    );
                 }
+            }
 
-                $imageName =
-                    'product-'
-                    . Str::uuid()
-                    . '.'
-                    . $extension;
 
-                $image->move(
-                    $uploadPath,
-                    $imageName
+            /*
+            |--------------------------------------------------------------------------
+            | Product Directory
+            |--------------------------------------------------------------------------
+            */
+
+            $destinationPath =
+                public_path(
+                    'admins/images/products'
                 );
 
-                $newImages[] = $imageName;
+
+            if (!File::exists($destinationPath)) {
+
+                File::makeDirectory(
+                    $destinationPath,
+                    0755,
+                    true
+                );
             }
-        }
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Update Slug Only When Name Changes
-        |--------------------------------------------------------------------------
-        */
+            /*
+            |--------------------------------------------------------------------------
+            | Upload New Image
+            |--------------------------------------------------------------------------
+            */
 
-        if (
-            $product->name !==
-            trim($validated['name'])
-        ) {
+            $image =
+                $request->file('image');
 
-            $product->slug =
-                Str::slug($validated['name'])
-                . '-'
-                . Str::lower(Str::random(8));
+
+            $imageName =
+                time()
+                .'_donor_'
+                .Str::random(12)
+                .'.'
+                .$image->getClientOriginalExtension();
+
+
+            $image->move(
+                $destinationPath,
+                $imageName
+            );
+
+
+            $product->image =
+                $imageName;
         }
 
 
@@ -507,67 +549,38 @@ class DonorProductController extends Controller
         */
 
         $product->category_id =
-            $validated['category_id'];
+            $request->category_id;
+
 
         $product->name =
-            trim($validated['name']);
+            trim(
+                $request->name
+            );
+
 
         $product->description =
-            ! empty($validated['description'])
-                ? trim($validated['description'])
-                : null;
+            $request->description;
+
 
         $product->status =
-            $validated['status'];
+            $request->status;
 
 
         /*
         |--------------------------------------------------------------------------
-        | Replace Images Only When New Images Were Uploaded
+        | Important
         |--------------------------------------------------------------------------
+        |
+        | Do not update user_id.
+        | This keeps the product linked to the original donor.
+        |
         */
-
-        if ($request->hasFile('images')) {
-
-            $product->images =
-                $newImages;
-        }
-
 
         $product->save();
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Delete Old Images After Successful Product Update
-        |--------------------------------------------------------------------------
-        */
-
-        if ($request->hasFile('images')) {
-
-            foreach ($oldImages as $oldImage) {
-
-                $oldImagePath = public_path(
-                    'admins/products/'
-                    . basename($oldImage)
-                );
-
-                if (File::exists($oldImagePath)) {
-
-                    File::delete($oldImagePath);
-                }
-            }
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Redirect
-        |--------------------------------------------------------------------------
-        */
-
         return redirect()
-            ->route('donor.product.index')
+            ->route('donor.products.index')
             ->with(
                 'success',
                 'Product updated successfully.'
@@ -581,34 +594,52 @@ class DonorProductController extends Controller
     |--------------------------------------------------------------------------
     */
 
-    public function destroy(int $id): RedirectResponse
+    public function destroy(Product $product)
     {
-        $user = Auth::user();
+        /*
+        |--------------------------------------------------------------------------
+        | Ownership Protection
+        |--------------------------------------------------------------------------
+        */
 
-        abort_if(
-            ! $user || $user->role !== 'donor',
-            403
-        );
+        if (
+            (int) $product->user_id !==
+            (int) Auth::id()
+        ) {
+
+            abort(
+                403,
+                'You are not authorized to delete this product.'
+            );
+        }
 
 
         /*
         |--------------------------------------------------------------------------
-        | Find Product
+        | Delete Product Image
         |--------------------------------------------------------------------------
         */
 
-        $product = Product::where('id', $id)
-            ->where('user_id', $user->id)
-            ->firstOrFail();
+        if ($product->image) {
+
+            $imagePath =
+                public_path(
+                    'admins/images/products/'
+                    .$product->image
+                );
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Keep Image Names Before Deleting Product
-        |--------------------------------------------------------------------------
-        */
+            if (
+                File::exists(
+                    $imagePath
+                )
+            ) {
 
-        $images = $product->images ?? [];
+                File::delete(
+                    $imagePath
+                );
+            }
+        }
 
 
         /*
@@ -620,34 +651,8 @@ class DonorProductController extends Controller
         $product->delete();
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Delete Product Images
-        |--------------------------------------------------------------------------
-        */
-
-        foreach ($images as $image) {
-
-            $imagePath = public_path(
-                'admins/products/'
-                . basename($image)
-            );
-
-            if (File::exists($imagePath)) {
-
-                File::delete($imagePath);
-            }
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Redirect
-        |--------------------------------------------------------------------------
-        */
-
         return redirect()
-            ->route('donor.product.index')
+            ->route('donor.products.index')
             ->with(
                 'success',
                 'Product deleted successfully.'

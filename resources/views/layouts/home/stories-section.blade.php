@@ -3,38 +3,29 @@
 ========================================================= --}}
 
 @php
-    /*
-    |--------------------------------------------------------------------------
-    | Stories Collection
-    |--------------------------------------------------------------------------
-    */
     $studentStories = $stories ?? collect();
 @endphp
 
 
 <style>
     /* =========================================================
-       ROOT / SECTION
-    ========================================================= */
+       ROOT
+    ========================================================== */
 
     .stories-section {
         --story-primary: #0065a8;
         --story-primary-dark: #003f6b;
         --story-primary-soft: #eaf5fc;
         --story-accent: #f5a623;
-
         --story-text: #17212b;
         --story-text-soft: #40515e;
         --story-muted: #71808c;
-
         --story-border: #dce5ec;
         --story-white: #ffffff;
         --story-background: #f7fafc;
 
         position: relative;
-
         padding: 95px 0;
-
         overflow: hidden;
 
         background:
@@ -54,7 +45,6 @@
 
     .stories-section::before {
         position: absolute;
-
         top: -130px;
         right: -120px;
 
@@ -65,14 +55,12 @@
         border-radius: 50%;
 
         content: "";
-
         pointer-events: none;
     }
 
 
     .stories-container {
         position: relative;
-
         z-index: 1;
 
         width: min(
@@ -86,7 +74,7 @@
 
     /* =========================================================
        HEADING
-    ========================================================= */
+    ========================================================== */
 
     .stories-heading {
         display: grid;
@@ -120,15 +108,11 @@
         border-radius: 50px;
 
         color: var(--story-primary-dark);
-
-        background:
-            var(--story-primary-soft);
+        background: var(--story-primary-soft);
 
         font-size: 0.78rem;
         font-weight: 700;
-
         letter-spacing: 0.7px;
-
         text-transform: uppercase;
     }
 
@@ -145,13 +129,9 @@
 
         color: var(--story-text);
 
-        font-size:
-            clamp(2rem, 4vw, 3.2rem);
-
+        font-size: clamp(2rem, 4vw, 3.2rem);
         font-weight: 800;
-
         line-height: 1.12;
-
         letter-spacing: -1px;
     }
 
@@ -167,31 +147,30 @@
         color: var(--story-muted);
 
         font-size: 1rem;
-
         line-height: 1.8;
     }
 
 
     /* =========================================================
        GRID
-    ========================================================= */
+    ========================================================== */
 
     .stories-grid {
         display: grid;
 
         grid-template-columns:
             repeat(
-                3,
+                4,
                 minmax(0, 1fr)
             );
 
-        gap: 25px;
+        gap: 24px;
     }
 
 
     /* =========================================================
        CARD
-    ========================================================= */
+    ========================================================== */
 
     .story-card {
         position: relative;
@@ -199,21 +178,16 @@
         display: flex;
 
         min-width: 0;
-
-        min-height: 500px;
+        min-height: 490px;
 
         flex-direction: column;
 
         overflow: hidden;
 
-        border:
-            1px solid
-            var(--story-border);
-
+        border: 1px solid var(--story-border);
         border-radius: 20px;
 
-        background:
-            var(--story-white);
+        background: var(--story-white);
 
         box-shadow:
             0 10px 35px
@@ -251,17 +225,16 @@
 
 
     /* =========================================================
-       CARD IMAGE
-       FIXED SIZE
-    ========================================================= */
+       IMAGE
+    ========================================================== */
 
     .story-card-media {
         position: relative;
 
-        flex: 0 0 240px;
+        flex: 0 0 220px;
 
         width: 100%;
-        height: 240px;
+        height: 220px;
 
         overflow: hidden;
 
@@ -273,7 +246,7 @@
         display: block;
 
         width: 100%;
-        height: 240px;
+        height: 220px;
 
         object-fit: cover;
         object-position: center;
@@ -308,8 +281,8 @@
 
 
     /* =========================================================
-       TEXT-ONLY VISUAL
-    ========================================================= */
+       TEXT PLACEHOLDER
+    ========================================================== */
 
     .story-text-visual {
         display: flex;
@@ -318,7 +291,7 @@
         justify-content: center;
 
         width: 100%;
-        height: 240px;
+        height: 220px;
 
         background:
             linear-gradient(
@@ -345,8 +318,7 @@
 
         border-radius: 24px;
 
-        color:
-            var(--story-primary);
+        color: var(--story-primary);
 
         background:
             rgba(255, 255, 255, 0.92);
@@ -361,7 +333,7 @@
 
     /* =========================================================
        STORY TYPE BADGE
-    ========================================================= */
+    ========================================================== */
 
     .story-media-badge {
         position: absolute;
@@ -390,11 +362,8 @@
         background:
             rgba(0, 63, 107, 0.86);
 
-        backdrop-filter:
-            blur(7px);
-
-        -webkit-backdrop-filter:
-            blur(7px);
+        backdrop-filter: blur(7px);
+        -webkit-backdrop-filter: blur(7px);
 
         font-size: 0.69rem;
         font-weight: 700;
@@ -403,7 +372,7 @@
 
     /* =========================================================
        CARD BODY
-    ========================================================= */
+    ========================================================== */
 
     .story-card-body {
         display: flex;
@@ -412,16 +381,14 @@
 
         flex-direction: column;
 
-        padding: 25px;
+        padding: 22px;
     }
 
 
     .story-card-meta {
         display: flex;
 
-        justify-content:
-            space-between;
-
+        justify-content: space-between;
         align-items: center;
 
         gap: 12px;
@@ -437,8 +404,7 @@
 
         gap: 6px;
 
-        max-width:
-            calc(100% - 48px);
+        max-width: calc(100% - 48px);
 
         padding: 7px 11px;
 
@@ -446,24 +412,19 @@
 
         border-radius: 50px;
 
-        color:
-            var(--story-primary-dark);
-
-        background:
-            var(--story-primary-soft);
+        color: var(--story-primary-dark);
+        background: var(--story-primary-soft);
 
         font-size: 0.73rem;
         font-weight: 700;
 
         text-overflow: ellipsis;
-
         white-space: nowrap;
     }
 
 
     .story-support-type i {
-        color:
-            var(--story-primary);
+        color: var(--story-primary);
     }
 
 
@@ -489,7 +450,7 @@
 
     /* =========================================================
        STORY PREVIEW
-    ========================================================= */
+    ========================================================== */
 
     .story-preview {
         display: -webkit-box;
@@ -498,16 +459,12 @@
 
         overflow: hidden;
 
-        color:
-            var(--story-text-soft);
+        color: var(--story-text-soft);
 
-        font-size: 0.93rem;
+        font-size: 0.9rem;
+        line-height: 1.7;
 
-        line-height: 1.75;
-
-        -webkit-box-orient:
-            vertical;
-
+        -webkit-box-orient: vertical;
         -webkit-line-clamp: 3;
     }
 
@@ -515,18 +472,16 @@
     .story-image-message {
         margin: 0 0 20px;
 
-        color:
-            var(--story-muted);
+        color: var(--story-muted);
 
         font-size: 0.9rem;
-
         line-height: 1.7;
     }
 
 
     /* =========================================================
-       STUDENT FOOTER
-    ========================================================= */
+       STUDENT
+    ========================================================== */
 
     .story-student {
         display: flex;
@@ -540,7 +495,8 @@
         padding-top: 18px;
 
         border-top:
-            1px solid #edf1f4;
+            1px solid
+            #edf1f4;
     }
 
 
@@ -554,7 +510,8 @@
         object-position: center;
 
         border:
-            2px solid #ffffff;
+            2px solid
+            #ffffff;
 
         border-radius: 50%;
 
@@ -576,7 +533,8 @@
         height: 48px;
 
         border:
-            2px solid #ffffff;
+            2px solid
+            #ffffff;
 
         border-radius: 50%;
 
@@ -610,14 +568,12 @@
 
         overflow: hidden;
 
-        color:
-            var(--story-text);
+        color: var(--story-text);
 
         font-size: 0.94rem;
-        font-weight: 750;
+        font-weight: 700;
 
         text-overflow: ellipsis;
-
         white-space: nowrap;
     }
 
@@ -627,13 +583,11 @@
 
         overflow: hidden;
 
-        color:
-            var(--story-muted);
+        color: var(--story-muted);
 
         font-size: 0.77rem;
 
         text-overflow: ellipsis;
-
         white-space: nowrap;
     }
 
@@ -647,8 +601,7 @@
 
         margin-top: 5px;
 
-        color:
-            var(--story-primary);
+        color: var(--story-primary);
 
         font-size: 0.7rem;
         font-weight: 700;
@@ -671,8 +624,87 @@
 
 
     /* =========================================================
-       EMPTY STATE
-    ========================================================= */
+       VIEW MORE
+    ========================================================== */
+
+    .stories-view-more {
+        display: flex;
+
+        justify-content: center;
+
+        margin-top: 45px;
+    }
+
+
+    .stories-view-more-button {
+        display: inline-flex;
+
+        align-items: center;
+        justify-content: center;
+
+        gap: 10px;
+
+        min-width: 210px;
+
+        padding: 14px 28px;
+
+        border:
+            1px solid
+            var(--story-primary);
+
+        border-radius: 50px;
+
+        color: #ffffff !important;
+
+        background:
+            linear-gradient(
+                135deg,
+                var(--story-primary),
+                var(--story-primary-dark)
+            );
+
+        box-shadow:
+            0 10px 25px
+            rgba(0, 101, 168, 0.18);
+
+        font-size: 0.9rem;
+        font-weight: 700;
+
+        text-decoration: none !important;
+
+        transition:
+            transform 0.25s ease,
+            box-shadow 0.25s ease;
+    }
+
+
+    .stories-view-more-button:hover {
+        color: #ffffff;
+
+        transform:
+            translateY(-3px);
+
+        box-shadow:
+            0 15px 35px
+            rgba(0, 101, 168, 0.25);
+    }
+
+
+    .stories-view-more-button i {
+        transition:
+            transform 0.25s ease;
+    }
+
+
+    .stories-view-more-button:hover i {
+        transform:
+            translateX(4px);
+    }
+
+
+    /* =========================================================
+       EMPTY
+    ========================================================== */
 
     .stories-empty {
         grid-column: 1 / -1;
@@ -680,7 +712,8 @@
         padding: 60px 25px;
 
         border:
-            1px dashed #b8cad7;
+            1px dashed
+            #b8cad7;
 
         border-radius: 20px;
 
@@ -705,11 +738,8 @@
 
         border-radius: 18px;
 
-        color:
-            var(--story-primary);
-
-        background:
-            var(--story-primary-soft);
+        color: var(--story-primary);
+        background: var(--story-primary-soft);
 
         font-size: 1.4rem;
     }
@@ -718,8 +748,7 @@
     .stories-empty h3 {
         margin: 0 0 8px;
 
-        color:
-            var(--story-text);
+        color: var(--story-text);
 
         font-size: 1.2rem;
     }
@@ -728,14 +757,13 @@
     .stories-empty p {
         margin: 0;
 
-        color:
-            var(--story-muted);
+        color: var(--story-muted);
     }
 
 
     /* =========================================================
-       MODAL ROOT
-    ========================================================= */
+       MODAL
+    ========================================================== */
 
     .story-detail-modal {
         z-index: 1090;
@@ -744,13 +772,11 @@
 
     .story-detail-modal
     .modal-dialog {
-        width:
-            calc(100% - 32px);
+        width: calc(100% - 32px);
 
         max-width: 960px;
 
-        margin:
-            20px auto;
+        margin: 20px auto;
     }
 
 
@@ -766,7 +792,6 @@
         overflow: hidden;
 
         border: 0;
-
         border-radius: 22px;
 
         background: #ffffff;
@@ -776,10 +801,6 @@
             rgba(10, 31, 45, 0.32);
     }
 
-
-    /* =========================================================
-       VERY VISIBLE CLOSE BUTTON
-    ========================================================= */
 
     .story-modal-close-button {
         position: absolute;
@@ -815,9 +836,6 @@
             rgba(0, 0, 0, 0.18);
 
         font-size: 28px;
-        font-weight: 300;
-
-        line-height: 1;
 
         cursor: pointer;
 
@@ -830,26 +848,12 @@
     .story-modal-close-button:hover {
         color: #ffffff;
 
-        background:
-            #003f6b;
+        background: #003f6b;
 
         transform:
             scale(1.05);
     }
 
-
-    .story-modal-close-button:focus {
-        outline:
-            3px solid
-            rgba(0, 101, 168, 0.25);
-
-        outline-offset: 2px;
-    }
-
-
-    /* =========================================================
-       MODAL LAYOUT
-    ========================================================= */
 
     .story-modal-layout {
         display: grid;
@@ -864,10 +868,6 @@
             calc(100vh - 40px);
     }
 
-
-    /* =========================================================
-       MODAL IMAGE
-    ========================================================= */
 
     .story-modal-media {
         position: relative;
@@ -912,10 +912,6 @@
     }
 
 
-    /* =========================================================
-       MODAL TEXT PLACEHOLDER
-    ========================================================= */
-
     .story-modal-placeholder {
         display: flex;
 
@@ -948,8 +944,7 @@
 
         border-radius: 30px;
 
-        color:
-            var(--story-primary);
+        color: var(--story-primary);
 
         background:
             rgba(255, 255, 255, 0.9);
@@ -961,10 +956,6 @@
         font-size: 2.7rem;
     }
 
-
-    /* =========================================================
-       MODAL DETAILS
-    ========================================================= */
 
     .story-modal-details {
         display: flex;
@@ -978,8 +969,7 @@
 
         overflow-y: auto;
 
-        padding:
-            48px 42px 35px;
+        padding: 48px 42px 35px;
     }
 
 
@@ -998,20 +988,11 @@
 
         border-radius: 50px;
 
-        color:
-            var(--story-primary-dark);
-
-        background:
-            var(--story-primary-soft);
+        color: var(--story-primary-dark);
+        background: var(--story-primary-soft);
 
         font-size: 0.76rem;
         font-weight: 700;
-    }
-
-
-    .story-modal-support i {
-        color:
-            var(--story-primary);
     }
 
 
@@ -1020,8 +1001,7 @@
 
         padding-right: 45px;
 
-        color:
-            var(--story-text);
+        color: var(--story-text);
 
         font-size:
             clamp(
@@ -1031,7 +1011,6 @@
             );
 
         font-weight: 800;
-
         line-height: 1.2;
     }
 
@@ -1039,11 +1018,9 @@
     .story-modal-program {
         margin: 0;
 
-        color:
-            var(--story-muted);
+        color: var(--story-muted);
 
         font-size: 0.93rem;
-
         line-height: 1.6;
     }
 
@@ -1052,7 +1029,6 @@
         margin: 24px 0;
 
         border-color: #e6edf2;
-
         opacity: 1;
     }
 
@@ -1062,14 +1038,12 @@
 
         margin-bottom: 10px;
 
-        color:
-            var(--story-primary-dark);
+        color: var(--story-primary-dark);
 
         font-size: 0.73rem;
         font-weight: 800;
 
         letter-spacing: 0.7px;
-
         text-transform: uppercase;
     }
 
@@ -1080,7 +1054,6 @@
         color: #354550;
 
         font-size: 0.96rem;
-
         line-height: 1.9;
 
         white-space: pre-line;
@@ -1090,18 +1063,12 @@
     .story-modal-no-text {
         margin: 0;
 
-        color:
-            var(--story-muted);
+        color: var(--story-muted);
 
         font-size: 0.93rem;
-
         line-height: 1.8;
     }
 
-
-    /* =========================================================
-       MODAL META
-    ========================================================= */
 
     .story-modal-meta {
         display: flex;
@@ -1124,22 +1091,17 @@
         padding: 7px 11px;
 
         border:
-            1px solid #e3eaf0;
+            1px solid
+            #e3eaf0;
 
         border-radius: 8px;
 
-        color:
-            var(--story-muted);
-
+        color: var(--story-muted);
         background: #fafcfd;
 
         font-size: 0.74rem;
     }
 
-
-    /* =========================================================
-       MODAL FOOTER
-    ========================================================= */
 
     .story-modal-footer {
         margin-top: auto;
@@ -1152,7 +1114,6 @@
         margin: 0 0 20px;
 
         border-color: #e8edf1;
-
         opacity: 1;
     }
 
@@ -1182,23 +1143,15 @@
 
         font-size: 0.85rem;
         font-weight: 700;
-
-        transition:
-            background 0.2s ease;
     }
 
 
     .story-modal-close-footer:hover {
         color: #ffffff;
 
-        background:
-            var(--story-primary);
+        background: var(--story-primary);
     }
 
-
-    /* =========================================================
-       BACKDROP
-    ========================================================= */
 
     .modal-backdrop.show {
         opacity: 0.68;
@@ -1207,11 +1160,22 @@
 
     /* =========================================================
        TABLET
-    ========================================================= */
+    ========================================================== */
 
-    @media (
-        max-width: 991.98px
-    ) {
+    @media (max-width: 1199.98px) {
+
+        .stories-grid {
+            grid-template-columns:
+                repeat(
+                    3,
+                    minmax(0, 1fr)
+                );
+        }
+
+    }
+
+
+    @media (max-width: 991.98px) {
 
         .stories-section {
             padding: 75px 0;
@@ -1244,21 +1208,11 @@
         }
 
 
-        .story-modal-media {
-            min-height: 330px;
-            height: 330px;
-        }
-
-
-        .story-modal-image {
-            min-height: 330px;
-            height: 330px;
-        }
-
-
+        .story-modal-media,
+        .story-modal-image,
         .story-modal-placeholder {
-            min-height: 330px;
             height: 330px;
+            min-height: 330px;
         }
 
 
@@ -1267,8 +1221,7 @@
 
             overflow: visible;
 
-            padding:
-                35px 32px 30px;
+            padding: 35px 32px 30px;
         }
 
 
@@ -1285,11 +1238,9 @@
 
     /* =========================================================
        MOBILE
-    ========================================================= */
+    ========================================================== */
 
-    @media (
-        max-width: 767.98px
-    ) {
+    @media (max-width: 767.98px) {
 
         .stories-section {
             padding: 60px 0;
@@ -1328,18 +1279,6 @@
         }
 
 
-        .story-card-media,
-        .story-card-image,
-        .story-text-visual {
-            height: 230px;
-        }
-
-
-        .story-card-media {
-            flex-basis: 230px;
-        }
-
-
         .story-detail-modal
         .modal-dialog {
             width:
@@ -1347,21 +1286,6 @@
 
             margin:
                 10px auto;
-        }
-
-
-        .story-detail-modal
-        .modal-content {
-            max-height:
-                calc(100vh - 20px);
-
-            border-radius: 17px;
-        }
-
-
-        .story-modal-layout {
-            max-height:
-                calc(100vh - 20px);
         }
 
 
@@ -1374,8 +1298,7 @@
 
 
         .story-modal-details {
-            padding:
-                30px 23px 25px;
+            padding: 30px 23px 25px;
         }
 
 
@@ -1390,54 +1313,15 @@
         }
 
 
-        .story-modal-name {
-            padding-right: 0;
-        }
-
-    }
-
-
-    /* =========================================================
-       SMALL MOBILE
-    ========================================================= */
-
-    @media (
-        max-width: 480px
-    ) {
-
-        .story-card-media,
-        .story-card-image,
-        .story-text-visual {
-            height: 210px;
+        .stories-view-more {
+            margin-top: 35px;
         }
 
 
-        .story-card-media {
-            flex-basis: 210px;
-        }
+        .stories-view-more-button {
+            width: 100%;
 
-
-        .story-card-body {
-            padding: 21px;
-        }
-
-
-        .story-modal-media,
-        .story-modal-image,
-        .story-modal-placeholder {
-            height: 230px;
-            min-height: 230px;
-        }
-
-
-        .story-modal-details {
-            padding:
-                26px 19px 22px;
-        }
-
-
-        .story-modal-name {
-            font-size: 1.45rem;
+            max-width: 290px;
         }
 
     }
@@ -1446,7 +1330,7 @@
 
 
 {{-- =========================================================
-     STUDENT STORIES
+    STUDENT STORIES
 ========================================================= --}}
 
 <section
@@ -1459,7 +1343,7 @@
 
 
         {{-- =====================================================
-             HEADING
+            HEADING
         ====================================================== --}}
 
         <div class="stories-heading">
@@ -1505,23 +1389,14 @@
 
 
         {{-- =====================================================
-             STORY CARDS
+            STORY CARDS
         ====================================================== --}}
 
         <div class="stories-grid">
 
-
-            @forelse (
-                $studentStories as $story
-            )
+            @forelse($studentStories as $story)
 
                 @php
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Student Information
-                    |--------------------------------------------------------------------------
-                    */
 
                     $studentName =
                         $story->student_name
@@ -1532,12 +1407,6 @@
                         $story->program
                         ?: 'NUST';
 
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Story Information
-                    |--------------------------------------------------------------------------
-                    */
 
                     $supportType =
                         $story->support_type
@@ -1554,26 +1423,14 @@
                         ?: null;
 
 
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Image
-                    |--------------------------------------------------------------------------
-                    */
-
                     $storyImage =
                         !empty($story->image)
                             ? asset(
-                                'admins/story/'
-                                . $story->image
+                                'admins/story/' .
+                                $story->image
                             )
                             : null;
 
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Initials
-                    |--------------------------------------------------------------------------
-                    */
 
                     $studentInitials = collect(
                         preg_split(
@@ -1596,12 +1453,6 @@
                         ->implode('');
 
 
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Story Type Label
-                    |--------------------------------------------------------------------------
-                    */
-
                     $storyTypeLabel =
                         match ($storyType) {
 
@@ -1616,23 +1467,12 @@
                         };
 
 
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Modal ID
-                    |--------------------------------------------------------------------------
-                    */
-
                     $storyModalId =
-                        'storyModal'
-                        . $story->id;
+                        'storyModal' .
+                        $story->id;
 
                 @endphp
 
-
-
-                {{-- =================================================
-                     STORY CARD
-                ================================================== --}}
 
                 <article
                     class="story-card"
@@ -1654,22 +1494,20 @@
                 >
 
 
-                    {{-- =============================================
-                         CARD IMAGE
-                    ============================================== --}}
+                    {{-- Image --}}
 
                     <div class="story-card-media">
 
-
-                        @if (
+                        @if(
                             $storyImage
                             &&
                             in_array(
                                 $storyType,
                                 [
                                     'image',
-                                    'image_text'
-                                ]
+                                    'image_text',
+                                ],
+                                true
                             )
                         )
 
@@ -1678,7 +1516,7 @@
                                 alt="{{ $story->image_alt ?: $studentName }}"
                                 class="story-card-image"
                                 width="380"
-                                height="240"
+                                height="220"
                                 loading="lazy"
                             >
 
@@ -1687,20 +1525,13 @@
                                 class="story-card-image-overlay"
                             ></div>
 
-
                         @else
 
-                            <div
-                                class="story-text-visual"
-                            >
+                            <div class="story-text-visual">
 
-                                <span
-                                    class="story-text-visual-icon"
-                                >
+                                <span class="story-text-visual-icon">
 
-                                    <i
-                                        class="fa fa-quote-left"
-                                    ></i>
+                                    <i class="fa fa-quote-left"></i>
 
                                 </span>
 
@@ -1710,35 +1541,21 @@
 
 
 
-                        {{-- Story Type --}}
+                        {{-- Type --}}
 
-                        <span
-                            class="story-media-badge"
-                        >
+                        <span class="story-media-badge">
 
-                            @if (
-                                $storyType ===
-                                'image_text'
-                            )
+                            @if($storyType === 'image_text')
 
-                                <i
-                                    class="fa fa-image"
-                                ></i>
+                                <i class="fa fa-image"></i>
 
-                            @elseif (
-                                $storyType ===
-                                'image'
-                            )
+                            @elseif($storyType === 'image')
 
-                                <i
-                                    class="fa fa-camera"
-                                ></i>
+                                <i class="fa fa-camera"></i>
 
                             @else
 
-                                <i
-                                    class="fa fa-align-left"
-                                ></i>
+                                <i class="fa fa-align-left"></i>
 
                             @endif
 
@@ -1751,35 +1568,25 @@
 
 
 
-                    {{-- =============================================
-                         CARD BODY
-                    ============================================== --}}
+                    {{-- Body --}}
 
                     <div class="story-card-body">
 
 
                         <div class="story-card-meta">
 
-                            <span
-                                class="story-support-type"
-                            >
+                            <span class="story-support-type">
 
-                                <i
-                                    class="fa fa-gift"
-                                ></i>
+                                <i class="fa fa-gift"></i>
 
                                 {{ $supportType }}
 
                             </span>
 
 
-                            <span
-                                class="story-quote-icon"
-                            >
+                            <span class="story-quote-icon">
 
-                                <i
-                                    class="fa fa-quote-left"
-                                ></i>
+                                <i class="fa fa-quote-left"></i>
 
                             </span>
 
@@ -1787,9 +1594,7 @@
 
 
 
-                        {{-- Story Preview --}}
-
-                        @if ($storyText)
+                        @if($storyText)
 
                             <p class="story-preview">
 
@@ -1799,13 +1604,10 @@
 
                         @else
 
-                            <p
-                                class="story-image-message"
-                            >
+                            <p class="story-image-message">
 
-                                View this student's
-                                experience with the NUST
-                                Sharing Network.
+                                View this student's experience
+                                with the NUST Sharing Network.
 
                             </p>
 
@@ -1813,14 +1615,11 @@
 
 
 
-                        {{-- =========================================
-                             STUDENT
-                        ========================================== --}}
+                        {{-- Student --}}
 
                         <div class="story-student">
 
-
-                            @if ($storyImage)
+                            @if($storyImage)
 
                                 <img
                                     src="{{ $storyImage }}"
@@ -1833,9 +1632,7 @@
 
                             @else
 
-                                <span
-                                    class="story-avatar-fallback"
-                                >
+                                <span class="story-avatar-fallback">
 
                                     {{ $studentInitials ?: 'NS' }}
 
@@ -1844,38 +1641,27 @@
                             @endif
 
 
+                            <div class="story-student-details">
 
-                            <div
-                                class="story-student-details"
-                            >
-
-                                <strong
-                                    class="story-student-name"
-                                >
+                                <strong class="story-student-name">
 
                                     {{ $studentName }}
 
                                 </strong>
 
 
-                                <span
-                                    class="story-student-program"
-                                >
+                                <span class="story-student-program">
 
                                     {{ $studentProgram }}
 
                                 </span>
 
 
-                                <span
-                                    class="story-read-more"
-                                >
+                                <span class="story-read-more">
 
                                     Read Full Story
 
-                                    <i
-                                        class="fa fa-arrow-right"
-                                    ></i>
+                                    <i class="fa fa-arrow-right"></i>
 
                                 </span>
 
@@ -1890,16 +1676,11 @@
 
             @empty
 
-
                 <div class="stories-empty">
 
-                    <span
-                        class="stories-empty-icon"
-                    >
+                    <span class="stories-empty-icon">
 
-                        <i
-                            class="fa fa-book"
-                        ></i>
+                        <i class="fa fa-book"></i>
 
                     </span>
 
@@ -1910,16 +1691,42 @@
 
 
                     <p>
+
                         Approved student experiences
                         will appear here.
+
                     </p>
 
                 </div>
 
-
             @endforelse
 
         </div>
+
+
+
+        {{-- =====================================================
+            VIEW MORE STORIES
+        ====================================================== --}}
+
+        @if($hasMoreStories ?? false)
+
+            <div class="stories-view-more">
+
+                <a
+                    href="{{ route('student-stories.index') }}"
+                    class="stories-view-more-button"
+                >
+
+                    View More Stories
+
+                    <i class="fa fa-arrow-right"></i>
+
+                </a>
+
+            </div>
+
+        @endif
 
     </div>
 
@@ -1928,23 +1735,12 @@
 
 
 {{-- =========================================================
-     STORY MODALS
-     
-     IMPORTANT:
-     These are OUTSIDE .stories-section.
+    STORY MODALS
 ========================================================= --}}
 
-@foreach (
-    $studentStories as $story
-)
+@foreach($studentStories as $story)
 
     @php
-
-        /*
-        |--------------------------------------------------------------------------
-        | Modal Student Data
-        |--------------------------------------------------------------------------
-        */
 
         $modalStudentName =
             $story->student_name
@@ -1971,26 +1767,14 @@
             ?: null;
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Modal Image
-        |--------------------------------------------------------------------------
-        */
-
         $modalStoryImage =
             !empty($story->image)
                 ? asset(
-                    'admins/story/'
-                    . $story->image
+                    'admins/story/' .
+                    $story->image
                 )
                 : null;
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Type Label
-        |--------------------------------------------------------------------------
-        */
 
         $modalStoryTypeLabel =
             match ($modalStoryType) {
@@ -2006,18 +1790,11 @@
             };
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Modal ID
-        |--------------------------------------------------------------------------
-        */
-
         $storyModalId =
-            'storyModal'
-            . $story->id;
+            'storyModal' .
+            $story->id;
 
     @endphp
-
 
 
     <div
@@ -2035,9 +1812,7 @@
             <div class="modal-content">
 
 
-                {{-- =============================================
-                     TOP CLOSE BUTTON
-                ============================================== --}}
+                {{-- Close --}}
 
                 <button
                     type="button"
@@ -2050,21 +1825,14 @@
 
 
 
-                {{-- =============================================
-                     MODAL LAYOUT
-                ============================================== --}}
-
                 <div class="story-modal-layout">
 
 
-                    {{-- =========================================
-                         LEFT IMAGE
-                    ========================================== --}}
+                    {{-- Left --}}
 
                     <div class="story-modal-media">
 
-
-                        @if ($modalStoryImage)
+                        @if($modalStoryImage)
 
                             <img
                                 src="{{ $modalStoryImage }}"
@@ -2079,20 +1847,13 @@
                                 class="story-modal-image-shade"
                             ></div>
 
-
                         @else
 
-                            <div
-                                class="story-modal-placeholder"
-                            >
+                            <div class="story-modal-placeholder">
 
-                                <span
-                                    class="story-modal-placeholder-icon"
-                                >
+                                <span class="story-modal-placeholder-icon">
 
-                                    <i
-                                        class="fa fa-quote-left"
-                                    ></i>
+                                    <i class="fa fa-quote-left"></i>
 
                                 </span>
 
@@ -2104,30 +1865,19 @@
 
 
 
-                    {{-- =========================================
-                         RIGHT DETAILS
-                    ========================================== --}}
+                    {{-- Right --}}
 
                     <div class="story-modal-details">
 
 
-                        {{-- Support Type --}}
+                        <span class="story-modal-support">
 
-                        <span
-                            class="story-modal-support"
-                        >
-
-                            <i
-                                class="fa fa-gift"
-                            ></i>
+                            <i class="fa fa-gift"></i>
 
                             {{ $modalSupportType }}
 
                         </span>
 
-
-
-                        {{-- Student Name --}}
 
                         <h3
                             class="story-modal-name"
@@ -2139,51 +1889,30 @@
                         </h3>
 
 
+                        <p class="story-modal-program">
 
-                        {{-- Student Program --}}
-
-                        <p
-                            class="story-modal-program"
-                        >
-
-                            <i
-                                class="fa fa-graduation-cap me-1"
-                            ></i>
+                            <i class="fa fa-graduation-cap me-1"></i>
 
                             {{ $modalStudentProgram }}
 
                         </p>
 
 
+                        <hr class="story-modal-divider">
 
-                        <hr
-                            class="story-modal-divider"
-                        >
-
-
-
-                        {{-- =====================================
-                             FULL STORY
-                        ====================================== --}}
 
                         <div>
 
-                            <span
-                                class="story-modal-label"
-                            >
+                            <span class="story-modal-label">
 
                                 Student Story
 
                             </span>
 
 
-                            @if (
-                                $modalStoryText
-                            )
+                            @if($modalStoryText)
 
-                                <p
-                                    class="story-modal-story"
-                                >
+                                <p class="story-modal-story">
 
                                     “{{ $modalStoryText }}”
 
@@ -2191,14 +1920,11 @@
 
                             @else
 
-                                <p
-                                    class="story-modal-no-text"
-                                >
+                                <p class="story-modal-no-text">
 
-                                    This student experience
-                                    has been shared as an
-                                    image story through the
-                                    NUST Sharing Network.
+                                    This student experience has
+                                    been shared as an image story
+                                    through the NUST Sharing Network.
 
                                 </p>
 
@@ -2208,42 +1934,21 @@
 
 
 
-                        {{-- =====================================
-                             INFORMATION TAGS
-                        ====================================== --}}
-
                         <div class="story-modal-meta">
 
+                            <span class="story-modal-meta-item">
 
-                            <span
-                                class="story-modal-meta-item"
-                            >
+                                @if($modalStoryType === 'image_text')
 
-                                @if (
-                                    $modalStoryType
-                                    ===
-                                    'image_text'
-                                )
+                                    <i class="fa fa-image"></i>
 
-                                    <i
-                                        class="fa fa-image"
-                                    ></i>
+                                @elseif($modalStoryType === 'image')
 
-                                @elseif (
-                                    $modalStoryType
-                                    ===
-                                    'image'
-                                )
-
-                                    <i
-                                        class="fa fa-camera"
-                                    ></i>
+                                    <i class="fa fa-camera"></i>
 
                                 @else
 
-                                    <i
-                                        class="fa fa-align-left"
-                                    ></i>
+                                    <i class="fa fa-align-left"></i>
 
                                 @endif
 
@@ -2253,18 +1958,11 @@
                             </span>
 
 
+                            @if($story->is_featured)
 
-                            @if (
-                                $story->is_featured
-                            )
+                                <span class="story-modal-meta-item">
 
-                                <span
-                                    class="story-modal-meta-item"
-                                >
-
-                                    <i
-                                        class="fa fa-star"
-                                    ></i>
+                                    <i class="fa fa-star"></i>
 
                                     Featured Story
 
@@ -2273,14 +1971,9 @@
                             @endif
 
 
+                            <span class="story-modal-meta-item">
 
-                            <span
-                                class="story-modal-meta-item"
-                            >
-
-                                <i
-                                    class="fa fa-heart"
-                                ></i>
+                                <i class="fa fa-heart"></i>
 
                                 NUST Sharing Network
 
@@ -2290,15 +1983,9 @@
 
 
 
-                        {{-- =====================================
-                             BOTTOM CLOSE
-                        ====================================== --}}
-
                         <div class="story-modal-footer">
 
-                            <hr
-                                class="story-modal-footer-line"
-                            >
+                            <hr class="story-modal-footer-line">
 
 
                             <button
@@ -2307,9 +1994,7 @@
                                 data-bs-dismiss="modal"
                             >
 
-                                <i
-                                    class="fa fa-times"
-                                ></i>
+                                <i class="fa fa-times"></i>
 
                                 Close
 

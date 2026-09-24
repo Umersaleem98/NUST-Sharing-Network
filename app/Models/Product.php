@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use App\Models\ProductRequest;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Product extends Model
 {
@@ -12,7 +14,7 @@ class Product extends Model
 
     /*
     |--------------------------------------------------------------------------
-    | Mass Assignable Fields
+    | Fillable
     |--------------------------------------------------------------------------
     */
 
@@ -20,28 +22,28 @@ class Product extends Model
         'user_id',
         'category_id',
         'name',
-        'slug',
         'description',
-        'images',
+        'image',
         'status',
     ];
 
 
     /*
     |--------------------------------------------------------------------------
-    | Attribute Casting
+    | Product Creator
     |--------------------------------------------------------------------------
     |
-    | Laravel automatically converts:
-    |
-    | Database JSON → PHP Array
-    | PHP Array      → Database JSON
+    | user_id identifies the Admin or Donor who created the product.
     |
     */
 
-    protected $casts = [
-        'images' => 'array',
-    ];
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(
+            User::class,
+            'user_id'
+        );
+    }
 
 
     /*
@@ -53,21 +55,17 @@ class Product extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(
-            Category::class
+            Category::class,
+            'category_id'
         );
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | Product Owner
-    |--------------------------------------------------------------------------
-    */
-
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(
-            User::class
-        );
-    }
+public function productRequests(): HasMany
+{
+    return $this->hasMany(
+        ProductRequest::class,
+        'product_id'
+    );
 }
+
+    }

@@ -11,19 +11,18 @@ class ContactMessageNotification extends Notification
 {
     use Queueable;
 
-    protected Contact $contact;
-
-    /**
-     * Create a new notification instance.
-     */
-    public function __construct(Contact $contact)
-    {
-        $this->contact = $contact;
+    public function __construct(
+        protected Contact $contact
+    ) {
     }
 
-    /**
-     * Notification delivery channels.
-     */
+
+    /*
+    |--------------------------------------------------------------------------
+    | Notification Channels
+    |--------------------------------------------------------------------------
+    */
+
     public function via(object $notifiable): array
     {
         return [
@@ -31,24 +30,30 @@ class ContactMessageNotification extends Notification
         ];
     }
 
-    /**
-     * Database notification data.
-     */
+
+    /*
+    |--------------------------------------------------------------------------
+    | Database Notification
+    |--------------------------------------------------------------------------
+    */
+
     public function toDatabase(object $notifiable): array
     {
         return [
-            'contact_id' => $this->contact->id,
 
-            'title' => 'New Contact Message',
+            'type' =>
+                'contact_message',
 
-            'message' =>
-                $this->contact->name .
-                ' sent a new contact message.',
+            'contact_id' =>
+                $this->contact->id,
 
-            'sender_name' =>
+            'title' =>
+                'New Contact Message',
+
+            'name' =>
                 $this->contact->name,
 
-            'sender_email' =>
+            'email' =>
                 $this->contact->email,
 
             'subject' =>
@@ -57,20 +62,29 @@ class ContactMessageNotification extends Notification
             'inquiry_type' =>
                 $this->contact->inquiry_type,
 
-            'url' => route(
-                'admin.contact.show',
-                $this->contact->id
-            ),
+            'message' =>
+                $this->contact->message,
 
-            'icon' => 'fa-solid fa-envelope-open-text',
+            'status' =>
+                $this->contact->status,
+
+            'created_at' =>
+                $this->contact->created_at?->toDateTimeString(),
+
         ];
     }
 
-    /**
-     * Array representation.
-     */
+
+    /*
+    |--------------------------------------------------------------------------
+    | Array Notification
+    |--------------------------------------------------------------------------
+    */
+
     public function toArray(object $notifiable): array
     {
-        return $this->toDatabase($notifiable);
+        return $this->toDatabase(
+            $notifiable
+        );
     }
 }

@@ -2,576 +2,713 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BeneficiaryProfile;
 use App\Models\Category;
-use App\Models\DonorTermAcceptance;
+use App\Models\DonorProfile;
 use App\Models\Product;
 use App\Models\ProductRequest;
 use App\Models\User;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
-    /**
-     * Display dashboard according to authenticated user role.
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | Dashboard
+    |--------------------------------------------------------------------------
+    */
+
     public function index()
     {
-        $user = Auth::user();
-
-        $user->load([
-            'beneficiaryProfile',
-            'donorProfile',
-            'termAcceptance',
-        ]);
-
-        return match ($user->role) {
-            'admin' => $this->adminDashboard($user),
-            'donor' => $this->donorDashboard($user),
-            'beneficiary' => $this->beneficiaryDashboard($user),
-            default => abort(403, 'Unauthorized dashboard access.'),
-        };
-    }
+        $user =
+            Auth::user();
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | ADMIN DASHBOARD
-    |--------------------------------------------------------------------------
-    */
+        $role =
+            $user->role;
 
-    private function adminDashboard(User $user)
-    {
-        /*
-        |--------------------------------------------------------------------------
-        | User Statistics
-        |--------------------------------------------------------------------------
-        */
-
-        $totalUsers = User::count();
-
-        $totalAdmins = User::where('role', 'admin')->count();
-
-        $totalDonors = User::where('role', 'donor')->count();
-
-        $totalBeneficiaries = User::where(
-            'role',
-            'beneficiary'
-        )->count();
 
 
         /*
         |--------------------------------------------------------------------------
-        | Account Status Statistics
+        | Common Notification Data
         |--------------------------------------------------------------------------
         */
 
-        $activeUsers = User::where(
-            'account_status',
-            'active'
-        )->count();
+        $notifications =
+            $user
+                ->notifications()
+                ->latest()
+                ->limit(8)
+                ->get();
 
-        $suspendedUsers = User::where(
-            'account_status',
-            'suspended'
-        )->count();
 
-        $blockedUsers = User::where(
-            'account_status',
-            'blocked'
-        )->count();
+        $unreadNotificationsCount =
+            $user
+                ->unreadNotifications()
+                ->count();
+
 
 
         /*
         |--------------------------------------------------------------------------
-        | Product Statistics
+        | Base Dashboard Data
         |--------------------------------------------------------------------------
         */
 
-        $totalProducts = Product::count();
+        $data = [
 
-        $totalCategories = Category::count();
+            'user' =>
+                $user,
 
+            'role' =>
+                $role,
 
-        /*
-        |--------------------------------------------------------------------------
-        | Request Statistics
-        |--------------------------------------------------------------------------
-        */
+            'notifications' =>
+                $notifications,
 
-        $totalRequests = ProductRequest::count();
+            'unreadNotificationsCount' =>
+                $unreadNotificationsCount,
 
-
-        // Admin decisions
-        $pendingAdmin = ProductRequest::where(
-            'admin_status',
-            'pending'
-        )->count();
-
-        $approvedByAdmin = ProductRequest::where(
-            'admin_status',
-            'approved'
-        )->count();
-
-        $rejectedByAdmin = ProductRequest::where(
-            'admin_status',
-            'rejected'
-        )->count();
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Donor Decisions
-        |--------------------------------------------------------------------------
-        |
-        | Your current project contains both "accepted" and "approved"
-        | values in donor_status. Both are counted as accepted here.
-        |
-        */
-
-        $pendingDonor = ProductRequest::where(
-            'donor_status',
-            'pending'
-        )->count();
-
-        $acceptedByDonor = ProductRequest::whereIn(
-            'donor_status',
-            [
-                'accepted',
-                'approved',
-            ]
-        )->count();
-
-        $rejectedByDonor = ProductRequest::where(
-            'donor_status',
-            'rejected'
-        )->count();
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Request Completion / Success
-        |--------------------------------------------------------------------------
-        */
-
-        $completedRequests = ProductRequest::where(
-            'admin_status',
-            'approved'
-        )
-            ->whereIn(
-                'donor_status',
-                [
-                    'accepted',
-                    'approved',
-                ]
-            )
-            ->count();
-
-
-        $requestSuccessRate = $totalRequests > 0
-            ? round(
-                ($completedRequests / $totalRequests) * 100,
-                1
-            )
-            : 0;
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Current Month Statistics
-        |--------------------------------------------------------------------------
-        */
-
-        $newUsersThisMonth = User::whereYear(
-            'created_at',
-            now()->year
-        )
-            ->whereMonth(
-                'created_at',
-                now()->month
-            )
-            ->count();
-
-
-        $newProductsThisMonth = Product::whereYear(
-            'created_at',
-            now()->year
-        )
-            ->whereMonth(
-                'created_at',
-                now()->month
-            )
-            ->count();
-
-
-        $newRequestsThisMonth = ProductRequest::whereYear(
-            'created_at',
-            now()->year
-        )
-            ->whereMonth(
-                'created_at',
-                now()->month
-            )
-            ->count();
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Chart Data
-        |--------------------------------------------------------------------------
-        */
-
-        $usersChart = [
-            $totalAdmins,
-            $totalDonors,
-            $totalBeneficiaries,
         ];
 
 
-        $accountStatusChart = [
-            $activeUsers,
-            $suspendedUsers,
-            $blockedUsers,
-        ];
-
-
-        $requestChart = [
-            $pendingAdmin,
-            $approvedByAdmin,
-            $rejectedByAdmin,
-        ];
-
-
-        $donorDecisionChart = [
-            $acceptedByDonor,
-            $rejectedByDonor,
-            $pendingDonor,
-        ];
-
 
         /*
         |--------------------------------------------------------------------------
-        | Monthly Requests
+        | Admin Dashboard
         |--------------------------------------------------------------------------
         */
 
-        $monthlyRequests = ProductRequest::select(
-            DB::raw('MONTH(created_at) as month'),
-            DB::raw('COUNT(*) as total')
-        )
-            ->whereYear(
-                'created_at',
-                now()->year
-            )
-            ->groupBy(
-                DB::raw('MONTH(created_at)')
-            )
-            ->pluck(
-                'total',
-                'month'
+        if ($role === 'admin') {
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Users
+            |--------------------------------------------------------------------------
+            */
+
+            $data['totalUsers'] =
+                User::count();
+
+
+            $data['totalAdmins'] =
+                User::where(
+                    'role',
+                    'admin'
+                )
+                ->count();
+
+
+            $data['totalDonors'] =
+                User::where(
+                    'role',
+                    'donor'
+                )
+                ->count();
+
+
+            $data['totalBeneficiaries'] =
+                User::where(
+                    'role',
+                    'beneficiary'
+                )
+                ->count();
+
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Account Status
+            |--------------------------------------------------------------------------
+            */
+
+            $data['activeProfiles'] =
+                User::where(
+                    'profile_status',
+                    'active'
+                )
+                ->count();
+
+
+            $data['suspendedProfiles'] =
+                User::where(
+                    'profile_status',
+                    'suspended'
+                )
+                ->count();
+
+
+            $data['blockedProfiles'] =
+                User::where(
+                    'profile_status',
+                    'blocked'
+                )
+                ->count();
+
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Profile Statistics
+            |--------------------------------------------------------------------------
+            */
+
+            $data['donorProfiles'] =
+                DonorProfile::count();
+
+
+            $data['beneficiaryProfiles'] =
+                BeneficiaryProfile::count();
+
+
+            $data['donorsWithoutProfile'] =
+                User::where(
+                    'role',
+                    'donor'
+                )
+                ->whereDoesntHave(
+                    'donorProfile'
+                )
+                ->count();
+
+
+            $data['beneficiariesWithoutProfile'] =
+                User::where(
+                    'role',
+                    'beneficiary'
+                )
+                ->whereDoesntHave(
+                    'beneficiaryProfile'
+                )
+                ->count();
+
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Categories
+            |--------------------------------------------------------------------------
+            */
+
+            $data['totalCategories'] =
+                Category::count();
+
+
+            $data['activeCategories'] =
+                Category::where(
+                    'status',
+                    'active'
+                )
+                ->count();
+
+
+            $data['inactiveCategories'] =
+                Category::where(
+                    'status',
+                    'inactive'
+                )
+                ->count();
+
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Products
+            |--------------------------------------------------------------------------
+            */
+
+            $data['totalProducts'] =
+                Product::count();
+
+
+            $data['activeProducts'] =
+                Product::where(
+                    'status',
+                    'active'
+                )
+                ->count();
+
+
+            $data['inactiveProducts'] =
+                Product::where(
+                    'status',
+                    'inactive'
+                )
+                ->count();
+
+
+            $data['donorProducts'] =
+                Product::whereHas(
+                    'creator',
+                    function ($query) {
+
+                        $query->where(
+                            'role',
+                            'donor'
+                        );
+                    }
+                )
+                ->count();
+
+
+            $data['adminProducts'] =
+                Product::whereHas(
+                    'creator',
+                    function ($query) {
+
+                        $query->where(
+                            'role',
+                            'admin'
+                        );
+                    }
+                )
+                ->count();
+
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Product Requests
+            |--------------------------------------------------------------------------
+            */
+
+            $data['totalRequests'] =
+                ProductRequest::count();
+
+
+            $data['pendingAdminRequests'] =
+                ProductRequest::where(
+                    'admin_status',
+                    'pending'
+                )
+                ->count();
+
+
+            $data['approvedAdminRequests'] =
+                ProductRequest::where(
+                    'admin_status',
+                    'approved'
+                )
+                ->count();
+
+
+            $data['rejectedAdminRequests'] =
+                ProductRequest::where(
+                    'admin_status',
+                    'rejected'
+                )
+                ->count();
+
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Donor Request Status
+            |--------------------------------------------------------------------------
+            */
+
+            $data['pendingDonorRequests'] =
+                ProductRequest::where(
+                    'admin_status',
+                    'approved'
+                )
+                ->whereNotNull(
+                    'donor_id'
+                )
+                ->where(
+                    'donor_status',
+                    'pending'
+                )
+                ->count();
+
+
+            $data['acceptedDonorRequests'] =
+                ProductRequest::where(
+                    'admin_status',
+                    'approved'
+                )
+                ->where(
+                    'donor_status',
+                    'accepted'
+                )
+                ->count();
+
+
+            $data['rejectedDonorRequests'] =
+                ProductRequest::where(
+                    'admin_status',
+                    'approved'
+                )
+                ->where(
+                    'donor_status',
+                    'rejected'
+                )
+                ->count();
+
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Institution Wise Beneficiaries
+            |--------------------------------------------------------------------------
+            */
+
+            $data['institutionWise'] =
+                BeneficiaryProfile::select(
+                    'institution'
+                )
+                ->selectRaw(
+                    'COUNT(*) as total'
+                )
+                ->whereNotNull(
+                    'institution'
+                )
+                ->where(
+                    'institution',
+                    '!=',
+                    ''
+                )
+                ->groupBy(
+                    'institution'
+                )
+                ->orderByDesc(
+                    'total'
+                )
+                ->get();
+
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Category Product Statistics
+            |--------------------------------------------------------------------------
+            */
+
+            $data['categoryProductStats'] =
+                Category::withCount([
+
+                    'products',
+
+                    'products as active_products_count' =>
+                        function ($query) {
+
+                            $query->where(
+                                'status',
+                                'active'
+                            );
+                        },
+
+                    'products as inactive_products_count' =>
+                        function ($query) {
+
+                            $query->where(
+                                'status',
+                                'inactive'
+                            );
+                        },
+
+                ])
+                ->orderByDesc(
+                    'products_count'
+                )
+                ->get();
+
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Latest Users
+            |--------------------------------------------------------------------------
+            */
+
+            $data['latestUsers'] =
+                User::latest()
+                    ->limit(8)
+                    ->get();
+
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Latest Products
+            |--------------------------------------------------------------------------
+            */
+
+            $data['latestProducts'] =
+                Product::with([
+                    'category',
+                    'creator',
+                ])
+                ->latest()
+                ->limit(8)
+                ->get();
+
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Latest Requests
+            |--------------------------------------------------------------------------
+            */
+
+            $data['latestRequests'] =
+                ProductRequest::with([
+
+                    'product.category',
+
+                    'beneficiary',
+
+                    'donor',
+
+                ])
+                ->latest()
+                ->limit(8)
+                ->get();
+
+
+            return view(
+                'dashboard',
+                $data
             );
-
-
-        $requestMonths = [];
-
-        $requestCounts = [];
-
-
-        for ($month = 1; $month <= 12; $month++) {
-
-            $requestMonths[] = Carbon::create()
-                ->month($month)
-                ->format('M');
-
-            $requestCounts[] =
-                (int) ($monthlyRequests[$month] ?? 0);
         }
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Monthly User Registrations
-        |--------------------------------------------------------------------------
-        */
-
-        $monthlyUsers = User::select(
-            DB::raw('MONTH(created_at) as month'),
-            DB::raw('COUNT(*) as total')
-        )
-            ->whereYear(
-                'created_at',
-                now()->year
-            )
-            ->groupBy(
-                DB::raw('MONTH(created_at)')
-            )
-            ->pluck(
-                'total',
-                'month'
-            );
-
-
-        $userRegistrationCounts = [];
-
-
-        for ($month = 1; $month <= 12; $month++) {
-
-            $userRegistrationCounts[] =
-                (int) ($monthlyUsers[$month] ?? 0);
-        }
-
 
         /*
         |--------------------------------------------------------------------------
-        | Recent Users
+        | Donor Dashboard
         |--------------------------------------------------------------------------
         */
 
-        $recentUsers = User::with([
-            'beneficiaryProfile',
-            'donorProfile',
-        ])
-            ->latest()
-            ->take(8)
-            ->get();
+        if ($role === 'donor') {
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Recent Products
-        |--------------------------------------------------------------------------
-        */
-
-        $recentProducts = Product::with([
-            'user',
-            'category',
-        ])
-            ->latest()
-            ->take(8)
-            ->get();
+            $donorProfile =
+                $user->donorProfile;
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Recent Requests
-        |--------------------------------------------------------------------------
-        */
-
-        $recentRequests = ProductRequest::with([
-            'product',
-            'beneficiary.beneficiaryProfile',
-            'donor.donorProfile',
-        ])
-            ->latest()
-            ->take(8)
-            ->get();
+            $data['donorProfile'] =
+                $donorProfile;
 
 
-        return view(
-            'dashboard',
-            compact(
-                'user',
 
-                'totalUsers',
-                'totalAdmins',
-                'totalDonors',
-                'totalBeneficiaries',
+            /*
+            |--------------------------------------------------------------------------
+            | Profile Completion
+            |--------------------------------------------------------------------------
+            */
 
-                'activeUsers',
-                'suspendedUsers',
-                'blockedUsers',
+            $profileFields = [
 
-                'totalProducts',
-                'totalCategories',
+                $user->name,
 
-                'totalRequests',
-                'pendingAdmin',
-                'approvedByAdmin',
-                'rejectedByAdmin',
+                $user->email,
 
-                'pendingDonor',
-                'acceptedByDonor',
-                'rejectedByDonor',
+                $donorProfile?->phone,
 
-                'completedRequests',
-                'requestSuccessRate',
+                $donorProfile?->organization,
 
-                'newUsersThisMonth',
-                'newProductsThisMonth',
-                'newRequestsThisMonth',
+                $donorProfile?->designation,
 
-                'usersChart',
-                'accountStatusChart',
-                'requestChart',
-                'donorDecisionChart',
+                $donorProfile?->country,
 
-                'requestMonths',
-                'requestCounts',
-                'userRegistrationCounts',
+                $donorProfile?->state,
 
-                'recentUsers',
-                'recentProducts',
-                'recentRequests'
-            )
-        );
-    }
+                $donorProfile?->city,
+
+                $donorProfile?->profile_image,
+
+            ];
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | DONOR DASHBOARD
-    |--------------------------------------------------------------------------
-    */
+            $completedFields =
+                collect(
+                    $profileFields
+                )
+                ->filter(
+                    function ($value) {
 
-    private function donorDashboard(User $user)
-    {
-        $profile = $user->donorProfile;
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Profile Completion
-        |--------------------------------------------------------------------------
-        */
-
-        $profileFields = [
-            $user->name,
-            $user->email,
-            $user->phone,
-            $user->image,
-
-            $profile?->organization,
-            $profile?->designation,
-            $profile?->country,
-            $profile?->address,
-        ];
+                        return
+                            $value !== null &&
+                            $value !== '';
+                    }
+                )
+                ->count();
 
 
-        $profileCompletion =
-            $this->calculateProfileCompletion(
-                $profileFields
-            );
+            $data['profileCompletion'] =
+                count($profileFields) > 0
+                    ? (int) round(
+                        (
+                            $completedFields /
+                            count($profileFields)
+                        ) * 100
+                    )
+                    : 0;
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Product Statistics
-        |--------------------------------------------------------------------------
-        */
 
-        $myProducts = Product::where(
-            'user_id',
-            $user->id
-        )->count();
+            /*
+            |--------------------------------------------------------------------------
+            | My Products
+            |--------------------------------------------------------------------------
+            */
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Incoming Requests
-        |--------------------------------------------------------------------------
-        */
-
-        $incomingRequests = ProductRequest::where(
-            'donor_id',
-            $user->id
-        )
-            ->where(
-                'admin_status',
-                'approved'
-            )
-            ->count();
+            $data['myProducts'] =
+                Product::where(
+                    'user_id',
+                    $user->id
+                )
+                ->count();
 
 
-        $pendingRequests = ProductRequest::where(
-            'donor_id',
-            $user->id
-        )
-            ->where(
-                'admin_status',
-                'approved'
-            )
-            ->where(
-                'donor_status',
-                'pending'
-            )
-            ->count();
+            $data['myActiveProducts'] =
+                Product::where(
+                    'user_id',
+                    $user->id
+                )
+                ->where(
+                    'status',
+                    'active'
+                )
+                ->count();
 
 
-        $acceptedRequests = ProductRequest::where(
-            'donor_id',
-            $user->id
-        )
-            ->whereIn(
-                'donor_status',
-                [
-                    'accepted',
-                    'approved',
-                ]
-            )
-            ->count();
+            $data['myInactiveProducts'] =
+                Product::where(
+                    'user_id',
+                    $user->id
+                )
+                ->where(
+                    'status',
+                    'inactive'
+                )
+                ->count();
 
 
-        $rejectedRequests = ProductRequest::where(
-            'donor_id',
-            $user->id
-        )
-            ->where(
-                'donor_status',
-                'rejected'
-            )
-            ->count();
+
+            /*
+            |--------------------------------------------------------------------------
+            | My Approved Requests
+            |--------------------------------------------------------------------------
+            */
+
+            $donorRequestQuery =
+                ProductRequest::where(
+                    'donor_id',
+                    $user->id
+                )
+                ->where(
+                    'admin_status',
+                    'approved'
+                );
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Decision Rate
-        |--------------------------------------------------------------------------
-        */
-
-        $decidedRequests =
-            $acceptedRequests +
-            $rejectedRequests;
+            $data['myTotalRequests'] =
+                (clone $donorRequestQuery)
+                    ->count();
 
 
-        $responseRate = $incomingRequests > 0
-            ? round(
-                ($decidedRequests / $incomingRequests)
-                * 100,
-                1
-            )
-            : 0;
+            $data['myPendingRequests'] =
+                (clone $donorRequestQuery)
+                    ->where(
+                        'donor_status',
+                        'pending'
+                    )
+                    ->count();
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Recent Products
-        |--------------------------------------------------------------------------
-        */
-
-        $recentProducts = Product::with([
-            'category',
-        ])
-            ->where(
-                'user_id',
-                $user->id
-            )
-            ->latest()
-            ->take(6)
-            ->get();
+            $data['myAcceptedRequests'] =
+                (clone $donorRequestQuery)
+                    ->where(
+                        'donor_status',
+                        'accepted'
+                    )
+                    ->count();
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Recent Incoming Requests
-        |--------------------------------------------------------------------------
-        */
+            $data['myRejectedRequests'] =
+                (clone $donorRequestQuery)
+                    ->where(
+                        'donor_status',
+                        'rejected'
+                    )
+                    ->count();
 
-        $recentIncomingRequests =
-            ProductRequest::with([
-                'product',
-                'beneficiary.beneficiaryProfile',
-            ])
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Category Statistics
+            |--------------------------------------------------------------------------
+            */
+
+            $data['myCategoryStats'] =
+                Category::whereHas(
+                    'products',
+                    function ($query) use ($user) {
+
+                        $query->where(
+                            'user_id',
+                            $user->id
+                        );
+                    }
+                )
+                ->withCount([
+
+                    'products as products_count' =>
+                        function ($query) use ($user) {
+
+                            $query->where(
+                                'user_id',
+                                $user->id
+                            );
+                        },
+
+                ])
+                ->orderByDesc(
+                    'products_count'
+                )
+                ->get();
+
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Latest Products
+            |--------------------------------------------------------------------------
+            */
+
+            $data['latestMyProducts'] =
+                Product::with(
+                    'category'
+                )
+                ->where(
+                    'user_id',
+                    $user->id
+                )
+                ->latest()
+                ->limit(8)
+                ->get();
+
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Latest Requests
+            |--------------------------------------------------------------------------
+            */
+
+            $data['latestDonorRequests'] =
+                ProductRequest::with([
+
+                    'product.category',
+
+                    'beneficiary.beneficiaryProfile',
+
+                ])
                 ->where(
                     'donor_id',
                     $user->id
@@ -581,324 +718,311 @@ class DashboardController extends Controller
                     'approved'
                 )
                 ->latest()
-                ->take(6)
+                ->limit(8)
                 ->get();
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Donor Chart
-        |--------------------------------------------------------------------------
-        */
-
-        $donorRequestChart = [
-            $pendingRequests,
-            $acceptedRequests,
-            $rejectedRequests,
-        ];
-
-
-        return view(
-            'dashboard',
-            compact(
-                'user',
-                'profile',
-                'profileCompletion',
-
-                'myProducts',
-                'incomingRequests',
-                'pendingRequests',
-                'acceptedRequests',
-                'rejectedRequests',
-
-                'responseRate',
-
-                'recentProducts',
-                'recentIncomingRequests',
-                'donorRequestChart'
-            )
-        );
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | BENEFICIARY DASHBOARD
-    |--------------------------------------------------------------------------
-    */
-
-    private function beneficiaryDashboard(User $user)
-    {
-        $profile =
-            $user->beneficiaryProfile;
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Profile Completion
-        |--------------------------------------------------------------------------
-        */
-
-        $profileFields = [
-            $user->name,
-            $user->email,
-            $user->phone,
-            $user->image,
-            $user->qalam_id,
-
-            $profile?->gender,
-            $profile?->institution,
-            $profile?->degree_level,
-            $profile?->degree_program,
-            $profile?->department,
-            $profile?->semester,
-            $profile?->cgpa,
-            $profile?->enrollment_year,
-            $profile?->graduation_year,
-
-            $profile?->father_status,
-            $profile?->guardian_profession,
-            $profile?->monthly_income,
-
-            $profile?->province,
-            $profile?->domicile,
-            $profile?->home_address,
-        ];
-
-
-        $profileCompletion =
-            $this->calculateProfileCompletion(
-                $profileFields
+            return view(
+                'dashboard',
+                $data
             );
+        }
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Request Statistics
-        |--------------------------------------------------------------------------
-        */
-
-        $myRequests = ProductRequest::where(
-            'beneficiary_id',
-            $user->id
-        )->count();
-
-
-        $pending = ProductRequest::where(
-            'beneficiary_id',
-            $user->id
-        )
-            ->where(
-                'admin_status',
-                'pending'
-            )
-            ->count();
-
-
-        $approved = ProductRequest::where(
-            'beneficiary_id',
-            $user->id
-        )
-            ->where(
-                'admin_status',
-                'approved'
-            )
-            ->count();
-
-
-        $adminRejected = ProductRequest::where(
-            'beneficiary_id',
-            $user->id
-        )
-            ->where(
-                'admin_status',
-                'rejected'
-            )
-            ->count();
-
-
-        $accepted = ProductRequest::where(
-            'beneficiary_id',
-            $user->id
-        )
-            ->whereIn(
-                'donor_status',
-                [
-                    'accepted',
-                    'approved',
-                ]
-            )
-            ->count();
-
-
-        $donorPending = ProductRequest::where(
-            'beneficiary_id',
-            $user->id
-        )
-            ->where(
-                'admin_status',
-                'approved'
-            )
-            ->where(
-                'donor_status',
-                'pending'
-            )
-            ->count();
-
-
-        $donorRejected = ProductRequest::where(
-            'beneficiary_id',
-            $user->id
-        )
-            ->where(
-                'donor_status',
-                'rejected'
-            )
-            ->count();
 
 
         /*
         |--------------------------------------------------------------------------
-        | Success Rate
+        | Beneficiary Dashboard
         |--------------------------------------------------------------------------
         */
 
-        $successRate = $myRequests > 0
-            ? round(
-                ($accepted / $myRequests) * 100,
-                1
-            )
-            : 0;
+        if ($role === 'beneficiary') {
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Recent Requests
-        |--------------------------------------------------------------------------
-        */
+            $beneficiaryProfile =
+                $user->beneficiaryProfile;
 
-        $recentMyRequests =
-            ProductRequest::with([
-                'product',
-                'donor.donorProfile',
-            ])
+
+            $data['beneficiaryProfile'] =
+                $beneficiaryProfile;
+
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Profile Completion
+            |--------------------------------------------------------------------------
+            */
+
+            $profileFields = [
+
+                $user->name,
+
+                $user->email,
+
+                $user->qalam_id,
+
+                $beneficiaryProfile?->phone,
+
+                $beneficiaryProfile?->gender,
+
+                $beneficiaryProfile?->institution,
+
+                $beneficiaryProfile?->degree,
+
+                $beneficiaryProfile?->enrollment_year,
+
+                $beneficiaryProfile?->graduation_year,
+
+                $beneficiaryProfile?->father_status,
+
+                $beneficiaryProfile?->guardian_profession,
+
+                $beneficiaryProfile?->monthly_income,
+
+                $beneficiaryProfile?->province,
+
+                $beneficiaryProfile?->domicile,
+
+                $beneficiaryProfile?->home_address,
+
+                $beneficiaryProfile?->profile_image,
+
+            ];
+
+
+            $completedFields =
+                collect(
+                    $profileFields
+                )
+                ->filter(
+                    function ($value) {
+
+                        return
+                            $value !== null &&
+                            $value !== '';
+                    }
+                )
+                ->count();
+
+
+            $data['profileCompletion'] =
+                count($profileFields) > 0
+                    ? (int) round(
+                        (
+                            $completedFields /
+                            count($profileFields)
+                        ) * 100
+                    )
+                    : 0;
+
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Available Products
+            |--------------------------------------------------------------------------
+            */
+
+            $data['availableProducts'] =
+                Product::where(
+                    'status',
+                    'active'
+                )
+                ->count();
+
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Available Categories
+            |--------------------------------------------------------------------------
+            */
+
+            $data['availableCategories'] =
+                Category::where(
+                    'status',
+                    'active'
+                )
+                ->whereHas(
+                    'products',
+                    function ($query) {
+
+                        $query->where(
+                            'status',
+                            'active'
+                        );
+                    }
+                )
+                ->count();
+
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | My Requests
+            |--------------------------------------------------------------------------
+            */
+
+            $beneficiaryRequestQuery =
+                ProductRequest::where(
+                    'beneficiary_id',
+                    $user->id
+                );
+
+
+            $data['myRequests'] =
+                (clone $beneficiaryRequestQuery)
+                    ->count();
+
+
+            $data['myAdminPendingRequests'] =
+                (clone $beneficiaryRequestQuery)
+                    ->where(
+                        'admin_status',
+                        'pending'
+                    )
+                    ->count();
+
+
+            $data['myAdminApprovedRequests'] =
+                (clone $beneficiaryRequestQuery)
+                    ->where(
+                        'admin_status',
+                        'approved'
+                    )
+                    ->count();
+
+
+            $data['myAdminRejectedRequests'] =
+                (clone $beneficiaryRequestQuery)
+                    ->where(
+                        'admin_status',
+                        'rejected'
+                    )
+                    ->count();
+
+
+            $data['myDonorAcceptedRequests'] =
+                (clone $beneficiaryRequestQuery)
+                    ->where(
+                        'admin_status',
+                        'approved'
+                    )
+                    ->where(
+                        'donor_status',
+                        'accepted'
+                    )
+                    ->count();
+
+
+            $data['myDonorRejectedRequests'] =
+                (clone $beneficiaryRequestQuery)
+                    ->where(
+                        'admin_status',
+                        'approved'
+                    )
+                    ->where(
+                        'donor_status',
+                        'rejected'
+                    )
+                    ->count();
+
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Available Products Category Wise
+            |--------------------------------------------------------------------------
+            */
+
+            $data['availableCategoryStats'] =
+                Category::where(
+                    'status',
+                    'active'
+                )
+                ->withCount([
+
+                    'products as active_products_count' =>
+                        function ($query) {
+
+                            $query->where(
+                                'status',
+                                'active'
+                            );
+                        },
+
+                ])
+                ->having(
+                    'active_products_count',
+                    '>',
+                    0
+                )
+                ->orderByDesc(
+                    'active_products_count'
+                )
+                ->get();
+
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Latest Available Products
+            |--------------------------------------------------------------------------
+            */
+
+            $data['latestAvailableProducts'] =
+                Product::with([
+                    'category',
+                    'creator',
+                ])
+                ->where(
+                    'status',
+                    'active'
+                )
+                ->latest()
+                ->limit(8)
+                ->get();
+
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Latest Requests
+            |--------------------------------------------------------------------------
+            */
+
+            $data['latestMyRequests'] =
+                ProductRequest::with([
+                    'product.category',
+                    'donor',
+                ])
                 ->where(
                     'beneficiary_id',
                     $user->id
                 )
                 ->latest()
-                ->take(8)
+                ->limit(8)
                 ->get();
+
+
+            return view(
+                'dashboard',
+                $data
+            );
+        }
+
 
 
         /*
         |--------------------------------------------------------------------------
-        | Beneficiary Chart
+        | Unsupported Role
         |--------------------------------------------------------------------------
         */
 
-        $beneficiaryRequestChart = [
-            $pending,
-            $approved,
-            $adminRejected,
-        ];
-
-
-        $beneficiaryDonorChart = [
-            $donorPending,
-            $accepted,
-            $donorRejected,
-        ];
-
-
-        return view(
-            'dashboard',
-            compact(
-                'user',
-                'profile',
-                'profileCompletion',
-
-                'myRequests',
-                'pending',
-                'approved',
-                'adminRejected',
-
-                'accepted',
-                'donorPending',
-                'donorRejected',
-
-                'successRate',
-
-                'recentMyRequests',
-
-                'beneficiaryRequestChart',
-                'beneficiaryDonorChart'
-            )
+        abort(
+            403,
+            'Unauthorized dashboard access.'
         );
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | PROFILE COMPLETION HELPER
-    |--------------------------------------------------------------------------
-    */
-
-    private function calculateProfileCompletion(
-        array $fields
-    ): int {
-        if (count($fields) === 0) {
-            return 0;
-        }
-
-        $completed = collect($fields)
-            ->filter(
-                fn ($field) =>
-                    ! is_null($field)
-                    &&
-                    trim((string) $field) !== ''
-            )
-            ->count();
-
-        return (int) round(
-            ($completed / count($fields)) * 100
-        );
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | ACCEPT DONOR TERMS
-    |--------------------------------------------------------------------------
-    */
-
-    public function acceptTerms()
-    {
-        $donorId = Auth::id();
-
-
-        $acceptance =
-            DonorTermAcceptance::where(
-                'donor_id',
-                $donorId
-            )->first();
-
-
-        if (! $acceptance) {
-
-            DonorTermAcceptance::create([
-                'donor_id' => $donorId,
-                'accepted' => 1,
-                'accepted_at' => now(),
-            ]);
-        }
-
-
-        return redirect()
-            ->back()
-            ->with(
-                'success',
-                'Terms accepted successfully.'
-            );
     }
 }

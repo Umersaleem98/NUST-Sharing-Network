@@ -1,848 +1,1231 @@
-@include('layouts.admin.head')
-
-<title>Register | NUST Sharing Network</title>
+@include('layouts.home.head')
+<title>Register - NUST Sharing Network</title>
 
 <style>
+    /*
+        |--------------------------------------------------------------------------
+        | NUST SHARING NETWORK THEME
+        |--------------------------------------------------------------------------
+        */
+
     :root {
-        --auth-primary: #0065a8;
-        --auth-primary-dark: #003f6b;
-        --auth-primary-light: #eaf5fc;
-        --auth-accent: #f5a623;
-        --auth-text: #17212b;
-        --auth-muted: #667481;
-        --auth-border: #dce5ec;
-        --auth-white: #ffffff;
-        --auth-background: #f4f8fb;
-        --auth-danger: #dc3545;
-        --auth-danger-light: #fff2f2;
-        --auth-success: #198754;
-        --auth-font: "Inter", "Segoe UI", Arial, sans-serif;
+
+        --nust-primary: #00558c;
+
+        --nust-primary-dark: #003f69;
+
+        --nust-secondary: #0072bc;
+
+        --nust-light: #eef6fb;
+
+        --nust-soft: #f6f9fc;
+
+        --nust-text: #22313f;
+
+        --nust-muted: #6c7a89;
+
+        --nust-border: #d9e3ea;
+
+        --white: #ffffff;
     }
+
+
+    /*
+        |--------------------------------------------------------------------------
+        | Base
+        |--------------------------------------------------------------------------
+        */
 
     * {
         box-sizing: border-box;
     }
 
+
     html,
     body {
         min-height: 100%;
-        margin: 0;
     }
 
-    body,
-    input,
-    select,
-    button,
-    textarea,
-    label,
-    a,
-    p,
-    span,
-    small,
-    h1,
-    h2,
-    h3,
-    h4,
-    h5,
-    h6 {
-        font-family: var(--auth-font) !important;
-    }
 
     body {
-        min-height: 100vh;
-        color: var(--auth-text);
-        background-color: var(--auth-background);
-    }
 
-    /* ==========================================================
-       MAIN AUTH PAGE
-    ========================================================== */
+        margin: 0;
 
-    .auth-page {
-        position: relative;
-        display: flex;
-        min-height: 100vh;
-        overflow: hidden;
-    }
-
-    /* ==========================================================
-       LEFT INFORMATION PANEL
-    ========================================================== */
-
-    .auth-information {
-        position: relative;
-        display: flex;
-        flex: 0 0 42%;
-        align-items: center;
-        padding: 55px 65px;
-        overflow: hidden;
-        color: var(--auth-white);
+        font-family:
+            -apple-system,
+            BlinkMacSystemFont,
+            "Segoe UI",
+            Roboto,
+            Helvetica,
+            Arial,
+            sans-serif;
 
         background:
-            linear-gradient(
-                135deg,
-                rgba(0, 63, 107, 0.97),
-                rgba(0, 101, 168, 0.90)
-            ),
-            url('{{ asset('admins/assets/images/backgrounds/nust-campus.jpg') }}')
-            center center / cover no-repeat;
+            linear-gradient(135deg,
+                #eef6fb 0%,
+                #f8fbfd 45%,
+                #e5f0f7 100%);
+
+        color: var(--nust-text);
     }
 
-    .auth-information::before,
-    .auth-information::after {
-        position: absolute;
-        border-radius: 50%;
+
+    /*
+        |--------------------------------------------------------------------------
+        | Background Decoration
+        |--------------------------------------------------------------------------
+        */
+
+    .auth-wrapper {
+
+        position: relative;
+
+        min-height: 100vh;
+
+        display: flex;
+
+        align-items: center;
+
+        padding: 45px 0;
+
+        overflow: hidden;
+    }
+
+
+    .auth-wrapper::before {
+
         content: "";
-        pointer-events: none;
-    }
 
-    .auth-information::before {
-        top: -180px;
-        right: -130px;
+        position: absolute;
+
         width: 420px;
+
         height: 420px;
-        border: 70px solid rgba(255, 255, 255, 0.06);
-    }
 
-    .auth-information::after {
-        bottom: -180px;
-        left: -130px;
-        width: 400px;
-        height: 400px;
-        background-color: rgba(245, 166, 35, 0.10);
-    }
+        background:
+            rgba(0,
+                85,
+                140,
+                0.08);
 
-    .information-content {
-        position: relative;
-        z-index: 2;
-        width: 100%;
-        max-width: 580px;
-        margin: auto;
-    }
-
-    /* ==========================================================
-       LOGO
-    ========================================================== */
-
-    .brand-logo-wrapper {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 30px;
-        padding: 12px 18px;
-        border-radius: 14px;
-        background-color: rgba(255, 255, 255, 0.96);
-    }
-
-    .brand-logo-wrapper img {
-        display: block;
-        width: 145px;
-        max-height: 70px;
-        object-fit: contain;
-    }
-
-    /* ==========================================================
-       BADGE
-    ========================================================== */
-
-    .information-badge {
-        display: inline-flex;
-        gap: 9px;
-        align-items: center;
-        margin-bottom: 18px;
-        padding: 8px 14px;
-        border: 1px solid rgba(255, 255, 255, 0.22);
-        border-radius: 50rem;
-        background-color: rgba(255, 255, 255, 0.10);
-        font-size: 0.84rem;
-        font-weight: 600;
-        letter-spacing: 0.4px;
-    }
-
-    .information-badge::before {
-        width: 8px;
-        height: 8px;
         border-radius: 50%;
-        background-color: var(--auth-accent);
+
+        top: -160px;
+
+        left: -150px;
+    }
+
+
+    .auth-wrapper::after {
+
         content: "";
-    }
 
-    /* ==========================================================
-       INFORMATION CONTENT
-    ========================================================== */
-
-    .information-content h1 {
-        max-width: 540px;
-        margin: 0 0 18px;
-        color: var(--auth-white);
-        font-size: clamp(2.2rem, 3.5vw, 3.6rem);
-        font-weight: 750;
-        line-height: 1.12;
-    }
-
-    .information-description {
-        max-width: 530px;
-        margin: 0 0 30px;
-        color: rgba(255, 255, 255, 0.82);
-        font-size: 1rem;
-        line-height: 1.75;
-    }
-
-    /* ==========================================================
-       FEATURES
-    ========================================================== */
-
-    .platform-features {
-        display: grid;
-        gap: 13px;
-    }
-
-    .platform-feature {
-        display: flex;
-        gap: 13px;
-        align-items: center;
-    }
-
-    .feature-icon {
-        display: flex;
-        flex: 0 0 40px;
-        align-items: center;
-        justify-content: center;
-        width: 40px;
-        height: 40px;
-        border-radius: 11px;
-        color: var(--auth-primary-dark);
-        background-color: var(--auth-accent);
-        font-size: 1rem;
-    }
-
-    .feature-content strong {
-        display: block;
-        margin-bottom: 2px;
-        color: var(--auth-white);
-        font-size: 0.93rem;
-        font-weight: 700;
-    }
-
-    .feature-content span {
-        color: rgba(255, 255, 255, 0.68);
-        font-size: 0.82rem;
-    }
-
-    /* ==========================================================
-       RIGHT FORM PANEL
-    ========================================================== */
-
-    .auth-form-panel {
-        position: relative;
-        display: flex;
-        flex: 1;
-        align-items: center;
-        justify-content: center;
-        padding: 40px 55px;
-        overflow-y: auto;
-        background-color: #f7fafc;
-    }
-
-    .auth-form-panel::before {
         position: absolute;
-        top: 0;
-        right: 0;
+
+        width: 500px;
+
+        height: 500px;
+
+        background:
+            rgba(0,
+                114,
+                188,
+                0.07);
+
+        border-radius: 50%;
+
+        right: -200px;
+
+        bottom: -240px;
+    }
+
+
+    /*
+        |--------------------------------------------------------------------------
+        | Registration Container
+        |--------------------------------------------------------------------------
+        */
+
+    .registration-card {
+
+        position: relative;
+
+        z-index: 2;
+
+        background: var(--white);
+
+        border: none;
+
+        border-radius: 22px;
+
+        overflow: hidden;
+
+        box-shadow:
+            0 20px 60px rgba(24,
+                63,
+                88,
+                0.13);
+    }
+
+
+    /*
+        |--------------------------------------------------------------------------
+        | Branding Side
+        |--------------------------------------------------------------------------
+        */
+
+    .brand-panel {
+
+        position: relative;
+
+        height: 100%;
+
+        padding: 55px 45px;
+
+        color: var(--white);
+
+        background:
+            linear-gradient(150deg,
+                var(--nust-primary-dark) 0%,
+                var(--nust-primary) 50%,
+                var(--nust-secondary) 100%);
+
+        overflow: hidden;
+    }
+
+
+    .brand-panel::before {
+
+        content: "";
+
+        position: absolute;
+
+        width: 280px;
+
+        height: 280px;
+
+        border:
+
+            1px solid rgba(255,
+                255,
+                255,
+                0.15);
+
+        border-radius: 50%;
+
+        right: -120px;
+
+        top: -90px;
+    }
+
+
+    .brand-panel::after {
+
+        content: "";
+
+        position: absolute;
+
         width: 220px;
+
         height: 220px;
-        border-radius: 0 0 0 100%;
-        background-color: var(--auth-primary-light);
-        content: "";
+
+        background:
+            rgba(255,
+                255,
+                255,
+                0.05);
+
+        border-radius: 50%;
+
+        bottom: -100px;
+
+        left: -80px;
     }
 
-    .register-container {
+
+    .brand-content {
+
         position: relative;
+
         z-index: 2;
-        width: 100%;
-        max-width: 650px;
-        padding: 15px 0;
     }
 
-    /* ==========================================================
-       MOBILE LOGO
-    ========================================================== */
 
-    .mobile-logo {
-        display: none;
-        margin-bottom: 22px;
-        text-align: center;
+    .brand-badge {
+
+        display: inline-flex;
+
+        align-items: center;
+
+        gap: 10px;
+
+        padding: 8px 15px;
+
+        margin-bottom: 35px;
+
+        background:
+            rgba(255,
+                255,
+                255,
+                0.11);
+
+        border:
+
+            1px solid rgba(255,
+                255,
+                255,
+                0.16);
+
+        border-radius: 50px;
+
+        font-size: 13px;
+
+        letter-spacing: 0.3px;
     }
 
-    .mobile-logo img {
-        width: 135px;
-        max-height: 65px;
-        object-fit: contain;
-    }
 
-    /* ==========================================================
-       HEADING
-    ========================================================== */
+    .brand-title {
 
-    .register-heading {
-        margin-bottom: 25px;
-    }
+        font-size: 37px;
 
-    .register-heading h2 {
-        margin: 0 0 8px;
-        color: var(--auth-text);
-        font-size: 2rem;
-        font-weight: 750;
-    }
-
-    .register-heading p {
-        margin: 0;
-        color: var(--auth-muted);
-        line-height: 1.6;
-    }
-
-    /* ==========================================================
-       ALERT
-    ========================================================== */
-
-    .register-alert {
-        display: flex;
-        gap: 12px;
-        align-items: flex-start;
-        margin-bottom: 22px;
-        padding: 14px 16px;
-        border: 1px solid #f2c5c5;
-        border-radius: 12px;
-        color: #a12b2b;
-        background-color: var(--auth-danger-light);
-        font-size: 0.88rem;
-    }
-
-    .register-alert-icon {
-        flex-shrink: 0;
-        margin-top: 2px;
-    }
-
-    .register-alert strong {
-        display: block;
-        margin-bottom: 5px;
-    }
-
-    .register-alert ul {
-        margin: 0;
-        padding-left: 18px;
-    }
-
-    .beneficiary-notice {
-        display: flex;
-        grid-column: 1 / -1;
-        gap: 12px;
-        align-items: flex-start;
-        margin-bottom: 20px;
-        padding: 14px 16px;
-        border: 1px solid #b9d9ee;
-        border-radius: 12px;
-        color: var(--auth-primary-dark);
-        background-color: var(--auth-primary-light);
-        font-size: 0.84rem;
-        line-height: 1.55;
-    }
-
-    .beneficiary-notice i {
-        flex-shrink: 0;
-        margin-top: 3px;
-        color: var(--auth-primary);
-    }
-
-    .beneficiary-notice strong {
-        display: block;
-        margin-bottom: 2px;
-    }
-
-    .beneficiary-notice a {
-        color: var(--auth-primary-dark);
         font-weight: 700;
-        text-decoration: underline;
+
+        line-height: 1.22;
+
+        margin-bottom: 20px;
     }
 
-    .register-control:disabled {
-        color: var(--auth-text);
-        background-color: #eef3f7;
-        cursor: not-allowed;
-        opacity: 1;
+
+    .brand-description {
+
+        font-size: 16px;
+
+        line-height: 1.8;
+
+        color:
+            rgba(255,
+                255,
+                255,
+                0.86);
+
+        margin-bottom: 35px;
     }
 
-    /* ==========================================================
-       FORM GRID
-    ========================================================== */
 
-    .register-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 0 18px;
+    .benefit-item {
+
+        display: flex;
+
+        align-items: flex-start;
+
+        gap: 13px;
+
+        margin-bottom: 18px;
+
+        color:
+            rgba(255,
+                255,
+                255,
+                0.94);
     }
 
-    .form-field {
-        margin-bottom: 17px;
+
+    .benefit-icon {
+
+        width: 34px;
+
+        height: 34px;
+
+        min-width: 34px;
+
+        display: inline-flex;
+
+        align-items: center;
+
+        justify-content: center;
+
+        background:
+            rgba(255,
+                255,
+                255,
+                0.12);
+
+        border-radius: 9px;
     }
 
-    .form-field.full-width {
-        grid-column: 1 / -1;
+
+    /*
+        |--------------------------------------------------------------------------
+        | Form Side
+        |--------------------------------------------------------------------------
+        */
+
+    .form-panel {
+
+        padding: 48px 50px;
     }
 
-    .register-label {
-        display: block;
+
+    .form-heading {
+
+        color: var(--nust-primary-dark);
+
+        font-size: 29px;
+
+        font-weight: 700;
+
         margin-bottom: 8px;
-        color: var(--auth-text);
-        font-size: 0.88rem;
-        font-weight: 650;
     }
 
-    .required-mark {
-        color: var(--auth-danger);
+
+    .form-subheading {
+
+        color: var(--nust-muted);
+
+        margin-bottom: 30px;
     }
 
-    /* ==========================================================
-       INPUTS
-    ========================================================== */
 
-    .input-wrapper {
-        position: relative;
+    /*
+        |--------------------------------------------------------------------------
+        | Form Controls
+        |--------------------------------------------------------------------------
+        */
+
+    .form-label {
+
+        color: #34495e;
+
+        font-size: 14px;
+
+        font-weight: 600;
+
+        margin-bottom: 8px;
     }
 
-    .input-icon {
-        position: absolute;
-        top: 50%;
-        left: 16px;
-        z-index: 2;
-        color: #83919d;
-        transform: translateY(-50%);
-        pointer-events: none;
-    }
 
-    .register-control {
-        display: block;
-        width: 100%;
-        height: 50px;
-        padding: 10px 16px 10px 45px;
-        border: 1px solid var(--auth-border);
-        border-radius: 11px;
-        outline: none;
-        color: var(--auth-text);
-        background-color: var(--auth-white);
-        font-size: 0.93rem;
+    .form-control,
+    .form-select {
+
+        min-height: 51px;
+
+        border:
+
+            1px solid var(--nust-border);
+
+        border-radius: 10px;
+
+        padding:
+            11px 14px;
+
+        color: var(--nust-text);
+
+        background-color: #fff;
+
         transition:
             border-color 0.2s ease,
             box-shadow 0.2s ease;
     }
 
-    .register-control::placeholder {
-        color: #9aa5ae;
+
+    .form-control:focus,
+    .form-select:focus {
+
+        border-color: var(--nust-primary);
+
+        box-shadow:
+            0 0 0 0.2rem rgba(0,
+                85,
+                140,
+                0.12);
     }
 
-    /* Remove number input arrows in Chrome, Edge, Safari and Opera */
-    .register-control[type="number"]::-webkit-outer-spin-button,
-    .register-control[type="number"]::-webkit-inner-spin-button {
-        margin: 0;
-        -webkit-appearance: none;
+
+    .form-select:disabled {
+
+        background-color: #f5f8fa;
+
+        color: #425466;
+
+        opacity: 1;
     }
 
-    /* Remove number input arrows in Firefox */
-    .register-control[type="number"] {
-        appearance: textfield;
-        -moz-appearance: textfield;
+
+    /*
+        |--------------------------------------------------------------------------
+        | Input Group
+        |--------------------------------------------------------------------------
+        */
+
+    .password-wrapper {
+
+        position: relative;
     }
 
-    .register-control:hover {
-        border-color: #a9bbc8;
+
+    .password-wrapper .form-control {
+
+        padding-right: 50px;
     }
 
-    .register-control:focus {
-        border-color: var(--auth-primary);
-        box-shadow: 0 0 0 4px rgba(0, 101, 168, 0.10);
-    }
-
-    .register-control.is-invalid {
-        border-color: var(--auth-danger);
-    }
-
-    select.register-control {
-        cursor: pointer;
-    }
-
-    .field-error {
-        display: block;
-        margin-top: 6px;
-        color: var(--auth-danger);
-        font-size: 0.8rem;
-    }
-
-    /* ==========================================================
-       PASSWORD
-    ========================================================== */
-
-    .password-control {
-        padding-right: 52px;
-    }
 
     .password-toggle {
+
         position: absolute;
+
+        right: 5px;
+
         top: 50%;
-        right: 7px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 38px;
-        height: 38px;
-        padding: 0;
-        border: 0;
-        border-radius: 9px;
-        color: #697884;
-        background: transparent;
-        cursor: pointer;
+
         transform: translateY(-50%);
-        transition:
-            color 0.2s ease,
-            background-color 0.2s ease;
+
+        width: 42px;
+
+        height: 42px;
+
+        border: none;
+
+        background: transparent;
+
+        color: #6c7a89;
+
+        display: flex;
+
+        align-items: center;
+
+        justify-content: center;
+
+        border-radius: 8px;
+
+        cursor: pointer;
     }
+
 
     .password-toggle:hover {
-        color: var(--auth-primary);
-        background-color: var(--auth-primary-light);
+
+        color: var(--nust-primary);
+
+        background: var(--nust-light);
     }
 
-    /* ==========================================================
-       PASSWORD REQUIREMENTS
-    ========================================================== */
 
-    .password-hint {
-        display: flex;
-        gap: 6px;
-        align-items: center;
-        margin-top: 7px;
-        color: var(--auth-muted);
-        font-size: 0.76rem;
+    /*
+        |--------------------------------------------------------------------------
+        | Account Type
+        |--------------------------------------------------------------------------
+        */
+
+    .account-type-note {
+
+        padding: 12px 14px;
+
+        margin-top: 10px;
+
+        border-radius: 9px;
+
+        background: var(--nust-light);
+
+        color: #456276;
+
+        font-size: 13px;
+
+        line-height: 1.6;
     }
 
-    .password-hint i {
-        color: var(--auth-primary);
-    }
 
-    /* ==========================================================
-       TERMS
-    ========================================================== */
-
-    .terms-wrapper {
-        display: flex;
-        gap: 9px;
-        align-items: flex-start;
-        margin: 2px 0 19px;
-        color: var(--auth-muted);
-        font-size: 0.83rem;
-        line-height: 1.5;
-        cursor: pointer;
-    }
-
-    .terms-wrapper input {
-        flex-shrink: 0;
-        width: 17px;
-        height: 17px;
-        margin-top: 2px;
-        accent-color: var(--auth-primary);
-        cursor: pointer;
-    }
-
-    .terms-wrapper a {
-        color: var(--auth-primary);
-        font-weight: 600;
-        text-decoration: none;
-    }
-
-    .terms-wrapper a:hover {
-        text-decoration: underline;
-    }
-
-    /* ==========================================================
-       REGISTER BUTTON
-    ========================================================== */
+    /*
+        |--------------------------------------------------------------------------
+        | Button
+        |--------------------------------------------------------------------------
+        */
 
     .btn-register {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-        height: 52px;
-        padding: 10px 20px;
-        border: 0;
-        border-radius: 12px;
-        color: var(--auth-white);
-        background: linear-gradient(
-            135deg,
-            var(--auth-primary),
-            var(--auth-primary-dark)
-        );
-        font-size: 0.95rem;
-        font-weight: 700;
-        letter-spacing: 0.4px;
-        cursor: pointer;
+
+        min-height: 52px;
+
+        border: none;
+
+        border-radius: 10px;
+
+        font-weight: 600;
+
+        color: #ffffff;
+
+        background:
+            linear-gradient(135deg,
+                var(--nust-primary),
+                var(--nust-secondary));
+
+        box-shadow:
+            0 8px 18px rgba(0,
+                85,
+                140,
+                0.18);
+
         transition:
-            transform 0.2s ease,
-            box-shadow 0.2s ease;
+            all 0.2s ease;
     }
+
 
     .btn-register:hover {
-        color: var(--auth-white);
-        box-shadow: 0 10px 24px rgba(0, 76, 128, 0.25);
-        transform: translateY(-2px);
+
+        color: #ffffff;
+
+        transform:
+            translateY(-1px);
+
+        box-shadow:
+            0 10px 22px rgba(0,
+                85,
+                140,
+                0.25);
     }
 
-    .btn-register:active {
-        box-shadow: none;
-        transform: translateY(0);
-    }
 
-    .btn-register:disabled {
-        cursor: not-allowed;
-        opacity: 0.7;
-        transform: none;
-    }
+    /*
+        |--------------------------------------------------------------------------
+        | Login Link
+        |--------------------------------------------------------------------------
+        */
 
-    /* ==========================================================
-       LOGIN LINK
-    ========================================================== */
+    .login-link {
 
-    .already-account {
-        margin: 18px 0 0;
-        color: var(--auth-muted);
-        font-size: 0.86rem;
-        text-align: center;
-    }
+        color: var(--nust-primary);
 
-    .already-account a {
-        color: var(--auth-primary);
-        font-weight: 700;
+        font-weight: 600;
+
         text-decoration: none;
     }
 
-    .already-account a:hover {
+
+    .login-link:hover {
+
+        color: var(--nust-primary-dark);
+
         text-decoration: underline;
     }
 
-    /* ==========================================================
-       SECURITY MESSAGE
-    ========================================================== */
 
-    .register-support {
-        margin: 15px 0 0;
-        color: var(--auth-muted);
-        font-size: 0.78rem;
-        line-height: 1.5;
-        text-align: center;
+    /*
+        |--------------------------------------------------------------------------
+        | Security Text
+        |--------------------------------------------------------------------------
+        */
+
+    .security-note {
+
+        display: flex;
+
+        align-items: center;
+
+        justify-content: center;
+
+        gap: 7px;
+
+        margin-top: 20px;
+
+        color: #8795a1;
+
+        font-size: 12px;
     }
 
-    .register-support i {
-        margin-right: 5px;
-        color: var(--auth-primary);
+
+    /*
+        |--------------------------------------------------------------------------
+        | Alert
+        |--------------------------------------------------------------------------
+        */
+
+    .alert-danger {
+
+        border: none;
+
+        border-left:
+            4px solid #dc3545;
+
+        border-radius: 9px;
+
+        background: #fff2f3;
     }
 
-    /* ==========================================================
-       TABLET
-    ========================================================== */
 
-    @media (max-width: 1100px) {
+    /*
+        |--------------------------------------------------------------------------
+        | Responsive
+        |--------------------------------------------------------------------------
+        */
 
-        .auth-information {
-            flex-basis: 40%;
-            padding: 45px 35px;
+    @media (max-width: 991.98px) {
+
+        .brand-panel {
+
+            padding: 40px 35px;
         }
 
-        .auth-form-panel {
-            padding: 35px 35px;
+
+        .brand-title {
+
+            font-size: 30px;
         }
 
-        .information-content h1 {
-            font-size: 2.5rem;
+
+        .form-panel {
+
+            padding: 40px 35px;
         }
+
     }
 
-    /* ==========================================================
-       MOBILE
-    ========================================================== */
 
     @media (max-width: 767.98px) {
 
-        .auth-page {
-            display: block;
+        .auth-wrapper {
+
+            padding: 25px 0;
         }
 
-        .auth-information {
-            display: none;
+
+        .registration-card {
+
+            border-radius: 16px;
         }
 
-        .auth-form-panel {
-            min-height: 100vh;
-            padding: 30px 20px;
+
+        .brand-panel {
+
+            padding: 35px 28px;
         }
 
-        .auth-form-panel::before {
-            width: 130px;
-            height: 130px;
+
+        .brand-title {
+
+            font-size: 27px;
         }
 
-        .mobile-logo {
-            display: block;
+
+        .brand-description {
+
+            font-size: 14px;
         }
 
-        .register-container {
-            max-width: 520px;
+
+        .form-panel {
+
+            padding: 35px 25px;
         }
 
-        .register-heading {
-            margin-bottom: 23px;
-            text-align: center;
+
+        .form-heading {
+
+            font-size: 25px;
         }
 
-        .register-heading h2 {
-            font-size: 1.75rem;
-        }
-
-        .register-grid {
-            grid-template-columns: 1fr;
-            gap: 0;
-        }
-
-        .form-field.full-width {
-            grid-column: auto;
-        }
-    }
-
-    /* ==========================================================
-       SMALL MOBILE
-    ========================================================== */
-
-    @media (max-width: 420px) {
-
-        .auth-form-panel {
-            align-items: flex-start;
-            padding: 25px 15px;
-        }
-
-        .register-heading h2 {
-            font-size: 1.55rem;
-        }
-
-        .register-control,
-        .btn-register {
-            height: 50px;
-        }
     }
 </style>
 
-
 <body>
 
-    <main class="auth-page">
 
-        {{-- ================================================= --}}
-        {{-- LEFT INFORMATION PANEL --}}
-        {{-- ================================================= --}}
+    <div class="auth-wrapper">
 
-        <section class="auth-information">
+        <div class="container">
 
-            <div class="information-content">
+            <div class="row justify-content-center">
 
-                {{-- Logo --}}
-                <div class="brand-logo-wrapper">
-
-                    <img
-                        src="{{ asset('admins/assets/images/logos/logo.png') }}"
-                        alt="NUST Sharing Network"
-                    >
-
-                </div>
+                <div class="col-xl-10 col-lg-11">
 
 
-                {{-- Badge --}}
-                <div class="information-badge">
-                    Join the NUST Community
-                </div>
+                    <div class="registration-card">
+
+                        <div class="row g-0">
 
 
-                {{-- Heading --}}
-                <h1>
-                    Share More.<br>
-                    Make an Impact.
-                </h1>
+                            {{-- =================================================
+                            LEFT BRAND PANEL
+                        ================================================== --}}
+
+                            <div class="col-lg-5">
+
+                                <div class="brand-panel">
+
+                                    <div class="brand-content">
 
 
-                {{-- Description --}}
-                <p class="information-description">
-                    Create your NUST Sharing Network account and become
-                    part of a trusted community where useful resources
-                    can be shared with people who need them.
-                </p>
+                                        <div class="brand-badge">
+
+                                            <i class="bi bi-share-fill"></i>
+
+                                            NUST Sharing Network
+
+                                        </div>
 
 
-                {{-- Features --}}
-                <div class="platform-features">
+                                        <h1 class="brand-title">
 
-                    <div class="platform-feature">
+                                            Give More.
 
-                        <div class="feature-icon">
-                            <i class="fa fa-user-plus"></i>
-                        </div>
+                                            <br>
 
-                        <div class="feature-content">
+                                            Share More.
 
-                            <strong>
-                                Easy Registration
-                            </strong>
+                                            <br>
 
-                            <span>
-                                Create your account in just a few steps
-                            </span>
+                                            Impact More.
 
-                        </div>
-
-                    </div>
+                                        </h1>
 
 
-                    <div class="platform-feature">
+                                        <p class="brand-description">
 
-                        <div class="feature-icon">
-                            <i class="fa fa-shield"></i>
-                        </div>
+                                            Join the NUST Sharing Network as a donor
+                                            and help make useful resources available
+                                            to deserving beneficiaries within the
+                                            community.
 
-                        <div class="feature-content">
-
-                            <strong>
-                                Secure Platform
-                            </strong>
-
-                            <span>
-                                Your account information is securely protected
-                            </span>
-
-                        </div>
-
-                    </div>
+                                        </p>
 
 
-                    <div class="platform-feature">
+                                        {{-- Benefit 1 --}}
 
-                        <div class="feature-icon">
-                            <i class="fa fa-handshake"></i>
-                        </div>
+                                        <div class="benefit-item">
 
-                        <div class="feature-content">
+                                            <div class="benefit-icon">
 
-                            <strong>
-                                Community Driven
-                            </strong>
+                                                <i class="bi bi-box-seam"></i>
 
-                            <span>
-                                Connect, contribute and support others
-                            </span>
+                                            </div>
+
+                                            <div>
+
+                                                <strong>
+                                                    Share Useful Products
+                                                </strong>
+
+                                                <div class="small opacity-75">
+
+                                                    List products you want to donate
+                                                    through a controlled platform.
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+
+                                        {{-- Benefit 2 --}}
+
+                                        <div class="benefit-item">
+
+                                            <div class="benefit-icon">
+
+                                                <i class="bi bi-shield-check"></i>
+
+                                            </div>
+
+                                            <div>
+
+                                                <strong>
+                                                    Reviewed Requests
+                                                </strong>
+
+                                                <div class="small opacity-75">
+
+                                                    Beneficiary requests are reviewed
+                                                    by administration before reaching you.
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+
+                                        {{-- Benefit 3 --}}
+
+                                        <div class="benefit-item">
+
+                                            <div class="benefit-icon">
+
+                                                <i class="bi bi-people"></i>
+
+                                            </div>
+
+                                            <div>
+
+                                                <strong>
+                                                    Support the Community
+                                                </strong>
+
+                                                <div class="small opacity-75">
+
+                                                    Help connect available resources
+                                                    with people who need them.
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+
+                            {{-- =================================================
+                            REGISTRATION FORM
+                        ================================================== --}}
+
+                            <div class="col-lg-7">
+
+                                <div class="form-panel">
+
+
+                                    {{-- Heading --}}
+
+                                    <div class="mb-4">
+
+                                        <h2 class="form-heading">
+
+                                            Create Donor Account
+
+                                        </h2>
+
+
+                                        <p class="form-subheading">
+
+                                            Enter your information below to join
+                                            the NUST Sharing Network.
+
+                                        </p>
+
+                                    </div>
+
+
+
+                                    {{-- =================================================
+                                    ERRORS
+                                ================================================== --}}
+
+                                    @if ($errors->any())
+
+                                        <div class="alert alert-danger" role="alert">
+
+                                            <div class="d-flex align-items-center mb-2">
+
+                                                <i class="bi bi-exclamation-circle-fill me-2"></i>
+
+                                                <strong>
+                                                    Please correct the following:
+                                                </strong>
+
+                                            </div>
+
+
+                                            <ul class="mb-0 ps-4">
+
+                                                @foreach ($errors->all() as $error)
+                                                    <li>
+                                                        {{ $error }}
+                                                    </li>
+                                                @endforeach
+
+                                            </ul>
+
+                                        </div>
+
+                                    @endif
+
+
+
+                                    {{-- =================================================
+                                    FORM
+                                ================================================== --}}
+
+                                    <form method="POST" action="{{ route('register.submit') }}">
+
+                                        @csrf
+
+
+                                        {{-- =================================================
+                                        ROLE
+                                    ================================================== --}}
+
+                                        <input type="hidden" name="role" value="donor">
+
+
+
+                                        {{-- =================================================
+                                        NAME
+                                    ================================================== --}}
+
+                                        <div class="mb-3">
+
+                                            <label for="name" class="form-label">
+
+                                                Full Name
+
+                                                <span class="text-danger">
+                                                    *
+                                                </span>
+
+                                            </label>
+
+
+                                            <input type="text" name="name" id="name"
+                                                value="{{ old('name') }}"
+                                                class="form-control @error('name') is-invalid @enderror"
+                                                placeholder="Enter your full name" autocomplete="name" required
+                                                autofocus>
+
+
+                                            @error('name')
+                                                <div class="invalid-feedback">
+
+                                                    {{ $message }}
+
+                                                </div>
+                                            @enderror
+
+                                        </div>
+
+
+
+                                        {{-- =================================================
+                                        ACCOUNT TYPE
+                                    ================================================== --}}
+
+                                        <div class="mb-3">
+
+                                            <label for="roleDisplay" class="form-label">
+
+                                                Register As
+
+                                                <span class="text-danger">
+                                                    *
+                                                </span>
+
+                                            </label>
+
+
+                                            <select id="roleDisplay" class="form-select" disabled>
+
+                                                <option value="donor" selected>
+                                                    Donor
+                                                </option>
+
+
+                                                <option value="beneficiary" disabled>
+                                                    Beneficiary — Registration Disabled
+                                                </option>
+
+                                            </select>
+
+
+                                            <div class="account-type-note">
+
+                                                <i class="bi bi-info-circle me-1"></i>
+
+                                                Public registration is currently available
+                                                for donors only. Beneficiary accounts are
+                                                managed through the administration system.
+
+                                            </div>
+
+                                        </div>
+
+
+
+                                        {{-- =================================================
+                                        EMAIL
+                                    ================================================== --}}
+
+                                        <div class="mb-3">
+
+                                            <label for="email" class="form-label">
+
+                                                Email Address
+
+                                                <span class="text-danger">
+                                                    *
+                                                </span>
+
+                                            </label>
+
+
+                                            <input type="email" name="email" id="email"
+                                                value="{{ old('email') }}"
+                                                class="form-control @error('email') is-invalid @enderror"
+                                                placeholder="name@example.com" autocomplete="email" required>
+
+
+                                            @error('email')
+                                                <div class="invalid-feedback">
+
+                                                    {{ $message }}
+
+                                                </div>
+                                            @enderror
+
+                                        </div>
+
+
+
+                                        {{-- =================================================
+                                        PASSWORD
+                                    ================================================== --}}
+
+                                        <div class="mb-3">
+
+                                            <label for="password" class="form-label">
+
+                                                Password
+
+                                                <span class="text-danger">
+                                                    *
+                                                </span>
+
+                                            </label>
+
+
+                                            <div class="password-wrapper">
+
+                                                <input type="password" name="password" id="password"
+                                                    class="form-control @error('password') is-invalid @enderror"
+                                                    placeholder="Create a secure password" autocomplete="new-password"
+                                                    minlength="8" required>
+
+
+                                                <button type="button" class="password-toggle"
+                                                    data-password-target="password" aria-label="Show password">
+
+                                                    <i class="bi bi-eye"></i>
+
+                                                </button>
+
+                                            </div>
+
+
+                                            <div class="form-text">
+
+                                                Use at least 8 characters.
+
+                                            </div>
+
+
+                                            @error('password')
+                                                <div class="text-danger small mt-1">
+
+                                                    {{ $message }}
+
+                                                </div>
+                                            @enderror
+
+                                        </div>
+
+
+
+                                        {{-- =================================================
+                                        CONFIRM PASSWORD
+                                    ================================================== --}}
+
+                                        <div class="mb-4">
+
+                                            <label for="password_confirmation" class="form-label">
+
+                                                Confirm Password
+
+                                                <span class="text-danger">
+                                                    *
+                                                </span>
+
+                                            </label>
+
+
+                                            <div class="password-wrapper">
+
+                                                <input type="password" name="password_confirmation"
+                                                    id="password_confirmation" class="form-control"
+                                                    placeholder="Re-enter your password" autocomplete="new-password"
+                                                    minlength="8" required>
+
+
+                                                <button type="button" class="password-toggle"
+                                                    data-password-target="password_confirmation"
+                                                    aria-label="Show confirmation password">
+
+                                                    <i class="bi bi-eye"></i>
+
+                                                </button>
+
+                                            </div>
+
+                                        </div>
+
+
+
+                                        {{-- =================================================
+                                        SUBMIT
+                                    ================================================== --}}
+
+                                        <div class="d-grid">
+
+                                            <button type="submit" class="btn btn-register">
+
+                                                <i class="bi bi-person-plus me-2"></i>
+
+                                                Create Donor Account
+
+                                            </button>
+
+                                        </div>
+
+                                    </form>
+
+
+
+                                    {{-- =================================================
+                                    LOGIN
+                                ================================================== --}}
+
+                                    <div class="text-center mt-4">
+
+                                        <span class="text-muted">
+
+                                            Already have an account?
+
+                                        </span>
+
+
+                                        <a href="{{ route('login') }}" class="login-link ms-1">
+
+                                            Login here
+
+                                        </a>
+
+                                    </div>
+
+
+
+                                    {{-- =================================================
+                                    SECURITY
+                                ================================================== --}}
+
+                                    <div class="security-note">
+
+                                        <i class="bi bi-shield-lock"></i>
+
+                                        Your account information is securely protected.
+
+                                    </div>
+
+                                </div>
+
+                            </div>
 
                         </div>
 
@@ -852,674 +1235,113 @@
 
             </div>
 
-        </section>
+        </div>
 
+    </div>
 
-        {{-- ================================================= --}}
-        {{-- REGISTER PANEL --}}
-        {{-- ================================================= --}}
 
-        <section class="auth-form-panel">
 
-            <div class="register-container">
+    @include('layouts.home.script')
 
-                {{-- Mobile Logo --}}
-                <div class="mobile-logo">
 
-                    <img
-                        src="{{ asset('admins/assets/images/logos/logo.png') }}"
-                        alt="NUST Sharing Network"
-                    >
-
-                </div>
-
-
-                {{-- Heading --}}
-                <div class="register-heading">
-
-                    <h2>
-                        Create Your Account
-                    </h2>
-
-                    <p>
-                        Register as a donor and support the
-                        NUST Sharing Network community.
-                    </p>
-
-                </div>
-
-
-                {{-- Validation Errors --}}
-                @if ($errors->any())
-
-                    <div
-                        class="register-alert"
-                        role="alert"
-                    >
-
-                        <i
-                            class="fa fa-exclamation-circle register-alert-icon"
-                        ></i>
-
-                        <div>
-
-                            <strong>
-                                Please correct the following:
-                            </strong>
-
-                            <ul>
-
-                                @foreach ($errors->all() as $error)
-
-                                    <li>
-                                        {{ $error }}
-                                    </li>
-
-                                @endforeach
-
-                            </ul>
-
-                        </div>
-
-                    </div>
-
-                @endif
-
-
-                {{-- Registration Form --}}
-                <form
-                    method="POST"
-                    action="{{ route('register.post') }}"
-                    id="registerForm"
-                >
-
-                    @csrf
-
-                    {{-- Public registration is available to donors only. --}}
-                    <input type="hidden" name="role" value="donor">
-
-
-                    <div class="register-grid">
-
-                        {{-- ================================================= --}}
-                        {{-- NAME --}}
-                        {{-- ================================================= --}}
-
-                        <div class="form-field">
-
-                            <label
-                                for="name"
-                                class="register-label"
-                            >
-                                Full Name
-                                <span class="required-mark">*</span>
-                            </label>
-
-                            <div class="input-wrapper">
-
-                                <i class="fa fa-user input-icon"></i>
-
-                                <input
-                                    type="text"
-                                    name="name"
-                                    id="name"
-                                    value="{{ old('name') }}"
-                                    class="register-control @error('name') is-invalid @enderror"
-                                    placeholder="e.g., Ali Ahmed"
-                                    autocomplete="name"
-                                    required
-                                >
-
-                            </div>
-
-                            @error('name')
-
-                                <span class="field-error">
-                                    {{ $message }}
-                                </span>
-
-                            @enderror
-
-                        </div>
-
-
-                        {{-- ================================================= --}}
-                        {{-- EMAIL --}}
-                        {{-- ================================================= --}}
-
-                        <div class="form-field">
-
-                            <label
-                                for="email"
-                                class="register-label"
-                            >
-                                Email Address
-                                <span class="required-mark">*</span>
-                            </label>
-
-                            <div class="input-wrapper">
-
-                                <i class="fa fa-envelope input-icon"></i>
-
-                                <input
-                                    type="email"
-                                    name="email"
-                                    id="email"
-                                    value="{{ old('email') }}"
-                                    class="register-control @error('email') is-invalid @enderror"
-                                    placeholder="Enter an active email address"
-                                    autocomplete="email"
-                                    required
-                                >
-
-                            </div>
-
-                            @error('email')
-
-                                <span class="field-error">
-                                    {{ $message }}
-                                </span>
-
-                            @enderror
-
-                        </div>
-
-
-                        {{-- ================================================= --}}
-                        {{-- PHONE --}}
-                        {{-- ================================================= --}}
-
-                        <div class="form-field">
-
-                            <label
-                                for="phone"
-                                class="register-label"
-                            >
-                                Phone Number
-                                <span class="required-mark">*</span>
-                            </label>
-
-                            <div class="input-wrapper">
-
-                                <i class="fa fa-phone input-icon"></i>
-
-                                <input
-                                    type="number"
-                                    name="phone"
-                                    id="phone"
-                                    value="{{ old('phone') }}"
-                                    class="register-control @error('phone') is-invalid @enderror"
-                                    placeholder="Enter an active number, e.g., 0300 1234567"
-                                    inputmode="numeric"
-                                    autocomplete="tel"
-                                    required
-                                >
-
-                            </div>
-
-                            @error('phone')
-
-                                <span class="field-error">
-                                    {{ $message }}
-                                </span>
-
-                            @enderror
-
-                        </div>
-
-
-                        {{-- ================================================= --}}
-                        {{-- REGISTER AS: PUBLIC REGISTRATION IS DONOR ONLY --}}
-                        {{-- ================================================= --}}
-
-                        <div class="form-field">
-
-                            <label
-                                for="display_role"
-                                class="register-label"
-                            >
-                                Register As
-                                <span class="required-mark">*</span>
-                            </label>
-
-                            <div class="input-wrapper">
-
-                                <i class="fa fa-handshake input-icon"></i>
-
-                                <select
-                                    id="display_role"
-                                    class="register-control"
-                                    aria-label="Register as Donor"
-                                    disabled
-                                >
-                                    <option selected>
-                                        Donor
-                                    </option>
-                                </select>
-
-                            </div>
-
-                        </div>
-
-
-                        {{-- ================================================= --}}
-                        {{-- BENEFICIARY INFORMATION --}}
-                        {{-- ================================================= --}}
-
-                        <div class="beneficiary-notice" role="note">
-
-                            <i class="fa fa-info-circle"></i>
-
-                            <div>
-                                <strong>Are you a beneficiary?</strong>
-
-                                Beneficiary accounts are already registered by
-                                the administration. If you have not received
-                                your account details or cannot access your
-                                account, please contact us at
-
-                                <a href="mailto:{{ config('mail.from.address') }}">
-                                    {{ config('mail.from.address') }}
-                                </a>.
-                            </div>
-
-                        </div>
-
-
-                        {{-- ================================================= --}}
-                        {{-- PASSWORD --}}
-                        {{-- ================================================= --}}
-
-                        <div class="form-field">
-
-                            <label
-                                for="password"
-                                class="register-label"
-                            >
-                                Password
-                                <span class="required-mark">*</span>
-                            </label>
-
-                            <div class="input-wrapper">
-
-                                <i class="fa fa-lock input-icon"></i>
-
-                                <input
-                                    type="password"
-                                    name="password"
-                                    id="password"
-                                    class="register-control password-control @error('password') is-invalid @enderror"
-                                    placeholder="Create a password (minimum 8 characters)"
-                                    autocomplete="new-password"
-                                    required
-                                >
-
-                                <button
-                                    type="button"
-                                    class="password-toggle"
-                                    id="passwordToggle"
-                                    aria-label="Show password"
-                                >
-
-                                    <i
-                                        class="fa fa-eye"
-                                        id="passwordIcon"
-                                    ></i>
-
-                                </button>
-
-                            </div>
-
-                            <div class="password-hint">
-
-                                <i class="fa fa-info-circle"></i>
-
-                                Use at least 8 characters.
-
-                            </div>
-
-                            @error('password')
-
-                                <span class="field-error">
-                                    {{ $message }}
-                                </span>
-
-                            @enderror
-
-                        </div>
-
-
-                        {{-- ================================================= --}}
-                        {{-- CONFIRM PASSWORD --}}
-                        {{-- ================================================= --}}
-
-                        <div class="form-field">
-
-                            <label
-                                for="password_confirmation"
-                                class="register-label"
-                            >
-                                Confirm Password
-                                <span class="required-mark">*</span>
-                            </label>
-
-                            <div class="input-wrapper">
-
-                                <i class="fa fa-lock input-icon"></i>
-
-                                <input
-                                    type="password"
-                                    name="password_confirmation"
-                                    id="password_confirmation"
-                                    class="register-control password-control"
-                                    placeholder="Re-enter your password"
-                                    autocomplete="new-password"
-                                    required
-                                >
-
-                                <button
-                                    type="button"
-                                    class="password-toggle"
-                                    id="confirmPasswordToggle"
-                                    aria-label="Show password"
-                                >
-
-                                    <i
-                                        class="fa fa-eye"
-                                        id="confirmPasswordIcon"
-                                    ></i>
-
-                                </button>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-
-                    {{-- ================================================= --}}
-                    {{-- TERMS --}}
-                    {{-- ================================================= --}}
-
-                    <label class="terms-wrapper">
-
-                        <input
-                            type="checkbox"
-                            name="terms"
-                            value="1"
-                            @checked(old('terms'))
-                            required
-                        >
-
-                        <span>
-                            I agree to the terms and conditions of the
-                            NUST Sharing Network and confirm that the
-                            information provided is accurate.
-                        </span>
-
-                    </label>
-
-                    @error('terms')
-
-                        <span class="field-error">
-                            {{ $message }}
-                        </span>
-
-                    @enderror
-
-
-                    {{-- ================================================= --}}
-                    {{-- REGISTER BUTTON --}}
-                    {{-- ================================================= --}}
-
-                    <button
-                        type="submit"
-                        class="btn-register"
-                        id="registerButton"
-                    >
-
-                        <span id="registerButtonText">
-                            Create Donor Account
-                        </span>
-
-                        <i
-                            class="fa fa-user-plus"
-                            id="registerButtonIcon"
-                        ></i>
-
-                    </button>
-
-
-                    {{-- ================================================= --}}
-                    {{-- LOGIN LINK --}}
-                    {{-- ================================================= --}}
-
-                    <p class="already-account">
-
-                        Already have an account?
-
-                        <a href="{{ route('login') }}">
-                            Sign In
-                        </a>
-
-                    </p>
-
-
-                    {{-- ================================================= --}}
-                    {{-- SECURITY MESSAGE --}}
-                    {{-- ================================================= --}}
-
-                    <p class="register-support">
-
-                        <i class="fa fa-shield"></i>
-
-                        Your account information is securely processed
-                        and protected.
-
-                    </p>
-
-                </form>
-
-            </div>
-
-        </section>
-
-    </main>
-
-
-    @include('layouts.admin.script')
-
+    {{-- =========================================================
+    PASSWORD TOGGLE
+========================================================== --}}
 
     <script>
+        document.addEventListener(
+            'DOMContentLoaded',
+            function() {
 
-        document.addEventListener('DOMContentLoaded', function () {
+                /*
+                |--------------------------------------------------------------------------
+                | Password Visibility
+                |--------------------------------------------------------------------------
+                */
 
-            /*
-            |--------------------------------------------------------------------------
-            | Elements
-            |--------------------------------------------------------------------------
-            */
-
-            const passwordInput =
-                document.getElementById('password');
-
-            const passwordToggle =
-                document.getElementById('passwordToggle');
-
-            const passwordIcon =
-                document.getElementById('passwordIcon');
-
-            const confirmPasswordInput =
-                document.getElementById('password_confirmation');
-
-            const confirmPasswordToggle =
-                document.getElementById('confirmPasswordToggle');
-
-            const confirmPasswordIcon =
-                document.getElementById('confirmPasswordIcon');
-
-            const registerForm =
-                document.getElementById('registerForm');
-
-            const registerButton =
-                document.getElementById('registerButton');
-
-            const registerButtonText =
-                document.getElementById('registerButtonText');
-
-            const registerButtonIcon =
-                document.getElementById('registerButtonIcon');
+                const passwordButtons =
+                    document.querySelectorAll(
+                        '.password-toggle'
+                    );
 
 
-            /*
-            |--------------------------------------------------------------------------
-            | Password Visibility Function
-            |--------------------------------------------------------------------------
-            */
+                passwordButtons.forEach(
+                    function(button) {
 
-            function setupPasswordToggle(
-                input,
-                button,
-                icon
-            ) {
+                        button.addEventListener(
+                            'click',
+                            function() {
 
-                if (
-                    !input ||
-                    !button ||
-                    !icon
-                ) {
-                    return;
-                }
+                                const targetId =
+                                    button.getAttribute(
+                                        'data-password-target'
+                                    );
 
-                button.addEventListener(
-                    'click',
-                    function () {
 
-                        const isHidden =
-                            input.type === 'password';
+                                const input =
+                                    document.getElementById(
+                                        targetId
+                                    );
 
-                        input.type =
-                            isHidden
-                                ? 'text'
-                                : 'password';
 
-                        icon.classList.toggle(
-                            'fa-eye',
-                            !isHidden
-                        );
+                                const icon =
+                                    button.querySelector(
+                                        'i'
+                                    );
 
-                        icon.classList.toggle(
-                            'fa-eye-slash',
-                            isHidden
-                        );
 
-                        button.setAttribute(
-                            'aria-label',
-                            isHidden
-                                ? 'Hide password'
-                                : 'Show password'
+                                if (
+                                    input.type ===
+                                    'password'
+                                ) {
+
+                                    input.type =
+                                        'text';
+
+
+                                    icon.classList.remove(
+                                        'bi-eye'
+                                    );
+
+
+                                    icon.classList.add(
+                                        'bi-eye-slash'
+                                    );
+
+
+                                    button.setAttribute(
+                                        'aria-label',
+                                        'Hide password'
+                                    );
+
+                                } else {
+
+                                    input.type =
+                                        'password';
+
+
+                                    icon.classList.remove(
+                                        'bi-eye-slash'
+                                    );
+
+
+                                    icon.classList.add(
+                                        'bi-eye'
+                                    );
+
+
+                                    button.setAttribute(
+                                        'aria-label',
+                                        'Show password'
+                                    );
+                                }
+
+                            }
                         );
 
                     }
                 );
 
             }
-
-
-            setupPasswordToggle(
-                passwordInput,
-                passwordToggle,
-                passwordIcon
-            );
-
-
-            setupPasswordToggle(
-                confirmPasswordInput,
-                confirmPasswordToggle,
-                confirmPasswordIcon
-            );
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Password Confirmation
-            |--------------------------------------------------------------------------
-            */
-
-            if (
-                passwordInput &&
-                confirmPasswordInput
-            ) {
-
-                function validatePasswordMatch() {
-
-                    if (
-                        confirmPasswordInput.value &&
-                        passwordInput.value !==
-                            confirmPasswordInput.value
-                    ) {
-
-                        confirmPasswordInput.setCustomValidity(
-                            'Passwords do not match.'
-                        );
-
-                    } else {
-
-                        confirmPasswordInput.setCustomValidity(
-                            ''
-                        );
-
-                    }
-
-                }
-
-                passwordInput.addEventListener(
-                    'input',
-                    validatePasswordMatch
-                );
-
-                confirmPasswordInput.addEventListener(
-                    'input',
-                    validatePasswordMatch
-                );
-
-            }
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Prevent Multiple Form Submissions
-            |--------------------------------------------------------------------------
-            */
-
-            if (
-                registerForm &&
-                registerButton &&
-                registerButtonText &&
-                registerButtonIcon
-            ) {
-
-                registerForm.addEventListener(
-                    'submit',
-                    function () {
-
-                        registerButton.disabled =
-                            true;
-
-                        registerButtonText.textContent =
-                            'Creating Account...';
-
-                        registerButtonIcon.className =
-                            'fa fa-spinner fa-spin';
-
-                    }
-                );
-
-            }
-
-        });
-
+        );
     </script>
-
-</body>

@@ -1,1189 +1,1917 @@
-@include('layouts.admin.head')
+@include('layouts.home.head')
+<title>Login - NUST Sharing Network</title>
+ <style>
 
-<title>Login | NUST Sharing Network</title>
+        /*
+        |--------------------------------------------------------------------------
+        | NUST SHARING NETWORK THEME
+        |--------------------------------------------------------------------------
+        */
 
-<style>
-    :root {
-        --auth-primary: #0065a8;
-        --auth-primary-dark: #003f6b;
-        --auth-primary-light: #eaf5fc;
-        --auth-accent: #f5a623;
-        --auth-text: #17212b;
-        --auth-muted: #667481;
-        --auth-border: #dce5ec;
-        --auth-white: #ffffff;
-        --auth-background: #f4f8fb;
-        --auth-danger: #dc3545;
-        --auth-danger-light: #fff2f2;
-        --auth-font: "Inter", "Segoe UI", Arial, sans-serif;
-    }
+        :root {
 
-    * {
-        box-sizing: border-box;
-    }
+            --nust-primary: #00558c;
 
-    html,
-    body {
-        min-height: 100%;
-        margin: 0;
-    }
+            --nust-primary-dark: #003f69;
 
-    body,
-    input,
-    select,
-    button,
-    textarea,
-    label,
-    a,
-    p,
-    span,
-    small,
-    h1,
-    h2,
-    h3,
-    h4,
-    h5,
-    h6 {
-        font-family: var(--auth-font) !important;
-    }
+            --nust-secondary: #0072bc;
 
-    body {
-        min-height: 100vh;
-        color: var(--auth-text);
-        background-color: var(--auth-background);
-    }
+            --nust-green: #82b295;
 
-    .auth-page {
-        position: relative;
-        display: flex;
-        min-height: 100vh;
-        overflow: hidden;
-    }
+            --nust-light: #eef6fb;
 
-    /* Left panel */
-    .auth-information {
-        position: relative;
-        display: flex;
-        flex: 0 0 42%;
-        align-items: center;
-        padding: 55px 65px;
-        overflow: hidden;
-        color: var(--auth-white);
-        background:
-            linear-gradient(
-                135deg,
-                rgba(0, 63, 107, 0.97),
-                rgba(0, 101, 168, 0.90)
-            ),
-            url('{{ asset('admins/assets/images/backgrounds/nust-campus.jpg') }}')
-            center center / cover no-repeat;
-    }
+            --nust-soft: #f7fafc;
 
-    .auth-information::before,
-    .auth-information::after {
-        position: absolute;
-        border-radius: 50%;
-        content: "";
-        pointer-events: none;
-    }
+            --nust-text: #243746;
 
-    .auth-information::before {
-        top: -180px;
-        right: -130px;
-        width: 420px;
-        height: 420px;
-        border: 70px solid rgba(255, 255, 255, 0.06);
-    }
+            --nust-muted: #6c7a89;
 
-    .auth-information::after {
-        bottom: -180px;
-        left: -130px;
-        width: 400px;
-        height: 400px;
-        background-color: rgba(245, 166, 35, 0.10);
-    }
+            --nust-border: #dce6ec;
 
-    .information-content {
-        position: relative;
-        z-index: 2;
-        width: 100%;
-        max-width: 580px;
-        margin: auto;
-    }
-
-    .brand-logo-wrapper {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 30px;
-        padding: 12px 18px;
-        border-radius: 14px;
-        background-color: rgba(255, 255, 255, 0.96);
-    }
-
-    .brand-logo-wrapper img {
-        display: block;
-        width: 145px;
-        max-height: 70px;
-        object-fit: contain;
-    }
-
-    .information-badge {
-        display: inline-flex;
-        gap: 9px;
-        align-items: center;
-        margin-bottom: 18px;
-        padding: 8px 14px;
-        border: 1px solid rgba(255, 255, 255, 0.22);
-        border-radius: 50rem;
-        background-color: rgba(255, 255, 255, 0.10);
-        font-size: 0.84rem;
-        font-weight: 600;
-        letter-spacing: 0.4px;
-    }
-
-    .information-badge::before {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background-color: var(--auth-accent);
-        content: "";
-    }
-
-    .information-content h1 {
-        max-width: 540px;
-        margin: 0 0 18px;
-        color: var(--auth-white);
-        font-size: clamp(2.2rem, 3.5vw, 3.6rem);
-        font-weight: 750;
-        line-height: 1.12;
-    }
-
-    .information-description {
-        max-width: 530px;
-        margin: 0 0 30px;
-        color: rgba(255, 255, 255, 0.82);
-        font-size: 1rem;
-        line-height: 1.75;
-    }
-
-    .platform-features {
-        display: grid;
-        gap: 13px;
-    }
-
-    .platform-feature {
-        display: flex;
-        gap: 13px;
-        align-items: center;
-    }
-
-    .feature-icon {
-        display: flex;
-        flex: 0 0 40px;
-        align-items: center;
-        justify-content: center;
-        width: 40px;
-        height: 40px;
-        border-radius: 11px;
-        color: var(--auth-primary-dark);
-        background-color: var(--auth-accent);
-        font-size: 1rem;
-    }
-
-    .feature-content strong {
-        display: block;
-        margin-bottom: 2px;
-        color: var(--auth-white);
-        font-size: 0.93rem;
-        font-weight: 700;
-    }
-
-    .feature-content span {
-        color: rgba(255, 255, 255, 0.68);
-        font-size: 0.82rem;
-    }
-
-    /* Right form panel */
-    .auth-form-panel {
-        position: relative;
-        display: flex;
-        flex: 1;
-        align-items: center;
-        justify-content: center;
-        padding: 40px 55px;
-        overflow-y: auto;
-        background-color: #f7fafc;
-    }
-
-    .auth-form-panel::before {
-        position: absolute;
-        top: 0;
-        right: 0;
-        width: 220px;
-        height: 220px;
-        border-radius: 0 0 0 100%;
-        background-color: var(--auth-primary-light);
-        content: "";
-    }
-
-    .login-container {
-        position: relative;
-        z-index: 2;
-        width: 100%;
-        max-width: 650px;
-        padding: 15px 0;
-    }
-
-    .mobile-logo {
-        display: none;
-        margin-bottom: 22px;
-        text-align: center;
-    }
-
-    .mobile-logo img {
-        width: 135px;
-        max-height: 65px;
-        object-fit: contain;
-    }
-
-    .login-heading {
-        margin-bottom: 25px;
-    }
-
-    .login-heading h2 {
-        margin: 0 0 9px;
-        color: var(--auth-text);
-        font-size: 2rem;
-        font-weight: 750;
-    }
-
-    .login-heading p {
-        margin: 0;
-        color: var(--auth-muted);
-        line-height: 1.6;
-    }
-
-    /* Alerts */
-    .login-alert {
-        display: flex;
-        gap: 12px;
-        align-items: flex-start;
-        margin-bottom: 22px;
-        padding: 14px 16px;
-        border: 1px solid #f2c5c5;
-        border-radius: 12px;
-        color: #a12b2b;
-        background-color: var(--auth-danger-light);
-        font-size: 0.88rem;
-    }
-
-    .login-alert-icon {
-        flex-shrink: 0;
-        margin-top: 2px;
-    }
-
-    .login-alert strong {
-        display: block;
-        margin-bottom: 5px;
-    }
-
-    .login-alert ul {
-        margin: 0;
-        padding-left: 18px;
-    }
-
-    /* Form */
-    .form-field {
-        margin-bottom: 17px;
-    }
-
-    .login-label {
-        display: block;
-        margin-bottom: 8px;
-        color: var(--auth-text);
-        font-size: 0.88rem;
-        font-weight: 650;
-    }
-
-    .required-mark {
-        color: var(--auth-danger);
-    }
-
-    .input-wrapper {
-        position: relative;
-    }
-
-    .input-icon {
-        position: absolute;
-        top: 50%;
-        left: 16px;
-        z-index: 2;
-        color: #83919d;
-        transform: translateY(-50%);
-        pointer-events: none;
-    }
-
-    .login-control {
-        display: block;
-        width: 100%;
-        height: 50px;
-        padding: 10px 16px 10px 45px;
-        border: 1px solid var(--auth-border);
-        border-radius: 11px;
-        outline: none;
-        color: var(--auth-text);
-        background-color: var(--auth-white);
-        font-size: 0.93rem;
-        transition:
-            border-color 0.2s ease,
-            box-shadow 0.2s ease;
-    }
-
-    select.login-control {
-        cursor: pointer;
-    }
-
-    .login-control::placeholder {
-        color: #9aa5ae;
-    }
-
-    /* Remove number input arrows in Chrome, Edge, Safari and Opera */
-    .login-control[type="number"]::-webkit-outer-spin-button,
-    .login-control[type="number"]::-webkit-inner-spin-button {
-        margin: 0;
-        -webkit-appearance: none;
-    }
-
-    /* Remove number input arrows in Firefox */
-    .login-control[type="number"] {
-        appearance: textfield;
-        -moz-appearance: textfield;
-    }
-
-    .login-control:hover {
-        border-color: #a9bbc8;
-    }
-
-    .login-control:focus {
-        border-color: var(--auth-primary);
-        box-shadow: 0 0 0 4px rgba(0, 101, 168, 0.10);
-    }
-
-    .login-control.is-invalid {
-        border-color: var(--auth-danger);
-    }
-
-    .field-error {
-        display: block;
-        margin-top: 6px;
-        color: var(--auth-danger);
-        font-size: 0.8rem;
-    }
-
-    .password-control {
-        padding-right: 52px;
-    }
-
-    .password-toggle {
-        position: absolute;
-        top: 50%;
-        right: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 38px;
-        height: 38px;
-        padding: 0;
-        border: 0;
-        border-radius: 9px;
-        color: #697884;
-        background: transparent;
-        cursor: pointer;
-        transform: translateY(-50%);
-        transition:
-            color 0.2s ease,
-            background-color 0.2s ease;
-    }
-
-    .password-toggle:hover {
-        color: var(--auth-primary);
-        background-color: var(--auth-primary-light);
-    }
-
-    .form-options {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 20px;
-    }
-
-
-    .login-success {
-        display: flex;
-        gap: 12px;
-        align-items: flex-start;
-        margin-bottom: 22px;
-        padding: 14px 16px;
-        border: 1px solid #b9e1c8;
-        border-radius: 12px;
-        color: #146c43;
-        background-color: #effaf3;
-        font-size: 0.88rem;
-    }
-
-    .forgot-password-link {
-        color: var(--auth-primary);
-        font-size: 0.88rem;
-        font-weight: 700;
-        text-decoration: none;
-    }
-
-    .forgot-password-link:hover {
-        text-decoration: underline;
-    }
-
-    .remember-wrapper {
-        display: inline-flex;
-        gap: 8px;
-        align-items: center;
-        margin: 0;
-        color: var(--auth-muted);
-        font-size: 0.9rem;
-        cursor: pointer;
-    }
-
-    .remember-wrapper input {
-        width: 17px;
-        height: 17px;
-        margin: 0;
-        accent-color: var(--auth-primary);
-        cursor: pointer;
-    }
-
-    .btn-login {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-        height: 52px;
-        padding: 10px 20px;
-        border: 0;
-        border-radius: 12px;
-        color: var(--auth-white);
-        background: linear-gradient(
-            135deg,
-            var(--auth-primary),
-            var(--auth-primary-dark)
-        );
-        font-size: 0.95rem;
-        font-weight: 700;
-        letter-spacing: 0.4px;
-        cursor: pointer;
-        transition:
-            transform 0.2s ease,
-            box-shadow 0.2s ease;
-    }
-
-    .btn-login:hover {
-        color: var(--auth-white);
-        box-shadow: 0 10px 24px rgba(0, 76, 128, 0.25);
-        transform: translateY(-2px);
-    }
-
-    .btn-login:active {
-        box-shadow: none;
-        transform: translateY(0);
-    }
-
-    .btn-login:disabled {
-        cursor: not-allowed;
-        opacity: 0.7;
-        transform: none;
-    }
-
-    .register-link {
-        margin: 18px 0 0;
-        color: var(--auth-muted);
-        font-size: 0.86rem;
-        text-align: center;
-    }
-
-    .register-link a {
-        color: var(--auth-primary);
-        font-weight: 700;
-        text-decoration: none;
-    }
-
-    .register-link a:hover {
-        text-decoration: underline;
-    }
-
-    .login-support {
-        margin: 22px 0 0;
-        color: var(--auth-muted);
-        font-size: 0.85rem;
-        line-height: 1.6;
-        text-align: center;
-    }
-
-    .login-support i {
-        margin-right: 5px;
-        color: var(--auth-primary);
-    }
-
-    /* Tablet */
-    @media (max-width: 991.98px) {
-        .auth-information {
-            flex-basis: 42%;
-            padding: 45px 35px;
+            --white: #ffffff;
         }
 
-        .information-content h1 {
-            font-size: 2.5rem;
+
+        /*
+        |--------------------------------------------------------------------------
+        | Base
+        |--------------------------------------------------------------------------
+        */
+
+        * {
+            box-sizing: border-box;
         }
 
-        .auth-form-panel {
-            padding: 40px 35px;
-        }
-    }
 
-    /* Mobile */
-    @media (max-width: 767.98px) {
-        .auth-page {
+        html,
+        body {
+            min-height: 100%;
+        }
+
+
+        body {
+
+            margin: 0;
+
+            font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                Roboto,
+                Helvetica,
+                Arial,
+                sans-serif;
+
+            color: var(--nust-text);
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #edf5fa 0%,
+                    #f9fbfd 45%,
+                    #e7f1f7 100%
+                );
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Wrapper
+        |--------------------------------------------------------------------------
+        */
+
+        .login-wrapper {
+
+            position: relative;
+
+            min-height: 100vh;
+
+            display: flex;
+
+            align-items: center;
+
+            padding: 45px 0;
+
+            overflow: hidden;
+        }
+
+
+        .login-wrapper::before {
+
+            content: "";
+
+            position: absolute;
+
+            width: 450px;
+
+            height: 450px;
+
+            top: -190px;
+
+            left: -180px;
+
+            border-radius: 50%;
+
+            background:
+                rgba(
+                    0,
+                    85,
+                    140,
+                    0.07
+                );
+        }
+
+
+        .login-wrapper::after {
+
+            content: "";
+
+            position: absolute;
+
+            width: 500px;
+
+            height: 500px;
+
+            right: -210px;
+
+            bottom: -260px;
+
+            border-radius: 50%;
+
+            background:
+                rgba(
+                    0,
+                    114,
+                    188,
+                    0.06
+                );
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Main Card
+        |--------------------------------------------------------------------------
+        */
+
+        .login-card {
+
+            position: relative;
+
+            z-index: 2;
+
+            background: var(--white);
+
+            border: 0;
+
+            border-radius: 22px;
+
+            overflow: hidden;
+
+            box-shadow:
+                0 20px 60px
+                rgba(
+                    24,
+                    63,
+                    88,
+                    0.13
+                );
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Branding Panel
+        |--------------------------------------------------------------------------
+        */
+
+        .brand-panel {
+
+            position: relative;
+
+            height: 100%;
+
+            min-height: 620px;
+
+            padding: 55px 45px;
+
+            display: flex;
+
+            align-items: center;
+
+            color: #ffffff;
+
+            background:
+                linear-gradient(
+                    150deg,
+                    var(--nust-primary-dark) 0%,
+                    var(--nust-primary) 50%,
+                    var(--nust-secondary) 100%
+                );
+
+            overflow: hidden;
+        }
+
+
+        .brand-panel::before {
+
+            content: "";
+
+            position: absolute;
+
+            width: 300px;
+
+            height: 300px;
+
+            right: -120px;
+
+            top: -100px;
+
+            border:
+                1px solid
+                rgba(
+                    255,
+                    255,
+                    255,
+                    0.14
+                );
+
+            border-radius: 50%;
+        }
+
+
+        .brand-panel::after {
+
+            content: "";
+
+            position: absolute;
+
+            width: 220px;
+
+            height: 220px;
+
+            left: -80px;
+
+            bottom: -100px;
+
+            border-radius: 50%;
+
+            background:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    0.05
+                );
+        }
+
+
+        .brand-content {
+
+            position: relative;
+
+            z-index: 2;
+
+            width: 100%;
+        }
+
+
+        .brand-badge {
+
+            display: inline-flex;
+
+            align-items: center;
+
+            gap: 9px;
+
+            padding: 8px 15px;
+
+            margin-bottom: 32px;
+
+            border:
+                1px solid
+                rgba(
+                    255,
+                    255,
+                    255,
+                    0.18
+                );
+
+            border-radius: 30px;
+
+            background:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    0.10
+                );
+
+            font-size: 13px;
+        }
+
+
+        .brand-title {
+
+            margin-bottom: 20px;
+
+            font-size: 37px;
+
+            line-height: 1.25;
+
+            font-weight: 700;
+        }
+
+
+        .brand-description {
+
+            max-width: 430px;
+
+            margin-bottom: 35px;
+
+            color:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    0.86
+                );
+
+            font-size: 15px;
+
+            line-height: 1.8;
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Feature Items
+        |--------------------------------------------------------------------------
+        */
+
+        .feature-item {
+
+            display: flex;
+
+            align-items: flex-start;
+
+            gap: 13px;
+
+            margin-bottom: 18px;
+        }
+
+
+        .feature-icon {
+
+            width: 36px;
+
+            height: 36px;
+
+            min-width: 36px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            border-radius: 9px;
+
+            background:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    0.12
+                );
+        }
+
+
+        .feature-item strong {
+
             display: block;
+
+            margin-bottom: 2px;
+
+            font-size: 14px;
         }
 
-        .auth-information {
+
+        .feature-item span {
+
+            color:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    0.72
+                );
+
+            font-size: 12px;
+
+            line-height: 1.6;
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Form Panel
+        |--------------------------------------------------------------------------
+        */
+
+        .form-panel {
+
+            padding: 50px;
+        }
+
+
+        .login-icon {
+
+            width: 68px;
+
+            height: 68px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            margin-bottom: 22px;
+
+            border-radius: 15px;
+
+            color: var(--nust-primary);
+
+            background: var(--nust-light);
+
+            font-size: 28px;
+        }
+
+
+        .form-heading {
+
+            margin-bottom: 8px;
+
+            color: var(--nust-primary-dark);
+
+            font-size: 29px;
+
+            font-weight: 700;
+        }
+
+
+        .form-subheading {
+
+            margin-bottom: 30px;
+
+            color: var(--nust-muted);
+
+            font-size: 14px;
+
+            line-height: 1.7;
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Form Elements
+        |--------------------------------------------------------------------------
+        */
+
+        .form-label {
+
+            margin-bottom: 8px;
+
+            color: #34495e;
+
+            font-size: 14px;
+
+            font-weight: 600;
+        }
+
+
+        .form-control,
+        .form-select {
+
+            min-height: 51px;
+
+            padding: 11px 14px;
+
+            border:
+                1px solid
+                var(--nust-border);
+
+            border-radius: 10px;
+
+            color: var(--nust-text);
+
+            background-color: #ffffff;
+
+            transition:
+                border-color 0.2s ease,
+                box-shadow 0.2s ease;
+        }
+
+
+        .form-control:focus,
+        .form-select:focus {
+
+            border-color: var(--nust-primary);
+
+            box-shadow:
+                0 0 0 0.2rem
+                rgba(
+                    0,
+                    85,
+                    140,
+                    0.12
+                );
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Role Help
+        |--------------------------------------------------------------------------
+        */
+
+        .role-help {
+
+            display: none;
+
+            margin-top: 9px;
+
+            padding: 11px 13px;
+
+            border-radius: 8px;
+
+            color: #516978;
+
+            background: var(--nust-light);
+
+            font-size: 12px;
+
+            line-height: 1.6;
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Qalam
+        |--------------------------------------------------------------------------
+        */
+
+        #qalamField {
+
             display: none;
         }
 
-        .auth-form-panel {
-            min-height: 100vh;
-            padding: 35px 20px;
+
+        /*
+        |--------------------------------------------------------------------------
+        | Password
+        |--------------------------------------------------------------------------
+        */
+
+        .password-wrapper {
+
+            position: relative;
         }
 
-        .auth-form-panel::before {
-            width: 130px;
-            height: 130px;
+
+        .password-wrapper .form-control {
+
+            padding-right: 50px;
         }
 
-        .mobile-logo {
-            display: block;
+
+        .password-toggle {
+
+            position: absolute;
+
+            top: 50%;
+
+            right: 5px;
+
+            transform: translateY(-50%);
+
+            width: 42px;
+
+            height: 42px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            border: 0;
+
+            border-radius: 8px;
+
+            color: #768691;
+
+            background: transparent;
+
+            cursor: pointer;
         }
 
-        .login-container {
-            max-width: 520px;
+
+        .password-toggle:hover {
+
+            color: var(--nust-primary);
+
+            background: var(--nust-light);
         }
 
-        .login-heading {
-            margin-bottom: 24px;
+
+        /*
+        |--------------------------------------------------------------------------
+        | Remember
+        |--------------------------------------------------------------------------
+        */
+
+        .form-check-input:checked {
+
+            background-color: var(--nust-primary);
+
+            border-color: var(--nust-primary);
+        }
+
+
+        .form-check-label {
+
+            color: #667784;
+
+            font-size: 13px;
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Login Button
+        |--------------------------------------------------------------------------
+        */
+
+        .btn-login {
+
+            min-height: 52px;
+
+            border: 0;
+
+            border-radius: 10px;
+
+            color: #ffffff;
+
+            font-weight: 600;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    var(--nust-primary),
+                    var(--nust-secondary)
+                );
+
+            box-shadow:
+                0 8px 18px
+                rgba(
+                    0,
+                    85,
+                    140,
+                    0.18
+                );
+
+            transition:
+                all 0.2s ease;
+        }
+
+
+        .btn-login:hover {
+
+            color: #ffffff;
+
+            transform:
+                translateY(-1px);
+
+            box-shadow:
+                0 10px 22px
+                rgba(
+                    0,
+                    85,
+                    140,
+                    0.24
+                );
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Register
+        |--------------------------------------------------------------------------
+        */
+
+        .register-area {
+
+            margin-top: 28px;
+
+            padding-top: 23px;
+
+            border-top:
+                1px solid
+                #e6edf1;
+
             text-align: center;
         }
 
-        .login-heading h2 {
-            font-size: 1.75rem;
-        }
-    }
 
-    @media (max-width: 420px) {
-        .auth-form-panel {
-            align-items: flex-start;
-            padding: 25px 15px;
-        }
+        .register-area p {
 
-        .login-heading h2 {
-            font-size: 1.55rem;
+            margin-bottom: 8px;
+
+            color: var(--nust-muted);
+
+            font-size: 13px;
         }
 
-        .login-control,
-        .btn-login {
-            height: 50px;
-        }
-    }
-</style>
 
+        .register-link {
+
+            color: var(--nust-primary);
+
+            font-weight: 600;
+
+            text-decoration: none;
+        }
+
+
+        .register-link:hover {
+
+            color: var(--nust-primary-dark);
+
+            text-decoration: underline;
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Security
+        |--------------------------------------------------------------------------
+        */
+
+        .security-note {
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            gap: 7px;
+
+            margin-top: 22px;
+
+            color: #8996a0;
+
+            font-size: 11px;
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Alerts
+        |--------------------------------------------------------------------------
+        */
+
+        .alert {
+
+            border: 0;
+
+            border-radius: 9px;
+
+            font-size: 13px;
+        }
+
+
+        .alert-success {
+
+            border-left:
+                4px solid
+                #198754;
+
+            background: #eaf7f0;
+        }
+
+
+        .alert-warning {
+
+            border-left:
+                4px solid
+                #f0ad4e;
+
+            background: #fff8e8;
+        }
+
+
+        .alert-danger {
+
+            border-left:
+                4px solid
+                #dc3545;
+
+            background: #fff1f2;
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Responsive
+        |--------------------------------------------------------------------------
+        */
+
+        @media (max-width: 991.98px) {
+
+            .brand-panel {
+
+                min-height: auto;
+
+                padding: 40px 35px;
+            }
+
+
+            .brand-title {
+
+                font-size: 30px;
+            }
+
+
+            .form-panel {
+
+                padding: 42px 35px;
+            }
+
+        }
+
+
+        @media (max-width: 767.98px) {
+
+            .login-wrapper {
+
+                padding: 25px 0;
+            }
+
+
+            .login-card {
+
+                border-radius: 16px;
+            }
+
+
+            .brand-panel {
+
+                padding: 35px 28px;
+            }
+
+
+            .brand-title {
+
+                font-size: 27px;
+            }
+
+
+            .form-panel {
+
+                padding: 35px 25px;
+            }
+
+
+            .form-heading {
+
+                font-size: 25px;
+            }
+
+        }
+
+    </style>
 <body>
 
 
-    <main class="auth-page">
-        {{-- ================================================= --}}
-        {{-- LEFT INFORMATION PANEL --}}
-        {{-- ================================================= --}}
-        <section class="auth-information mt-5">
+<div class="login-wrapper">
 
-            <div class="information-content">
+    <div class="container">
 
-                {{-- Logo --}}
-                <div class="brand-logo-wrapper">
-                    <img
-                        src="{{ asset('admins/assets/images/logos/logo.png') }}"
-                        alt="NUST Sharing Network"
-                    >
-                </div>
+        <div class="row justify-content-center">
 
+            <div class="col-xl-10 col-lg-11">
 
-                <div class="information-badge">
-                    NUST Community Initiative
-                </div>
 
+                <div class="login-card">
 
-                <h1>
-                    Share More.<br>
-                    Support Others.
-                </h1>
+                    <div class="row g-0">
 
 
-                <p class="information-description">
-                    NUST Sharing Network connects donors with beneficiaries
-                    through a secure and transparent platform, helping useful
-                    resources reach the people who need them most.
-                </p>
+                        {{-- =================================================
+                            LEFT SIDE
+                        ================================================== --}}
 
+                        <div class="col-lg-5">
 
-                <div class="platform-features">
+                            <div class="brand-panel">
 
-                    <div class="platform-feature">
+                                <div class="brand-content">
 
-                        <div class="feature-icon">
-                            <i class="fa fa-shield"></i>
-                        </div>
 
-                        <div class="feature-content">
-                            <strong>Secure and Verified</strong>
+                                    <div class="brand-badge">
 
-                            <span>
-                                Protected access for every registered user
-                            </span>
-                        </div>
+                                        <i class="bi bi-share-fill"></i>
 
-                    </div>
+                                        NUST Sharing Network
 
+                                    </div>
 
-                    <div class="platform-feature">
 
-                        <div class="feature-icon">
-                            <i class="fa fa-handshake"></i>
-                        </div>
+                                    <h1 class="brand-title">
 
-                        <div class="feature-content">
-                            <strong>Community Support</strong>
+                                        Connecting Resources
 
-                            <span>
-                                Connecting donors with deserving beneficiaries
-                            </span>
-                        </div>
+                                        <br>
 
-                    </div>
+                                        With Those
 
+                                        <br>
 
-                    <div class="platform-feature">
+                                        Who Need Them.
 
-                        <div class="feature-icon">
-                            <i class="fa fa-gift"></i>
-                        </div>
+                                    </h1>
 
-                        <div class="feature-content">
-                            <strong>Meaningful Sharing</strong>
 
-                            <span>
-                                Give useful items a new purpose
-                            </span>
-                        </div>
+                                    <p class="brand-description">
 
-                    </div>
+                                        Sign in to securely access your
+                                        NUST Sharing Network account and
+                                        manage your role-specific activities.
 
-                </div>
+                                    </p>
 
-            </div>
 
-        </section>
 
+                                    {{-- Admin --}}
 
-        {{-- ================================================= --}}
-        {{-- LOGIN PANEL --}}
-        {{-- ================================================= --}}
-        <section class="auth-form-panel">
+                                    <div class="feature-item">
 
-            <div class="login-container">
+                                        <div class="feature-icon">
 
-                {{-- Mobile Logo --}}
-                <div class="mobile-logo">
-                    <img
-                        src="{{ asset('admins/assets/images/logos/logo.png') }}"
-                        alt="NUST Sharing Network"
-                    >
-                </div>
+                                            <i class="bi bi-shield-check"></i>
 
+                                        </div>
 
-                {{-- Heading --}}
-                <div class="login-heading">
 
-                    <h2>Welcome Back</h2>
+                                        <div>
 
-                    <p>
-                        Select your role and enter your account details
-                        to access the Sharing Network.
-                    </p>
+                                            <strong>
+                                                Administrator
+                                            </strong>
 
-                </div>
+                                            <span>
 
+                                                Manage users, products,
+                                                categories and request approvals.
 
-                {{-- Success / Status Message --}}
-                @if (session('success') || session('status'))
+                                            </span>
 
-                    <div class="login-success" role="alert">
+                                        </div>
 
-                        <i class="fa fa-check-circle mt-1"></i>
+                                    </div>
 
-                        <div>
-                            {{
-                                session('success')
-                                ?? session('status')
-                            }}
-                        </div>
 
-                    </div>
 
-                @endif
+                                    {{-- Donor --}}
 
+                                    <div class="feature-item">
 
-                {{-- Validation Errors --}}
-                @if ($errors->any())
+                                        <div class="feature-icon">
 
-                    <div class="login-alert" role="alert">
+                                            <i class="bi bi-box-seam"></i>
 
-                        <i class="fa fa-exclamation-circle login-alert-icon"></i>
+                                        </div>
 
-                        <div>
-                            <strong>
-                                Please correct the following:
-                            </strong>
 
-                            <ul>
-                                @foreach ($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
+                                        <div>
 
-                    </div>
+                                            <strong>
+                                                Donor
+                                            </strong>
 
-                @endif
+                                            <span>
 
+                                                Add products and review
+                                                administrator-approved requests.
 
-                {{-- Login Form --}}
-                <form
-                    method="POST"
-                    action="{{ route('login.post') }}"
-                    id="loginForm"
-                >
-                    @csrf
+                                            </span>
 
+                                        </div>
 
-                    {{-- Role --}}
-                    <div class="form-field">
+                                    </div>
 
-                        <label
-                            for="role"
-                            class="login-label"
-                        >
-                            Sign in as
-                            <span class="required-mark">*</span>
-                        </label>
 
-                        <div class="input-wrapper">
 
-                            <i class="fa fa-users input-icon"></i>
+                                    {{-- Beneficiary --}}
 
-                            <select
-                                name="role"
-                                id="role"
-                                class="login-control @error('role') is-invalid @enderror"
-                                required
-                            >
-                                <option value="">
-                                    Select your role
-                                </option>
+                                    <div class="feature-item">
 
-                                <option
-                                    value="beneficiary"
-                                    @selected(old('role') === 'beneficiary')
-                                >
-                                    Beneficiary
-                                </option>
+                                        <div class="feature-icon">
 
-                                <option
-                                    value="donor"
-                                    @selected(old('role') === 'donor')
-                                >
-                                    Donor
-                                </option>
+                                            <i class="bi bi-person-check"></i>
 
-                                <option
-                                    value="admin"
-                                    @selected(old('role') === 'admin')
-                                >
-                                    Administrator
-                                </option>
-                            </select>
+                                        </div>
+
+
+                                        <div>
+
+                                            <strong>
+                                                Beneficiary
+                                            </strong>
+
+                                            <span>
+
+                                                Browse available products and
+                                                track submitted requests.
+
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
 
                         </div>
 
-                        @error('role')
-                            <span class="field-error">
-                                {{ $message }}
-                            </span>
-                        @enderror
-
-                    </div>
 
 
-                    {{-- Qalam ID --}}
-                    <div
-                        class="form-field"
-                        id="qalamIdField"
-                        @if (old('role') !== 'beneficiary')
-                            hidden
-                        @endif
-                    >
-                        <label
-                            for="qalam_id"
-                            class="login-label"
-                        >
-                            Qalam ID
-                            <span class="required-mark">*</span>
-                        </label>
+                        {{-- =================================================
+                            LOGIN FORM
+                        ================================================== --}}
 
-                        <div class="input-wrapper">
+                        <div class="col-lg-7">
 
-                            <i class="fa fa-id-card input-icon"></i>
+                            <div class="form-panel">
 
-                            <input
-                                type="number"
-                                name="qalam_id"
-                                id="qalam_id"
-                                value="{{ old('qalam_id') }}"
-                                class="login-control @error('qalam_id') is-invalid @enderror"
-                                placeholder="Enter your Qalam ID"
-                                inputmode="numeric"
-                                autocomplete="off"
-                                @if (old('role') === 'beneficiary')
-                                    required
+
+                                {{-- Login Icon --}}
+
+                                <div class="login-icon">
+
+                                    <i class="bi bi-person-lock"></i>
+
+                                </div>
+
+
+                                {{-- Heading --}}
+
+                                <h2 class="form-heading">
+
+                                    Welcome Back
+
+                                </h2>
+
+
+                                <p class="form-subheading">
+
+                                    Select your account type and enter your
+                                    credentials to continue.
+
+                                </p>
+
+
+
+                                {{-- =================================================
+                                    SUCCESS
+                                ================================================== --}}
+
+                                @if(session('success'))
+
+                                    <div
+                                        class="alert alert-success"
+                                        role="alert"
+                                    >
+
+                                        <div class="d-flex align-items-start">
+
+                                            <i
+                                                class="bi bi-check-circle-fill me-2 mt-1"
+                                            ></i>
+
+
+                                            <div>
+
+                                                {{ session('success') }}
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
                                 @endif
-                            >
+
+
+
+                                {{-- =================================================
+                                    WARNING
+                                ================================================== --}}
+
+                                @if(session('warning'))
+
+                                    <div
+                                        class="alert alert-warning"
+                                        role="alert"
+                                    >
+
+                                        <div class="d-flex align-items-start">
+
+                                            <i
+                                                class="bi bi-exclamation-triangle-fill me-2 mt-1"
+                                            ></i>
+
+
+                                            <div>
+
+                                                {{ session('warning') }}
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                @endif
+
+
+
+                                {{-- =================================================
+                                    ERRORS
+                                ================================================== --}}
+
+                                @if($errors->any())
+
+                                    <div
+                                        class="alert alert-danger"
+                                        role="alert"
+                                    >
+
+                                        <div class="d-flex align-items-start">
+
+                                            <i
+                                                class="bi bi-exclamation-circle-fill me-2 mt-1"
+                                            ></i>
+
+
+                                            <div class="w-100">
+
+                                                <strong>
+                                                    Login unsuccessful.
+                                                </strong>
+
+
+                                                <ul class="mb-0 mt-2 ps-3">
+
+                                                    @foreach($errors->all() as $error)
+
+                                                        <li>
+                                                            {{ $error }}
+                                                        </li>
+
+                                                    @endforeach
+
+                                                </ul>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                @endif
+
+
+
+                                {{-- =================================================
+                                    LOGIN FORM
+                                ================================================== --}}
+
+                                <form
+                                    method="POST"
+                                    action="{{ route('login.submit') }}"
+                                    id="loginForm"
+                                >
+
+                                    @csrf
+
+
+
+                                    {{-- =================================================
+                                        LOGIN ROLE
+                                    ================================================== --}}
+
+                                    <div class="mb-3">
+
+                                        <label
+                                            for="role"
+                                            class="form-label"
+                                        >
+
+                                            Login As
+
+                                            <span class="text-danger">
+                                                *
+                                            </span>
+
+                                        </label>
+
+
+                                        <select
+                                            name="role"
+                                            id="role"
+                                            class="form-select @error('role') is-invalid @enderror"
+                                            required
+                                        >
+
+                                            <option value="">
+                                                Select Account Type
+                                            </option>
+
+
+                                            <option
+                                                value="admin"
+                                                {{ old('role') === 'admin' ? 'selected' : '' }}
+                                            >
+                                                Administrator
+                                            </option>
+
+
+                                            <option
+                                                value="donor"
+                                                {{ old('role') === 'donor' ? 'selected' : '' }}
+                                            >
+                                                Donor
+                                            </option>
+
+
+                                            <option
+                                                value="beneficiary"
+                                                {{ old('role') === 'beneficiary' ? 'selected' : '' }}
+                                            >
+                                                Beneficiary
+                                            </option>
+
+                                        </select>
+
+
+                                        @error('role')
+
+                                            <div class="invalid-feedback">
+
+                                                {{ $message }}
+
+                                            </div>
+
+                                        @enderror
+
+
+                                        <div
+                                            class="role-help"
+                                            id="roleHelp"
+                                        ></div>
+
+                                    </div>
+
+
+
+                                    {{-- =================================================
+                                        EMAIL
+                                    ================================================== --}}
+
+                                    <div class="mb-3">
+
+                                        <label
+                                            for="email"
+                                            class="form-label"
+                                        >
+
+                                            Email Address
+
+                                            <span class="text-danger">
+                                                *
+                                            </span>
+
+                                        </label>
+
+
+                                        <input
+                                            type="email"
+                                            name="email"
+                                            id="email"
+                                            value="{{ old('email') }}"
+                                            class="form-control @error('email') is-invalid @enderror"
+                                            placeholder="Enter your registered email address"
+                                            autocomplete="email"
+                                            required
+                                        >
+
+
+                                        @error('email')
+
+                                            <div class="invalid-feedback">
+
+                                                {{ $message }}
+
+                                            </div>
+
+                                        @enderror
+
+                                    </div>
+
+
+
+                                    {{-- =================================================
+                                        QALAM ID
+                                    ================================================== --}}
+
+                                    <div
+                                        class="mb-3"
+                                        id="qalamField"
+                                    >
+
+                                        <label
+                                            for="qalam_id"
+                                            class="form-label"
+                                        >
+
+                                            Qalam ID
+
+                                            <span class="text-danger">
+                                                *
+                                            </span>
+
+                                        </label>
+
+
+                                        <input
+                                            type="text"
+                                            name="qalam_id"
+                                            id="qalam_id"
+                                            value="{{ old('qalam_id') }}"
+                                            class="form-control @error('qalam_id') is-invalid @enderror"
+                                            placeholder="Enter your Qalam ID"
+                                            inputmode="numeric"
+                                            pattern="[0-9]+"
+                                        >
+
+
+                                        @error('qalam_id')
+
+                                            <div class="invalid-feedback">
+
+                                                {{ $message }}
+
+                                            </div>
+
+                                        @enderror
+
+
+                                        <div class="form-text">
+
+                                            Required only for beneficiary accounts.
+
+                                        </div>
+
+                                    </div>
+
+
+
+                                    {{-- =================================================
+                                        PASSWORD
+                                    ================================================== --}}
+
+                                    <div class="mb-3">
+
+                                        <label
+                                            for="password"
+                                            class="form-label"
+                                        >
+
+                                            Password
+
+                                            <span class="text-danger">
+                                                *
+                                            </span>
+
+                                        </label>
+
+
+                                        <div class="password-wrapper">
+
+                                            <input
+                                                type="password"
+                                                name="password"
+                                                id="password"
+                                                class="form-control @error('password') is-invalid @enderror"
+                                                placeholder="Enter your password"
+                                                autocomplete="current-password"
+                                                required
+                                            >
+
+
+                                            <button
+                                                type="button"
+                                                class="password-toggle"
+                                                id="passwordToggle"
+                                                aria-label="Show password"
+                                            >
+
+                                                <i
+                                                    class="bi bi-eye"
+                                                    id="passwordIcon"
+                                                ></i>
+
+                                            </button>
+
+                                        </div>
+
+
+                                        @error('password')
+
+                                            <div class="text-danger small mt-1">
+
+                                                {{ $message }}
+
+                                            </div>
+
+                                        @enderror
+
+                                    </div>
+
+
+
+                                    {{-- =================================================
+                                        REMEMBER
+                                    ================================================== --}}
+
+                                    <div
+                                        class="d-flex justify-content-between align-items-center mb-4"
+                                    >
+
+                                        <div class="form-check">
+
+                                            <input
+                                                type="checkbox"
+                                                name="remember"
+                                                value="1"
+                                                id="remember"
+                                                class="form-check-input"
+                                                {{ old('remember') ? 'checked' : '' }}
+                                            >
+
+
+                                            <label
+                                                for="remember"
+                                                class="form-check-label"
+                                            >
+                                                Remember me
+                                            </label>
+
+                                        </div>
+
+                                    </div>
+
+
+
+                                    {{-- =================================================
+                                        LOGIN BUTTON
+                                    ================================================== --}}
+
+                                    <div class="d-grid">
+
+                                        <button
+                                            type="submit"
+                                            class="btn btn-login"
+                                            id="loginButton"
+                                        >
+
+                                            <span id="loginButtonContent">
+
+                                                <i class="bi bi-box-arrow-in-right me-2"></i>
+
+                                                Login to Account
+
+                                            </span>
+
+
+                                            <span
+                                                id="loginButtonLoading"
+                                                style="display:none;"
+                                            >
+
+                                                <span
+                                                    class="spinner-border spinner-border-sm me-2"
+                                                    role="status"
+                                                ></span>
+
+                                                Signing In...
+
+                                            </span>
+
+                                        </button>
+
+                                    </div>
+
+                                </form>
+
+
+
+                                {{-- =================================================
+                                    REGISTRATION
+                                ================================================== --}}
+
+                                <div class="register-area">
+
+                                    <p>
+                                        Want to contribute as a donor?
+                                    </p>
+
+
+                                    <a
+                                        href="{{ route('register') }}"
+                                        class="register-link"
+                                    >
+
+                                        <i class="bi bi-person-plus me-1"></i>
+
+                                        Create Donor Account
+
+                                    </a>
+
+                                </div>
+
+
+
+                                {{-- =================================================
+                                    SECURITY
+                                ================================================== --}}
+
+                                <div class="security-note">
+
+                                    <i class="bi bi-shield-lock"></i>
+
+                                    Secure access to NUST Sharing Network
+
+                                </div>
+
+                            </div>
 
                         </div>
 
-                        @error('qalam_id')
-                            <span class="field-error">
-                                {{ $message }}
-                            </span>
-                        @enderror
-
                     </div>
 
-
-                    {{-- Email --}}
-                    <div class="form-field">
-
-                        <label
-                            for="email"
-                            class="login-label"
-                        >
-                            Email Address
-                            <span class="required-mark">*</span>
-                        </label>
-
-                        <div class="input-wrapper">
-
-                            <i class="fa fa-envelope input-icon"></i>
-
-                            <input
-                                type="email"
-                                name="email"
-                                id="email"
-                                value="{{ old('email') }}"
-                                class="login-control @error('email') is-invalid @enderror"
-                                placeholder="Enter your email address"
-                                autocomplete="email"
-                                required
-                            >
-
-                        </div>
-
-                        @error('email')
-                            <span class="field-error">
-                                {{ $message }}
-                            </span>
-                        @enderror
-
-                    </div>
-
-
-                    {{-- Password --}}
-                    <div class="form-field">
-
-                        <label
-                            for="password"
-                            class="login-label"
-                        >
-                            Password
-                            <span class="required-mark">*</span>
-                        </label>
-
-                        <div class="input-wrapper">
-
-                            <i class="fa fa-lock input-icon"></i>
-
-                            <input
-                                type="password"
-                                name="password"
-                                id="password"
-                                class="login-control password-control @error('password') is-invalid @enderror"
-                                placeholder="Enter your password"
-                                autocomplete="current-password"
-                                required
-                            >
-
-                            <button
-                                type="button"
-                                class="password-toggle"
-                                id="passwordToggle"
-                                aria-label="Show password"
-                            >
-                                <i
-                                    class="fa fa-eye"
-                                    id="passwordIcon"
-                                ></i>
-                            </button>
-
-                        </div>
-
-                        @error('password')
-                            <span class="field-error">
-                                {{ $message }}
-                            </span>
-                        @enderror
-
-                    </div>
-
-
-                    {{-- Remember Me / Forgot Password --}}
-                    <div class="form-options">
-
-                        <label class="remember-wrapper">
-
-                            <input
-                                type="checkbox"
-                                name="remember"
-                                value="1"
-                                @checked(old('remember'))
-                            >
-
-                            <span>
-                                Keep me signed in
-                            </span>
-
-                        </label>
-
-
-                        <a
-                            href="{{ route('password.request') }}"
-                            class="forgot-password-link"
-                        >
-                            Forgot password?
-                        </a>
-
-                    </div>
-
-
-                    {{-- Submit Button --}}
-                    <button
-                        type="submit"
-                        class="btn-login"
-                        id="loginButton"
-                    >
-                        <span id="loginButtonText">
-                            Sign In Securely
-                        </span>
-
-                        <i
-                            class="fa fa-arrow-right"
-                            id="loginButtonIcon"
-                        ></i>
-                    </button>
-
-
-                    {{-- Donor Registration Link --}}
-                    <p class="register-link">
-                        Don&rsquo;t have a donor account?
-
-                        <a href="{{ route('register') }}">
-                            Register as a Donor
-                        </a>
-                    </p>
-
-
-                    <p class="login-support">
-                        <i class="fa fa-lock"></i>
-
-                        Your account information is protected and securely
-                        processed.
-                    </p>
-
-                </form>
+                </div>
 
             </div>
 
-        </section>
+        </div>
 
-    </main>
+    </div>
+
+</div>
 
 
-    @include('layouts.admin.script')
+@include('layouts.home.script')
 
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const roleSelect =
-                document.getElementById('role');
 
-            const qalamIdField =
-                document.getElementById('qalamIdField');
+<script>
 
-            const qalamIdInput =
-                document.getElementById('qalam_id');
+document.addEventListener(
+    'DOMContentLoaded',
+    function () {
 
-            const passwordInput =
-                document.getElementById('password');
+        /*
+        |--------------------------------------------------------------------------
+        | Elements
+        |--------------------------------------------------------------------------
+        */
 
-            const passwordToggle =
-                document.getElementById('passwordToggle');
+        const role =
+            document.getElementById(
+                'role'
+            );
 
-            const passwordIcon =
-                document.getElementById('passwordIcon');
 
-            const loginForm =
-                document.getElementById('loginForm');
+        const qalamField =
+            document.getElementById(
+                'qalamField'
+            );
 
-            const loginButton =
-                document.getElementById('loginButton');
 
-            const loginButtonText =
-                document.getElementById('loginButtonText');
+        const qalamInput =
+            document.getElementById(
+                'qalam_id'
+            );
 
-            const loginButtonIcon =
-                document.getElementById('loginButtonIcon');
+
+        const roleHelp =
+            document.getElementById(
+                'roleHelp'
+            );
+
+
+        const password =
+            document.getElementById(
+                'password'
+            );
+
+
+        const passwordToggle =
+            document.getElementById(
+                'passwordToggle'
+            );
+
+
+        const passwordIcon =
+            document.getElementById(
+                'passwordIcon'
+            );
+
+
+        const loginForm =
+            document.getElementById(
+                'loginForm'
+            );
+
+
+        const loginButton =
+            document.getElementById(
+                'loginButton'
+            );
+
+
+        const loginButtonContent =
+            document.getElementById(
+                'loginButtonContent'
+            );
+
+
+        const loginButtonLoading =
+            document.getElementById(
+                'loginButtonLoading'
+            );
+
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Role / Qalam Logic
+        |--------------------------------------------------------------------------
+        */
+
+        function updateRoleFields() {
+
+            /*
+            |--------------------------------------------------------------------------
+            | Beneficiary
+            |--------------------------------------------------------------------------
+            */
+
+            if (
+                role.value ===
+                'beneficiary'
+            ) {
+
+                qalamField.style.display =
+                    'block';
+
+
+                qalamInput.required =
+                    true;
+
+
+                roleHelp.style.display =
+                    'block';
+
+
+                roleHelp.innerHTML =
+                    '<i class="bi bi-info-circle me-1"></i>' +
+                    'Beneficiary login requires your registered email, Qalam ID and password.';
+
+                return;
+            }
 
 
             /*
             |--------------------------------------------------------------------------
-            | Show Qalam ID Only for Beneficiary
+            | Admin
             |--------------------------------------------------------------------------
             */
 
-            function updateQalamField() {
+            if (
+                role.value ===
+                'admin'
+            ) {
+
+                qalamField.style.display =
+                    'none';
+
+
+                qalamInput.required =
+                    false;
+
+
+                qalamInput.value =
+                    '';
+
+
+                roleHelp.style.display =
+                    'block';
+
+
+                roleHelp.innerHTML =
+                    '<i class="bi bi-shield-check me-1"></i>' +
+                    'Administrator accounts use email and password.';
+
+                return;
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Donor
+            |--------------------------------------------------------------------------
+            */
+
+            if (
+                role.value ===
+                'donor'
+            ) {
+
+                qalamField.style.display =
+                    'none';
+
+
+                qalamInput.required =
+                    false;
+
+
+                qalamInput.value =
+                    '';
+
+
+                roleHelp.style.display =
+                    'block';
+
+
+                roleHelp.innerHTML =
+                    '<i class="bi bi-box-seam me-1"></i>' +
+                    'Donor accounts use the registered email address and password.';
+
+                return;
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Nothing Selected
+            |--------------------------------------------------------------------------
+            */
+
+            qalamField.style.display =
+                'none';
+
+
+            qalamInput.required =
+                false;
+
+
+            qalamInput.value =
+                '';
+
+
+            roleHelp.style.display =
+                'none';
+
+
+            roleHelp.innerHTML =
+                '';
+
+        }
+
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Role Change
+        |--------------------------------------------------------------------------
+        */
+
+        role.addEventListener(
+            'change',
+            updateRoleFields
+        );
+
+
+        updateRoleFields();
+
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Password Visibility
+        |--------------------------------------------------------------------------
+        */
+
+        passwordToggle.addEventListener(
+            'click',
+            function () {
+
                 if (
-                    !roleSelect ||
-                    !qalamIdField ||
-                    !qalamIdInput
+                    password.type ===
+                    'password'
                 ) {
-                    return;
+
+                    password.type =
+                        'text';
+
+
+                    passwordIcon.classList.remove(
+                        'bi-eye'
+                    );
+
+
+                    passwordIcon.classList.add(
+                        'bi-eye-slash'
+                    );
+
+
+                    passwordToggle.setAttribute(
+                        'aria-label',
+                        'Hide password'
+                    );
+
+                } else {
+
+                    password.type =
+                        'password';
+
+
+                    passwordIcon.classList.remove(
+                        'bi-eye-slash'
+                    );
+
+
+                    passwordIcon.classList.add(
+                        'bi-eye'
+                    );
+
+
+                    passwordToggle.setAttribute(
+                        'aria-label',
+                        'Show password'
+                    );
+
                 }
 
-                const isBeneficiary =
-                    roleSelect.value === 'beneficiary';
-
-                qalamIdField.hidden = !isBeneficiary;
-                qalamIdInput.required = isBeneficiary;
-
-                if (!isBeneficiary) {
-                    qalamIdInput.value = '';
-                }
             }
+        );
 
 
-            if (roleSelect) {
-                roleSelect.addEventListener(
-                    'change',
-                    updateQalamField
-                );
 
-                updateQalamField();
+        /*
+        |--------------------------------------------------------------------------
+        | Prevent Multiple Login Submissions
+        |--------------------------------------------------------------------------
+        */
+
+        loginForm.addEventListener(
+            'submit',
+            function () {
+
+                loginButton.disabled =
+                    true;
+
+
+                loginButtonContent.style.display =
+                    'none';
+
+
+                loginButtonLoading.style.display =
+                    'inline';
+
             }
+        );
 
+    }
+);
 
-            /*
-            |--------------------------------------------------------------------------
-            | Password Visibility
-            |--------------------------------------------------------------------------
-            */
+</script>
 
-            if (
-                passwordInput &&
-                passwordToggle &&
-                passwordIcon
-            ) {
-                passwordToggle.addEventListener(
-                    'click',
-                    function () {
-                        const passwordIsHidden =
-                            passwordInput.type === 'password';
-
-                        passwordInput.type =
-                            passwordIsHidden
-                                ? 'text'
-                                : 'password';
-
-                        passwordIcon.classList.toggle(
-                            'fa-eye',
-                            !passwordIsHidden
-                        );
-
-                        passwordIcon.classList.toggle(
-                            'fa-eye-slash',
-                            passwordIsHidden
-                        );
-
-                        passwordToggle.setAttribute(
-                            'aria-label',
-                            passwordIsHidden
-                                ? 'Hide password'
-                                : 'Show password'
-                        );
-                    }
-                );
-            }
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Prevent Multiple Login Submissions
-            |--------------------------------------------------------------------------
-            */
-
-            if (
-                loginForm &&
-                loginButton &&
-                loginButtonText &&
-                loginButtonIcon
-            ) {
-                loginForm.addEventListener(
-                    'submit',
-                    function () {
-                        loginButton.disabled = true;
-
-                        loginButtonText.textContent =
-                            'Signing In...';
-
-                        loginButtonIcon.className =
-                            'fa fa-spinner fa-spin';
-                    }
-                );
-            }
-        });
-    </script>
-
-</body>

@@ -1,6 +1,9 @@
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
 
     <meta
@@ -8,249 +11,633 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <meta name="robots" content="noindex, nofollow">
+    <meta
+        name="robots"
+        content="noindex, nofollow, noarchive"
+    >
+
+    <meta
+        name="referrer"
+        content="strict-origin-when-cross-origin"
+    >
 
     <title>
-        @yield('title', 'Error') | NUST Sharing Network
+        @yield('code') | NUST Sharing Network
     </title>
 
-    <style>
-        :root {
-            --primary: #00629b;
-            --primary-dark: #004c78;
-            --text: #172033;
-            --secondary: #667085;
-            --border: #e4e9f0;
-            --background: #f5f8fc;
-            --white: #ffffff;
-        }
 
-        * {
+    <style>
+
+        *,
+        *::before,
+        *::after {
             box-sizing: border-box;
         }
 
+
         html,
         body {
+            margin: 0;
+            padding: 0;
             min-height: 100%;
         }
 
+
         body {
             min-height: 100vh;
-            margin: 0;
-            padding: 24px;
+
             display: flex;
+
             align-items: center;
+
             justify-content: center;
-            color: var(--text);
+
+            padding: 30px 20px;
+
             background:
-                radial-gradient(
-                    circle at 15% 15%,
-                    rgba(0, 98, 155, 0.12),
-                    transparent 32%
-                ),
-                radial-gradient(
-                    circle at 85% 85%,
-                    rgba(13, 110, 253, 0.08),
-                    transparent 32%
-                ),
-                var(--background);
+                linear-gradient(
+                    135deg,
+                    #f5f9fc 0%,
+                    #eef5f9 50%,
+                    #ffffff 100%
+                );
+
+            color: #243746;
+
             font-family:
-                Inter,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
                 Arial,
-                Helvetica,
                 sans-serif;
         }
 
-        .error-container {
-            width: 100%;
-            max-width: 680px;
+
+        /* =========================================================
+           BACKGROUND
+        ========================================================== */
+
+        .error-background {
+            position: fixed;
+            inset: 0;
+
+            overflow: hidden;
+
+            pointer-events: none;
+
+            z-index: 0;
         }
+
+
+        .error-circle {
+            position: absolute;
+
+            border-radius: 50%;
+
+            background:
+                rgba(
+                    0,
+                    85,
+                    140,
+                    0.05
+                );
+        }
+
+
+        .error-circle-one {
+            width: 400px;
+            height: 400px;
+
+            top: -170px;
+            right: -140px;
+        }
+
+
+        .error-circle-two {
+            width: 300px;
+            height: 300px;
+
+            bottom: -150px;
+            left: -120px;
+
+            background:
+                rgba(
+                    130,
+                    178,
+                    149,
+                    0.08
+                );
+        }
+
+
+        /* =========================================================
+           WRAPPER
+        ========================================================== */
+
+        .error-wrapper {
+            position: relative;
+
+            z-index: 2;
+
+            width: 100%;
+
+            max-width: 700px;
+        }
+
+
+        /* =========================================================
+           CARD
+        ========================================================== */
 
         .error-card {
-            position: relative;
             overflow: hidden;
-            padding: 56px 36px;
-            text-align: center;
-            background: var(--white);
-            border: 1px solid var(--border);
-            border-radius: 24px;
-            box-shadow: 0 24px 65px rgba(16, 24, 40, 0.12);
+
+            border:
+                1px solid
+                #dce6ec;
+
+            border-radius: 22px;
+
+            background: #ffffff;
+
+            box-shadow:
+                0 25px 70px
+                rgba(
+                    18,
+                    59,
+                    96,
+                    0.12
+                );
         }
 
-        .error-card::before {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
+
+        .error-top-border {
             height: 5px;
-            content: "";
-            background: linear-gradient(
-                90deg,
-                var(--primary),
-                #0d6efd
-            );
+
+            background:
+                linear-gradient(
+                    90deg,
+                    #00558c,
+                    #0072bc,
+                    #82b295
+                );
         }
 
-        .brand {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 30px;
-            color: var(--primary);
-            font-size: 0.82rem;
-            font-weight: 800;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
+
+        /* =========================================================
+           HEADER
+        ========================================================== */
+
+        .error-header {
+            padding: 26px 35px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #00558c,
+                    #003f69
+                );
+
+            text-align: center;
+
+            color: #ffffff;
         }
+
+
+        .error-brand {
+            margin: 0;
+
+            font-size: 21px;
+
+            font-weight: 700;
+        }
+
+
+        .error-brand-subtitle {
+            display: block;
+
+            margin-top: 5px;
+
+            color:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    0.72
+                );
+
+            font-size: 12px;
+        }
+
+
+        /* =========================================================
+           CONTENT
+        ========================================================== */
+
+        .error-content {
+            padding:
+                48px
+                40px
+                40px;
+
+            text-align: center;
+        }
+
 
         .error-icon {
-            width: 76px;
-            height: 76px;
-            margin: 0 auto 20px;
+            width: 88px;
+            height: 88px;
+
+            margin:
+                0
+                auto
+                25px;
+
             display: flex;
+
             align-items: center;
+
             justify-content: center;
-            color: var(--primary);
-            background: rgba(0, 98, 155, 0.1);
+
             border-radius: 50%;
-            font-size: 2rem;
-            font-weight: 800;
+
+            background: #eef6fb;
+
+            color: #00558c;
+
+            font-size: 34px;
+
+            font-weight: 700;
         }
+
 
         .error-code {
-            margin: 0;
-            color: var(--primary);
-            font-size: clamp(4rem, 16vw, 7.5rem);
-            font-weight: 900;
-            line-height: 0.95;
-            letter-spacing: -0.06em;
+            margin:
+                0
+                0
+                8px;
+
+            color: #00558c;
+
+            font-size:
+                clamp(
+                    48px,
+                    10vw,
+                    76px
+                );
+
+            font-weight: 800;
+
+            line-height: 1;
         }
 
+
         .error-title {
-            margin: 24px 0 12px;
-            color: var(--text);
-            font-size: clamp(1.4rem, 5vw, 2rem);
-            line-height: 1.25;
+            margin:
+                0
+                0
+                12px;
+
+            color: #243746;
+
+            font-size:
+                clamp(
+                    23px,
+                    5vw,
+                    31px
+                );
+
+            font-weight: 700;
         }
+
 
         .error-message {
             max-width: 500px;
-            margin: 0 auto 30px;
-            color: var(--secondary);
-            font-size: 0.95rem;
-            line-height: 1.75;
+
+            margin:
+                0
+                auto;
+
+            color: #6c7a89;
+
+            font-size: 14px;
+
+            line-height: 1.8;
         }
+
+
+        /* =========================================================
+           SECURITY NOTE
+        ========================================================== */
+
+        .error-security-note {
+            max-width: 500px;
+
+            margin:
+                24px
+                auto
+                0;
+
+            padding:
+                13px
+                16px;
+
+            border:
+                1px solid
+                #e4ebef;
+
+            border-radius: 10px;
+
+            background: #f8fafb;
+
+            color: #71808c;
+
+            font-size: 11px;
+
+            line-height: 1.6;
+        }
+
+
+        /* =========================================================
+           BUTTONS
+        ========================================================== */
 
         .error-actions {
             display: flex;
-            flex-wrap: wrap;
+
+            align-items: center;
+
             justify-content: center;
+
+            flex-wrap: wrap;
+
             gap: 10px;
+
+            margin-top: 30px;
         }
 
-        .error-button {
-            min-width: 140px;
-            padding: 12px 20px;
-            color: var(--white);
-            background: var(--primary);
-            border: 1px solid var(--primary);
-            border-radius: 10px;
-            font-size: 0.9rem;
-            font-weight: 700;
+
+        .error-btn {
+            min-width: 145px;
+
+            padding:
+                12px
+                22px;
+
+            border-radius: 50px;
+
+            font-size: 13px;
+
+            font-weight: 600;
+
             text-decoration: none;
+
+            cursor: pointer;
+
             transition:
-                background 0.2s ease,
-                transform 0.2s ease;
+                0.25s ease;
         }
 
-        .error-button:hover {
-            color: var(--white);
-            background: var(--primary-dark);
-            transform: translateY(-2px);
+
+        .error-btn-primary {
+            border:
+                1px solid
+                #00558c;
+
+            background: #00558c;
+
+            color: #ffffff;
         }
 
-        .error-button.secondary {
-            color: #344054;
-            background: var(--white);
-            border-color: #d0d5dd;
+
+        .error-btn-primary:hover {
+            background: #003f69;
+
+            border-color: #003f69;
+
+            color: #ffffff;
+
+            transform:
+                translateY(-2px);
         }
 
-        .error-button.secondary:hover {
-            color: var(--text);
-            background: #f8fafc;
+
+        .error-btn-secondary {
+            border:
+                1px solid
+                #d8e1e7;
+
+            background: #ffffff;
+
+            color: #405363;
         }
 
-        .error-reference {
-            margin: 30px 0 0;
-            color: #98a2b3;
-            font-size: 0.72rem;
+
+        .error-btn-secondary:hover {
+            background: #f6f9fb;
+
+            border-color: #bbc9d2;
+
+            transform:
+                translateY(-2px);
         }
 
-        @media (max-width: 575px) {
+
+        /* =========================================================
+           FOOTER
+        ========================================================== */
+
+        .error-footer {
+            padding:
+                18px
+                25px;
+
+            border-top:
+                1px solid
+                #edf1f4;
+
+            background: #f9fbfc;
+
+            text-align: center;
+
+            color: #8b98a3;
+
+            font-size: 10px;
+        }
+
+
+        /* =========================================================
+           MOBILE
+        ========================================================== */
+
+        @media (max-width: 575.98px) {
+
             body {
-                padding: 15px;
+                padding:
+                    20px
+                    12px;
             }
 
-            .error-card {
-                padding: 40px 20px;
-                border-radius: 18px;
+
+            .error-header {
+                padding:
+                    22px
+                    18px;
             }
+
+
+            .error-content {
+                padding:
+                    38px
+                    22px
+                    32px;
+            }
+
+
+            .error-icon {
+                width: 72px;
+                height: 72px;
+
+                font-size: 28px;
+            }
+
 
             .error-actions {
                 flex-direction: column;
             }
 
-            .error-button {
+
+            .error-btn {
                 width: 100%;
             }
+
         }
+
     </style>
+
 </head>
 
+
 <body>
-    <main class="error-container">
-        <section class="error-card">
-            <div class="brand">
+
+
+<div class="error-background">
+
+    <div
+        class="error-circle error-circle-one"
+    ></div>
+
+    <div
+        class="error-circle error-circle-two"
+    ></div>
+
+</div>
+
+
+<div class="error-wrapper">
+
+    <div class="error-card">
+
+
+        <div class="error-top-border"></div>
+
+
+        <div class="error-header">
+
+            <h1 class="error-brand">
                 NUST Sharing Network
-            </div>
-
-            <div class="error-icon" aria-hidden="true">
-                @yield('icon', '!')
-            </div>
-
-            <p class="error-code">
-                @yield('code', 'Error')
-            </p>
-
-            <h1 class="error-title">
-                @yield('heading', 'Something went wrong')
             </h1>
 
-            <p class="error-message">
-                @yield(
-                    'message',
-                    'We could not complete your request.'
-                )
-            </p>
 
-            <div class="error-actions">
-                <a href="/" class="error-button">
-                    Return Home
-                </a>
+            <span class="error-brand-subtitle">
 
-                <a
-                    href="javascript:history.back()"
-                    class="error-button secondary"
-                >
-                    Go Back
-                </a>
+                Secure Resource Sharing Platform
+
+            </span>
+
+        </div>
+
+
+        <div class="error-content">
+
+
+            <div class="error-icon">
+
+                @yield('icon')
+
             </div>
 
-            <p class="error-reference">
-                If the problem continues, please contact the system
-                administrator.
+
+            <div class="error-code">
+
+                @yield('code')
+
+            </div>
+
+
+            <h2 class="error-title">
+
+                @yield('title')
+
+            </h2>
+
+
+            <p class="error-message">
+
+                @yield('message')
+
             </p>
-        </section>
-    </main>
+
+
+            <div class="error-security-note">
+
+                For security reasons, technical details about
+                this error are not displayed publicly.
+
+            </div>
+
+
+            <div class="error-actions">
+
+
+                <a
+                    href="{{ url('/') }}"
+                    class="error-btn error-btn-primary"
+                >
+
+                    Return to Home
+
+                </a>
+
+
+                <button
+                    type="button"
+                    class="error-btn error-btn-secondary"
+                    onclick="history.back()"
+                >
+
+                    Go Back
+
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <div class="error-footer">
+
+            &copy; {{ date('Y') }}
+            NUST Sharing Network.
+            All rights reserved.
+
+        </div>
+
+    </div>
+
+</div>
+
+
 </body>
+
 </html>

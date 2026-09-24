@@ -1,347 +1,564 @@
-@include('layouts.admin.head')
-
+@include('layouts.admins.head')
 <title>My Products</title>
-
 <body>
 
-    {{-- New Sidebar --}}
-    @include('layouts.admin.sidebar')
+<div id="main-wrapper">
+
+    @include('layouts.admins.header')
+    @include('layouts.admins.sidebar')
 
 
-    {{-- Main Content --}}
-    <div class="nsn-main">
+    <div class="content-body">
 
-        {{-- New Topbar --}}
-        @include('layouts.admin.header')
+        <div class="container-fluid mt-3">
 
 
-        <main class="nsn-content">
+            {{-- =========================================================
+                PAGE HEADER
+            ========================================================== --}}
 
-            {{-- Page Header --}}
-            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+            <div class="row mb-4">
 
-                <div>
-                    <h3 class="fw-bold text-dark mb-1">
+                <div class="col-md-6">
+
+                    <h3 class="mb-1">
                         My Products
                     </h3>
 
-                    <p class="text-secondary small mb-0">
-                        View and manage the products you have shared.
+                    <p class="text-muted mb-0">
+                        Manage the products you have added to the Sharing Network.
                     </p>
+
                 </div>
 
-                <a
-                    href="{{ route('donor.product.create') }}"
-                    class="btn btn-primary d-flex align-items-center gap-2"
-                >
-                    <i class="bi bi-plus-lg"></i>
-                    <span>Add Product</span>
-                </a>
+
+                <div class="col-md-6 text-md-right">
+
+                    <a
+                        href="{{ route('donor.products.create') }}"
+                        class="btn btn-primary"
+                    >
+
+                        <i class="fa fa-plus mr-1"></i>
+
+                        Add Product
+
+                    </a>
+
+                </div>
 
             </div>
 
 
-            {{-- Breadcrumb --}}
-            <nav aria-label="breadcrumb" class="mb-4">
+            {{-- =========================================================
+                SUCCESS
+            ========================================================== --}}
 
-                <ol class="breadcrumb small mb-0">
+            @if(session('success'))
 
-                    <li class="breadcrumb-item">
-                        <a
-                            href="{{ route('dashboard') }}"
-                            class="text-decoration-none"
-                        >
-                            <i class="bi bi-house-door me-1"></i>
-                            Dashboard
-                        </a>
-                    </li>
+                <div
+                    class="alert alert-success alert-dismissible fade show"
+                >
 
-                    <li
-                        class="breadcrumb-item active"
-                        aria-current="page"
+                    <i class="fa fa-check-circle mr-1"></i>
+
+                    {{ session('success') }}
+
+
+                    <button
+                        type="button"
+                        class="close"
+                        data-dismiss="alert"
                     >
-                        My Products
-                    </li>
 
-                </ol>
-
-            </nav>
-
-
-            {{-- Alerts --}}
-            @include('layouts.admin.alert')
-
-
-            {{-- Products Card --}}
-            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-
-                {{-- Card Header --}}
-                <div class="card-header bg-white border-bottom px-4 py-3">
-
-                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
-
-                        <div>
-                            <h5 class="fw-semibold text-dark mb-1">
-                                Products List
-                            </h5>
-
-                            <p class="text-secondary small mb-0">
-                                Total products:
-                                <span class="fw-semibold text-dark">
-                                    {{ $products->total() }}
-                                </span>
-                            </p>
-                        </div>
-
-                        <span class="badge rounded-pill bg-primary-subtle text-primary px-3 py-2">
-                            <i class="bi bi-box-seam me-1"></i>
-                            {{ $products->count() }} displayed
+                        <span>
+                            &times;
                         </span>
 
-                    </div>
+                    </button>
 
                 </div>
 
+            @endif
 
-                {{-- Products Table --}}
-                <div class="card-body p-0">
+
+            {{-- =========================================================
+                ERROR
+            ========================================================== --}}
+
+            @if(session('error'))
+
+                <div class="alert alert-danger">
+
+                    {{ session('error') }}
+
+                </div>
+
+            @endif
+
+
+            {{-- =========================================================
+                SEARCH / FILTER
+            ========================================================== --}}
+
+            <div class="card mb-4">
+
+                <div class="card-body">
+
+                    <form
+                        action="{{ route('donor.products.index') }}"
+                        method="GET"
+                    >
+
+                        <div class="row align-items-end">
+
+
+                            {{-- Search --}}
+
+                            <div class="col-md-4">
+
+                                <div class="form-group mb-md-0">
+
+                                    <label>
+                                        Search
+                                    </label>
+
+
+                                    <input
+                                        type="text"
+                                        name="search"
+                                        value="{{ request('search') }}"
+                                        class="form-control"
+                                        placeholder="Search product..."
+                                    >
+
+                                </div>
+
+                            </div>
+
+
+                            {{-- Category --}}
+
+                            <div class="col-md-3">
+
+                                <div class="form-group mb-md-0">
+
+                                    <label>
+                                        Category
+                                    </label>
+
+
+                                    <select
+                                        name="category_id"
+                                        class="form-control"
+                                    >
+
+                                        <option value="">
+                                            All Categories
+                                        </option>
+
+
+                                        @foreach($categories as $category)
+
+                                            <option
+                                                value="{{ $category->id }}"
+                                                {{
+                                                    (string) request('category_id') ===
+                                                    (string) $category->id
+                                                        ? 'selected'
+                                                        : ''
+                                                }}
+                                            >
+
+                                                {{ $category->name }}
+
+                                            </option>
+
+                                        @endforeach
+
+                                    </select>
+
+                                </div>
+
+                            </div>
+
+
+                            {{-- Status --}}
+
+                            <div class="col-md-2">
+
+                                <div class="form-group mb-md-0">
+
+                                    <label>
+                                        Status
+                                    </label>
+
+
+                                    <select
+                                        name="status"
+                                        class="form-control"
+                                    >
+
+                                        <option value="">
+                                            All
+                                        </option>
+
+
+                                        <option
+                                            value="active"
+                                            {{ request('status') === 'active' ? 'selected' : '' }}
+                                        >
+                                            Active
+                                        </option>
+
+
+                                        <option
+                                            value="inactive"
+                                            {{ request('status') === 'inactive' ? 'selected' : '' }}
+                                        >
+                                            Inactive
+                                        </option>
+
+                                    </select>
+
+                                </div>
+
+                            </div>
+
+
+                            {{-- Buttons --}}
+
+                            <div class="col-md-3">
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-primary"
+                                >
+
+                                    <i class="fa fa-search"></i>
+
+                                    Search
+
+                                </button>
+
+
+                                <a
+                                    href="{{ route('donor.products.index') }}"
+                                    class="btn btn-secondary"
+                                >
+                                    Reset
+                                </a>
+
+                            </div>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+
+            {{-- =========================================================
+                PRODUCTS TABLE
+            ========================================================== --}}
+
+            <div class="card">
+
+                <div class="card-body">
+
+
+                    <div
+                        class="d-flex justify-content-between align-items-center mb-3"
+                    >
+
+                        <div>
+
+                            <h4 class="card-title mb-1">
+                                My Products
+                            </h4>
+
+
+                            <small class="text-muted">
+
+                                Total Products:
+
+                                <strong>
+                                    {{ $products->total() }}
+                                </strong>
+
+                            </small>
+
+                        </div>
+
+                    </div>
+
 
                     <div class="table-responsive">
 
-                        <table class="table table-hover align-middle mb-0">
+                        <table
+                            class="table table-hover table-bordered"
+                        >
 
-                            <thead class="table-light">
-                                <tr>
-                                    <th class="px-4 py-3 text-secondary small">
-                                        #
-                                    </th>
+                            <thead class="thead-light">
 
-                                    <th class="py-3 text-secondary small">
-                                        Product
-                                    </th>
+                            <tr>
 
-                                    <th class="py-3 text-secondary small">
-                                        Category
-                                    </th>
+                                <th>#</th>
 
-                                    <th class="py-3 text-secondary small">
-                                        Status
-                                    </th>
+                                <th>Image</th>
 
-                                    <th class="py-3 text-secondary small">
-                                        Created
-                                    </th>
+                                <th>Product</th>
 
-                                    <th class="px-4 py-3 text-secondary small text-end">
-                                        Actions
-                                    </th>
-                                </tr>
+                                <th>Category</th>
+
+                                <th>Description</th>
+
+                                <th>Status</th>
+
+                                <th>Created By</th>
+
+                                <th>Created</th>
+
+                                <th class="text-center">
+                                    Actions
+                                </th>
+
+                            </tr>
+
                             </thead>
 
 
                             <tbody>
 
-                                @forelse ($products as $key => $product)
+                            @forelse($products as $product)
 
-                                    @php
-                                        $images = is_array($product->images)
-                                            ? $product->images
-                                            : json_decode($product->images, true);
+                                <tr>
 
-                                        $images = is_array($images)
-                                            ? $images
-                                            : [];
-                                    @endphp
 
-                                    <tr>
+                                    <td>
 
-                                        {{-- Number --}}
-                                        <td class="px-4">
-                                            <span class="text-secondary">
-                                                {{ $products->firstItem() + $key }}
+                                        {{ $products->firstItem() + $loop->index }}
+
+                                    </td>
+
+
+                                    {{-- Image --}}
+
+                                    <td>
+
+                                        @if($product->image)
+
+                                            <img
+                                                src="{{ asset('admins/images/products/'.$product->image) }}"
+                                                alt="{{ $product->name }}"
+                                                style="
+                                                    width: 70px;
+                                                    height: 70px;
+                                                    object-fit: cover;
+                                                    border-radius: 8px;
+                                                "
+                                            >
+
+                                        @else
+
+                                            <div
+                                                class="bg-light d-flex align-items-center justify-content-center"
+                                                style="
+                                                    width:70px;
+                                                    height:70px;
+                                                    border-radius:8px;
+                                                "
+                                            >
+
+                                                <i
+                                                    class="fa fa-image text-muted"
+                                                    style="font-size:24px;"
+                                                ></i>
+
+                                            </div>
+
+                                        @endif
+
+                                    </td>
+
+
+                                    {{-- Product --}}
+
+                                    <td>
+
+                                        <strong>
+                                            {{ $product->name }}
+                                        </strong>
+
+                                    </td>
+
+
+                                    {{-- Category --}}
+
+                                    <td>
+
+                                        {{ $product->category?->name ?? 'Not Available' }}
+
+                                    </td>
+
+
+                                    {{-- Description --}}
+
+                                    <td>
+
+                                        {{ \Illuminate\Support\Str::limit(
+                                            $product->description,
+                                            70
+                                        ) }}
+
+                                    </td>
+
+
+                                    {{-- Status --}}
+
+                                    <td>
+
+                                        @if($product->status === 'active')
+
+                                            <span class="badge badge-success">
+
+                                                <i class="fa fa-check-circle"></i>
+
+                                                Active
+
                                             </span>
-                                        </td>
+
+                                        @else
+
+                                            <span class="badge badge-secondary">
+
+                                                Inactive
+
+                                            </span>
+
+                                        @endif
+
+                                    </td>
 
 
-                                        {{-- Product --}}
-                                        <td>
+                                    {{-- Creator --}}
 
-                                            <div class="d-flex align-items-center gap-3">
+                                    <td>
 
-                                                @if (!empty($images))
+                                        <strong>
 
-                                                    <img
-                                                        src="{{ asset('admins/products/' . $images[0]) }}"
-                                                        alt="{{ $product->name }}"
-                                                        width="60"
-                                                        height="60"
-                                                        class="rounded-3 border object-fit-cover flex-shrink-0"
-                                                    >
+                                            {{ $product->creator?->name ?? 'Unknown' }}
 
-                                                @else
+                                        </strong>
 
-                                                    <span
-                                                        class="d-inline-flex align-items-center justify-content-center rounded-3 border bg-light text-secondary flex-shrink-0"
-                                                        style="width: 60px; height: 60px;"
-                                                    >
-                                                        <i class="bi bi-image fs-5"></i>
-                                                    </span>
+                                        <br>
 
-                                                @endif
+                                        <small class="text-muted">
+
+                                            {{ $product->creator?->email }}
+
+                                        </small>
+
+                                    </td>
 
 
-                                                <div>
-                                                    <div class="fw-semibold text-dark">
-                                                        {{ $product->name }}
-                                                    </div>
+                                    {{-- Created --}}
 
-                                                    <small class="text-secondary">
-                                                        Product ID: #{{ $product->id }}
-                                                    </small>
-                                                </div>
+                                    <td>
 
-                                            </div>
+                                        {{ $product->created_at?->format('d M Y') }}
 
-                                        </td>
+                                    </td>
 
 
-                                        {{-- Category --}}
-                                        <td>
+                                    {{-- Actions --}}
 
-                                            @if ($product->category)
+                                    <td class="text-center">
 
-                                                <span class="badge bg-light text-dark border fw-normal px-3 py-2">
-                                                    <i class="bi bi-tag me-1"></i>
-                                                    {{ $product->category->name }}
-                                                </span>
+                                        <a
+                                            href="{{ route('donor.products.edit', $product) }}"
+                                            class="btn btn-sm btn-warning"
+                                            title="Edit"
+                                        >
 
-                                            @else
+                                            <i class="fa fa-edit"></i>
 
-                                                <span class="text-secondary small">
-                                                    Not assigned
-                                                </span>
-
-                                            @endif
-
-                                        </td>
+                                        </a>
 
 
-                                        {{-- Status --}}
-                                        <td>
+                                        <form
+                                            action="{{ route('donor.products.destroy', $product) }}"
+                                            method="POST"
+                                            class="d-inline"
+                                            onsubmit="return confirm('Are you sure you want to delete this product?');"
+                                        >
 
-                                            @if ($product->status === 'active')
+                                            @csrf
 
-                                                <span class="badge rounded-pill bg-success-subtle text-success px-3 py-2">
-                                                    <i class="bi bi-check-circle me-1"></i>
-                                                    Active
-                                                </span>
-
-                                            @else
-
-                                                <span class="badge rounded-pill bg-danger-subtle text-danger px-3 py-2">
-                                                    <i class="bi bi-x-circle me-1"></i>
-                                                    Inactive
-                                                </span>
-
-                                            @endif
-
-                                        </td>
+                                            @method('DELETE')
 
 
-                                        {{-- Created Date --}}
-                                        <td>
+                                            <button
+                                                type="submit"
+                                                class="btn btn-sm btn-danger"
+                                                title="Delete"
+                                            >
 
-                                            <div class="small text-dark">
-                                                <i class="bi bi-calendar3 text-secondary me-1"></i>
+                                                <i class="fa fa-trash"></i>
 
-                                                {{ optional($product->created_at)->format('d M Y') }}
-                                            </div>
+                                            </button>
 
-                                            <small class="text-secondary">
-                                                {{ optional($product->created_at)->diffForHumans() }}
-                                            </small>
+                                        </form>
 
-                                        </td>
+                                    </td>
 
-
-                                        {{-- Actions --}}
-                                        <td class="px-4 text-end">
-
-                                            <div class="d-inline-flex align-items-center gap-2">
-
-                                                {{-- Edit --}}
-                                                <a
-                                                    href="{{ route('donor.product.edit', $product->id) }}"
-                                                    class="btn btn-outline-warning btn-sm"
-                                                    title="Edit product"
-                                                >
-                                                    <i class="bi bi-pencil-square me-1"></i>
-                                                    Edit
-                                                </a>
+                                </tr>
 
 
-                                                {{-- Delete --}}
-                                                <form
-                                                    action="{{ route('donor.products.delete', $product->id) }}"
-                                                    method="POST"
-                                                    class="d-inline"
-                                                    onsubmit="return confirm('Are you sure you want to delete this product?');"
-                                                >
-                                                    @csrf
-                                                    @method('DELETE')
+                            @empty
 
-                                                    <button
-                                                        type="submit"
-                                                        class="btn btn-outline-danger btn-sm"
-                                                        title="Delete product"
-                                                    >
-                                                        <i class="bi bi-trash3 me-1"></i>
-                                                        Delete
-                                                    </button>
-                                                </form>
+                                <tr>
 
-                                            </div>
+                                    <td
+                                        colspan="9"
+                                        class="text-center py-5"
+                                    >
 
-                                        </td>
+                                        <i
+                                            class="fa fa-cube fa-3x text-muted mb-3"
+                                        ></i>
 
-                                    </tr>
 
-                                @empty
+                                        <h5>
+                                            No Products Found
+                                        </h5>
 
-                                    <tr>
-                                        <td colspan="6" class="text-center py-5">
 
-                                            <div class="d-flex flex-column align-items-center">
+                                        <p class="text-muted">
 
-                                                <span
-                                                    class="d-inline-flex align-items-center justify-content-center rounded-circle bg-light text-secondary mb-3"
-                                                    style="width: 64px; height: 64px;"
-                                                >
-                                                    <i class="bi bi-box-seam fs-3"></i>
-                                                </span>
+                                            You have not added any products yet.
 
-                                                <h6 class="fw-semibold text-dark mb-1">
-                                                    No products found
-                                                </h6>
+                                        </p>
 
-                                                <p class="text-secondary small mb-3">
-                                                    You have not added any products yet.
-                                                </p>
 
-                                                <a
-                                                    href="{{ route('donor.product.create') }}"
-                                                    class="btn btn-primary btn-sm"
-                                                >
-                                                    <i class="bi bi-plus-lg me-1"></i>
-                                                    Add Your First Product
-                                                </a>
+                                        <a
+                                            href="{{ route('donor.products.create') }}"
+                                            class="btn btn-primary"
+                                        >
 
-                                            </div>
+                                            <i class="fa fa-plus mr-1"></i>
 
-                                        </td>
-                                    </tr>
+                                            Add Your First Product
 
-                                @endforelse
+                                        </a>
+
+                                    </td>
+
+                                </tr>
+
+                            @endforelse
 
                             </tbody>
 
@@ -349,49 +566,25 @@
 
                     </div>
 
-                </div>
 
+                    <div class="mt-4">
 
-                {{-- Pagination --}}
-                @if ($products->hasPages())
-
-                    <div class="card-footer bg-white border-top px-4 py-3">
-
-                        <div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
-
-                            <p class="text-secondary small mb-0">
-                                Showing
-                                <span class="fw-semibold text-dark">
-                                    {{ $products->firstItem() }}
-                                </span>
-                                to
-                                <span class="fw-semibold text-dark">
-                                    {{ $products->lastItem() }}
-                                </span>
-                                of
-                                <span class="fw-semibold text-dark">
-                                    {{ $products->total() }}
-                                </span>
-                                products
-                            </p>
-
-                            <div>
-                                {{ $products->withQueryString()->links() }}
-                            </div>
-
-                        </div>
+                        {{ $products->links() }}
 
                     </div>
 
-                @endif
+                </div>
 
             </div>
 
-        </main>
+        </div>
 
     </div>
 
+</div>
 
-    @include('layouts.admin.script')
+
+@include('layouts.admins.script')
 
 </body>
+</html>

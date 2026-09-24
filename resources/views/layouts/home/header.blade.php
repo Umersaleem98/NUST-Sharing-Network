@@ -240,7 +240,7 @@
         <!-- Logo -->
         <a class="navbar-brand" href="{{ route('home') }}">
             <img
-                src="{{ asset('admins/assets/images/logos/logo1.png') }}"
+                src="{{ asset('admins/images/logos/logo1.png') }}"
                 alt="NUST Gift Store"
                 class="navbar-brand-img"
             >

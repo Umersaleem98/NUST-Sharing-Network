@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Contact;
 use App\Models\StudentStory;
 use App\Models\User;
@@ -19,13 +20,77 @@ class HomeController extends Controller
 
     public function index()
     {
+        /*
+        |--------------------------------------------------------------------------
+        | Student Stories
+        |--------------------------------------------------------------------------
+        |
+        | Load 9 records so we can determine whether more than 8 stories exist
+        | without running a separate COUNT query.
+        |--------------------------------------------------------------------------
+        */
+
+        $storyCollection = StudentStory::query()
+            ->active()
+            ->ordered()
+            ->limit(9)
+            ->get();
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | More Stories Check
+        |--------------------------------------------------------------------------
+        */
+
+        $hasMoreStories =
+            $storyCollection->count() > 8;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Homepage Stories
+        |--------------------------------------------------------------------------
+        |
+        | Only display first 8 stories.
+        |--------------------------------------------------------------------------
+        */
+
+        $stories = $storyCollection
+            ->take(8)
+            ->values();
+
+
+        return view(
+            'index',
+            compact(
+                'stories',
+                'hasMoreStories'
+            )
+        );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | All Student Stories
+    |--------------------------------------------------------------------------
+    */
+
+    public function studentStories()
+    {
         $stories = StudentStory::query()
             ->active()
             ->ordered()
-            ->limit(6)
-            ->get();
+            ->paginate(12);
 
-        return view('index', compact('stories'));
+
+        return view(
+            'pages.home.student-stories.index',
+            compact(
+                'stories'
+            )
+        );
     }
 
 
@@ -136,27 +201,40 @@ class HomeController extends Controller
 
         $contact = Contact::create([
             'name' =>
-                trim($validated['name']),
+                trim(
+                    $validated['name']
+                ),
 
             'email' =>
-                strtolower(trim($validated['email'])),
+                strtolower(
+                    trim(
+                        $validated['email']
+                    )
+                ),
 
             'phone' =>
                 !empty($validated['phone'])
-                    ? trim($validated['phone'])
+                    ? trim(
+                        $validated['phone']
+                    )
                     : null,
 
             'user_type' =>
-                $validated['user_type'] ?? null,
+                $validated['user_type']
+                ?? null,
 
             'subject' =>
-                trim($validated['subject']),
+                trim(
+                    $validated['subject']
+                ),
 
             'inquiry_type' =>
                 $validated['inquiry_type'],
 
             'message' =>
-                trim($validated['message']),
+                trim(
+                    $validated['message']
+                ),
 
             'privacy' =>
                 true,
@@ -172,14 +250,19 @@ class HomeController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $admins = User::where('role', 'admin')
-            ->get();
+        $admins = User::where(
+            'role',
+            'admin'
+        )->get();
 
 
         if ($admins->isNotEmpty()) {
+
             Notification::send(
                 $admins,
-                new ContactMessageNotification($contact)
+                new ContactMessageNotification(
+                    $contact
+                )
             );
         }
 
@@ -196,5 +279,137 @@ class HomeController extends Controller
                 'success',
                 'Your message has been received successfully. Our team will review your inquiry and get back to you as soon as possible.'
             );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Explore Need
+    |--------------------------------------------------------------------------
+    */
+
+    public function exploreNeed()
+    {
+        $categories = Category::query()
+            ->orderBy(
+                'name',
+                'asc'
+            )
+            ->get();
+
+
+        $totalCategories =
+            $categories->count();
+
+
+        return view(
+            'pages.home.exploreneed.index',
+            compact(
+                'categories',
+                'totalCategories'
+            )
+        );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Our Impact
+    |--------------------------------------------------------------------------
+    */
+
+    public function ourImpact()
+    {
+        /*
+        |--------------------------------------------------------------------------
+        | Overall Community Statistics
+        |--------------------------------------------------------------------------
+        */
+
+        $totalUsers =
+            User::count();
+
+
+        $totalDonors =
+            User::where(
+                'role',
+                'donor'
+            )->count();
+
+
+        $totalBeneficiaries =
+            User::where(
+                'role',
+                'beneficiary'
+            )->count();
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Active Community
+        |--------------------------------------------------------------------------
+        */
+
+        $activeUsers =
+            User::where(
+                'profile_status',
+                'active'
+            )->count();
+
+
+        $activeDonors =
+            User::where(
+                'role',
+                'donor'
+            )
+                ->where(
+                    'profile_status',
+                    'active'
+                )
+                ->count();
+
+
+        $activeBeneficiaries =
+            User::where(
+                'role',
+                'beneficiary'
+            )
+                ->where(
+                    'profile_status',
+                    'active'
+                )
+                ->count();
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Verified Community
+        |--------------------------------------------------------------------------
+        */
+
+        $verifiedUsers =
+            User::whereNotNull(
+                'email_verified_at'
+            )->count();
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Return View
+        |--------------------------------------------------------------------------
+        */
+
+        return view(
+            'pages.home.ourimpact.index',
+            compact(
+                'totalUsers',
+                'totalDonors',
+                'totalBeneficiaries',
+                'activeUsers',
+                'activeDonors',
+                'activeBeneficiaries',
+                'verifiedUsers'
+            )
+        );
     }
 }

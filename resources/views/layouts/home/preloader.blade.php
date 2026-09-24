@@ -64,7 +64,7 @@
 ========================= -->
 <div class="loader" id="loader">
 
-    <img src="{{ asset('admins/assets/images/logos/logo.png') }}" alt="Logo" class="loader-logo">
+    <img src="{{ asset('admins/images/logos/logo.png') }}" alt="Logo" class="loader-logo">
 
 </div>
 

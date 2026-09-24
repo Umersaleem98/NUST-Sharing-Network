@@ -4,680 +4,1185 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use Illuminate\Auth\Events\PasswordReset;
-use Illuminate\Http\RedirectResponse;
+use App\Notifications\VerifyEmailNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
-use Illuminate\Validation\Rules\Password as PasswordRule;
-use Illuminate\View\View;
+use Illuminate\Validation\Rules\Password;
 
 class AuthController extends Controller
 {
     /*
     |--------------------------------------------------------------------------
-    | Display login form
+    | Login Page
     |--------------------------------------------------------------------------
     */
 
-    public function showLoginForm(): View
+    public function loginPage()
     {
         return view('pages.auth.login');
     }
-    
-    public function showRegistrationForm(): View
-    {
-        return view('pages.auth.register');
-    }
+
 
     /*
     |--------------------------------------------------------------------------
-    | Process login request
+    | Login
     |--------------------------------------------------------------------------
     */
 
-    public function login(
-        Request $request
-    ): RedirectResponse {
+    public function login(Request $request)
+    {
         /*
         |--------------------------------------------------------------------------
-        | Login validation
+        | Validation
         |--------------------------------------------------------------------------
         */
 
-        $validationRules = [
-            'role' => [
-                'required',
-                Rule::in([
-                    'admin',
-                    'donor',
-                    'beneficiary',
-                ]),
+        $request->validate(
+            [
+                'role' => [
+                    'required',
+                    'in:admin,donor,beneficiary',
+                ],
+
+                'email' => [
+                    'required',
+                    'email',
+                ],
+
+                'password' => [
+                    'required',
+                    'string',
+                ],
             ],
-
-            'email' => [
-                'required',
-                'email',
-                'max:255',
-            ],
-
-            'password' => [
-                'required',
-                'string',
-                'min:6',
-            ],
-
-            'remember' => [
-                'nullable',
-                'boolean',
-            ],
-        ];
-
-        /*
-        |--------------------------------------------------------------------------
-        | Qalam ID is required only for beneficiaries
-        |--------------------------------------------------------------------------
-        */
-
-        if ($request->input('role') === 'beneficiary') {
-            $validationRules['qalam_id'] = [
-                'required',
-                'string',
-                'max:100',
-            ];
-        }
-
-        $validated = $request->validate(
-            $validationRules,
             [
                 'role.required' =>
-                    'Please select your account role.',
+                    'Please select your account type.',
 
                 'role.in' =>
-                    'The selected role is invalid.',
+                    'Please select a valid account type.',
 
                 'email.required' =>
-                    'Please enter your email address.',
+                    'Email address is required.',
 
                 'email.email' =>
                     'Please enter a valid email address.',
 
                 'password.required' =>
-                    'Please enter your password.',
-
-                'qalam_id.required' =>
-                    'Qalam ID is required for beneficiary login.',
+                    'Password is required.',
             ]
         );
 
-        /*
-        |--------------------------------------------------------------------------
-        | Find user using email and selected role
-        |--------------------------------------------------------------------------
-        */
-
-        $userQuery = User::query()
-            ->where('email', $validated['email'])
-            ->where('role', $validated['role']);
 
         /*
         |--------------------------------------------------------------------------
-        | Check Qalam ID for beneficiary
+        | Beneficiary Qalam Validation
         |--------------------------------------------------------------------------
         */
 
-        if ($validated['role'] === 'beneficiary') {
-            $userQuery->where(
-                'qalam_id',
-                $validated['qalam_id']
+        if ($request->role === 'beneficiary') {
+
+            $request->validate(
+                [
+                    'qalam_id' => [
+                        'required',
+                        'regex:/^\d+$/',
+                    ],
+                ],
+                [
+                    'qalam_id.required' =>
+                        'Qalam ID is required for beneficiary login.',
+
+                    'qalam_id.regex' =>
+                        'Qalam ID must contain numbers only.',
+                ]
             );
         }
 
-        $user = $userQuery->first();
 
         /*
         |--------------------------------------------------------------------------
-        | Verify user and password
+        | Find User
         |--------------------------------------------------------------------------
-        |
-        | Account status is checked only after verifying the password. This
-        | prevents unauthorized people from checking another user's status.
-        |
+        */
+
+        $user = User::where(
+            'email',
+            strtolower(
+                trim(
+                    $request->email
+                )
+            )
+        )
+            ->where(
+                'role',
+                $request->role
+            )
+            ->first();
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | User Not Found
+        |--------------------------------------------------------------------------
+        */
+
+        if (!$user) {
+
+            return back()
+                ->withErrors([
+                    'email' =>
+                        'No account was found with the selected role and email address.',
+                ])
+                ->withInput(
+                    $request->only([
+                        'role',
+                        'email',
+                        'qalam_id',
+                    ])
+                );
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Beneficiary Qalam ID Check
+        |--------------------------------------------------------------------------
+        */
+
+        if ($request->role === 'beneficiary') {
+
+            if (
+                (string) $user->qalam_id !==
+                trim($request->qalam_id)
+            ) {
+
+                return back()
+                    ->withErrors([
+                        'qalam_id' =>
+                            'The provided Qalam ID is incorrect.',
+                    ])
+                    ->withInput(
+                        $request->only([
+                            'role',
+                            'email',
+                            'qalam_id',
+                        ])
+                    );
+            }
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Password Check
+        |--------------------------------------------------------------------------
         */
 
         if (
-            ! $user
-            || ! Hash::check(
-                $validated['password'],
+            !Hash::check(
+                $request->password,
                 $user->password
             )
         ) {
+
             return back()
                 ->withErrors([
-                    'login' =>
-                        'The provided login information is incorrect.',
+                    'password' =>
+                        'The provided password is incorrect.',
                 ])
                 ->withInput(
-                    $request->except([
-                        'password',
-                        'remember',
+                    $request->only([
+                        'role',
+                        'email',
+                        'qalam_id',
                     ])
                 );
         }
 
+
         /*
         |--------------------------------------------------------------------------
-        | Prevent suspended users from logging in
+        | Profile Status Check
+        |--------------------------------------------------------------------------
+        |
+        | Only users with profile_status = active may login.
         |--------------------------------------------------------------------------
         */
 
-        if ($user->account_status === 'suspended') {
-            Log::warning(
-                'Suspended user attempted to log in.',
-                [
-                    'user_id' => $user->id,
-                    'role' => $user->role,
-                    'ip_address' => $request->ip(),
-                ]
+        $statusError =
+            $this->profileStatusError(
+                $user
             );
+
+
+        if ($statusError) {
 
             return back()
                 ->withErrors([
-                    'login' =>
-                        'Your account has been suspended. Please contact the administrator.',
+                    'email' =>
+                        $statusError,
                 ])
-                ->with(
-                    'account_status',
-                    'suspended'
-                )
                 ->withInput(
-                    $request->except([
-                        'password',
-                        'remember',
+                    $request->only([
+                        'role',
+                        'email',
+                        'qalam_id',
                     ])
                 );
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Prevent blocked users from logging in
-        |--------------------------------------------------------------------------
-        */
-
-        if ($user->account_status === 'blocked') {
-            Log::warning(
-                'Blocked user attempted to log in.',
-                [
-                    'user_id' => $user->id,
-                    'role' => $user->role,
-                    'ip_address' => $request->ip(),
-                ]
-            );
-
-            return back()
-                ->withErrors([
-                    'login' =>
-                        'Your account has been blocked. Please contact the administrator.',
-                ])
-                ->with(
-                    'account_status',
-                    'blocked'
-                )
-                ->withInput(
-                    $request->except([
-                        'password',
-                        'remember',
-                    ])
-                );
-        }
 
         /*
         |--------------------------------------------------------------------------
-        | Reject any unknown account status
-        |--------------------------------------------------------------------------
-        */
-
-        if ($user->account_status !== 'active') {
-            Log::warning(
-                'User with an invalid account status attempted to log in.',
-                [
-                    'user_id' => $user->id,
-                    'account_status' =>
-                        $user->account_status,
-
-                    'ip_address' => $request->ip(),
-                ]
-            );
-
-            return back()
-                ->withErrors([
-                    'login' =>
-                        'Your account is currently unavailable. Please contact the administrator.',
-                ])
-                ->withInput(
-                    $request->except([
-                        'password',
-                        'remember',
-                    ])
-                );
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Donors must verify their email address before login
+        | Email Verification Check
         |--------------------------------------------------------------------------
         */
 
         if (
-            $user->role === 'donor'
-            && ! $user->hasVerifiedEmail()
+            is_null(
+                $user->email_verified_at
+            )
         ) {
+
+            $request->session()->put(
+                'pending_verification_user_id',
+                $user->id
+            );
+
+
+            $request->session()->put(
+                'verification_email',
+                $user->email
+            );
+
+
+            $request->session()->put(
+                'pending_remember',
+                $request->boolean(
+                    'remember'
+                )
+            );
+
+
             return redirect()
-                ->route('verification.notice')
-                ->with('email', $user->email)
+                ->route(
+                    'verification.notice'
+                )
                 ->with(
-                    'status',
-                    'Please verify your email address before signing in.'
+                    'warning',
+                    'Your email address is not verified. Please verify your email before logging in.'
                 );
         }
 
+
         /*
         |--------------------------------------------------------------------------
-        | Log in active user
+        | Login User
         |--------------------------------------------------------------------------
         */
 
         Auth::login(
             $user,
-            $request->boolean('remember')
+            $request->boolean(
+                'remember'
+            )
         );
 
-        /*
-        | Regenerate the session ID to prevent session fixation.
-        */
-
-        $request->session()->regenerate();
 
         /*
         |--------------------------------------------------------------------------
-        | Redirect authenticated user
+        | Regenerate Session
         |--------------------------------------------------------------------------
         */
 
-        return redirect()
-            ->intended(route('dashboard'))
-            ->with(
-                'success',
-                'Welcome back, ' . $user->name . '!'
-            );
-    }
+        $request
+            ->session()
+            ->regenerate();
 
-    /*
-    |--------------------------------------------------------------------------
-    | Log out user
-    |--------------------------------------------------------------------------
-    */
 
-    public function register(
-        Request $request
-    ): RedirectResponse {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'phone' => ['required', 'string', 'max:30'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'terms' => ['required', 'accepted'],
-        ]);
-
-        $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'phone' => $validated['phone'],
-            'role' => 'donor',
-            'qalam_id' => null,
-            'password' => Hash::make($validated['password']),
-            'account_status' => 'active',
-        ]);
-
-        $user->sendEmailVerificationNotification();
-
-        return redirect()
-            ->route('verification.notice')
-            ->with('email', $user->email)
-            ->with(
-                'status',
-                'Your donor account has been created. We sent a verification link to your email address.'
-            );
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Display email verification notice
-    |--------------------------------------------------------------------------
-    */
-
-    public function showEmailVerificationNotice(): View
-    {
-        return view('pages.auth.verify-email');
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Verify donor email, log the donor in, and redirect to dashboard
-    |--------------------------------------------------------------------------
-    */
-
-    public function verifyEmail(
-        Request $request,
-        int $id,
-        string $hash
-    ): RedirectResponse {
-        $user = User::query()
-            ->where('id', $id)
-            ->where('role', 'donor')
-            ->firstOrFail();
-
-        if (
-            ! hash_equals(
-                (string) $hash,
-                sha1($user->getEmailForVerification())
-            )
-        ) {
-            abort(403, 'This email verification link is invalid.');
-        }
-
-        if (! $user->hasVerifiedEmail()) {
-            $user->markEmailAsVerified();
-        }
-
-        Auth::login($user);
-
-        $request->session()->regenerate();
+        /*
+        |--------------------------------------------------------------------------
+        | One Dashboard For All Roles
+        |--------------------------------------------------------------------------
+        */
 
         return redirect()
             ->route('dashboard')
             ->with(
                 'success',
-                'Your email address has been verified successfully. Welcome, '
-                    . $user->name . '!'
-            );
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Resend donor email verification link
-    |--------------------------------------------------------------------------
-    */
-
-    public function resendEmailVerification(
-        Request $request
-    ): RedirectResponse {
-        $validated = $request->validate([
-            'email' => [
-                'required',
-                'email',
-                'max:255',
-            ],
-        ]);
-
-        $user = User::query()
-            ->where('email', $validated['email'])
-            ->where('role', 'donor')
-            ->first();
-
-        if (! $user) {
-            return back()
-                ->withErrors([
-                    'email' => 'No donor account was found with this email address.',
-                ])
-                ->withInput();
-        }
-
-        if ($user->hasVerifiedEmail()) {
-            return redirect()
-                ->route('login')
-                ->with(
-                    'success',
-                    'Your email address is already verified. You can sign in now.'
-                );
-        }
-
-        $user->sendEmailVerificationNotification();
-
-        return back()
-            ->with('email', $user->email)
-            ->with(
-                'status',
-                'A new verification link has been sent to your email address.'
+                'Welcome back, ' .
+                $user->name .
+                '.'
             );
     }
 
 
-
     /*
     |--------------------------------------------------------------------------
-    | Display Forgot Password Form
+    | Registration Page
     |--------------------------------------------------------------------------
     */
 
-    public function showForgotPasswordForm(): View
+    public function registerPage()
     {
         return view(
-            'pages.auth.forgotpassword'
+            'pages.auth.register'
         );
     }
 
 
     /*
     |--------------------------------------------------------------------------
-    | Send Password Reset Link
+    | Register
     |--------------------------------------------------------------------------
     */
 
-    public function sendPasswordResetLink(
-        Request $request
-    ): RedirectResponse {
-        $validated = $request->validate(
+    public function register(Request $request)
+    {
+        /*
+        |--------------------------------------------------------------------------
+        | Validation
+        |--------------------------------------------------------------------------
+        */
+
+        $request->validate(
             [
-                'email' => [
-                    'required',
-                    'email',
-                    'max:255',
-                    'exists:users,email',
-                ],
-            ],
-            [
-                'email.required' =>
-                    'Please enter your registered email address.',
-
-                'email.email' =>
-                    'Please enter a valid email address.',
-
-                'email.exists' =>
-                    'No account was found with this email address.',
-            ]
-        );
-
-
-        $status = Password::sendResetLink([
-            'email' => $validated['email'],
-        ]);
-
-
-        if ($status === Password::RESET_LINK_SENT) {
-            return back()
-                ->with(
-                    'status',
-                    'A secure password reset link has been sent to your email address.'
-                )
-                ->with(
-                    'email',
-                    $validated['email']
-                );
-        }
-
-
-        return back()
-            ->withErrors([
-                'email' => __($status),
-            ])
-            ->withInput(
-                $request->only('email')
-            );
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Display Reset Password Form
-    |--------------------------------------------------------------------------
-    */
-
-    public function showResetPasswordForm(
-        Request $request,
-        string $token
-    ): View {
-        return view(
-            'pages.auth.resetpassword',
-            [
-                'token' => $token,
-                'email' => $request->query('email'),
-            ]
-        );
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Reset Password
-    |--------------------------------------------------------------------------
-    */
-
-    public function resetPassword(
-        Request $request
-    ): RedirectResponse {
-        $validated = $request->validate(
-            [
-                'token' => [
+                'name' => [
                     'required',
                     'string',
+                    'max:255',
                 ],
 
                 'email' => [
                     'required',
                     'email',
                     'max:255',
-                    'exists:users,email',
+                    'unique:users,email',
+                ],
+
+                'role' => [
+                    'required',
+                    'in:donor,beneficiary',
                 ],
 
                 'password' => [
                     'required',
                     'confirmed',
-                    PasswordRule::min(8)
-                        ->max(64)
-                        ->mixedCase()
-                        ->numbers()
-                        ->symbols(),
-                ],
-
-                'password_confirmation' => [
-                    'required',
-                    'string',
+                    Password::min(8),
                 ],
             ],
             [
-                'token.required' =>
-                    'The password reset token is missing.',
+                'name.required' =>
+                    'Full name is required.',
 
                 'email.required' =>
-                    'Please enter your registered email address.',
+                    'Email address is required.',
 
                 'email.email' =>
                     'Please enter a valid email address.',
 
-                'email.exists' =>
-                    'No account was found with this email address.',
+                'email.unique' =>
+                    'This email address is already registered.',
+
+                'role.required' =>
+                    'Please select an account type.',
+
+                'role.in' =>
+                    'Please select a valid account type.',
 
                 'password.required' =>
-                    'Please enter your new password.',
+                    'Password is required.',
 
                 'password.confirmed' =>
-                    'The password confirmation does not match.',
-
-                'password_confirmation.required' =>
-                    'Please confirm your new password.',
+                    'Password confirmation does not match.',
             ]
         );
 
 
-        $status = Password::reset(
-            [
-                'email' =>
-                    $validated['email'],
+        /*
+        |--------------------------------------------------------------------------
+        | Beneficiary Qalam Validation
+        |--------------------------------------------------------------------------
+        */
 
-                'password' =>
-                    $validated['password'],
+        if ($request->role === 'beneficiary') {
 
-                'password_confirmation' =>
-                    $validated['password_confirmation'],
+            $request->validate(
+                [
+                    'qalam_id' => [
+                        'required',
+                        'regex:/^\d+$/',
+                        'max:30',
+                        'unique:users,qalam_id',
+                    ],
+                ],
+                [
+                    'qalam_id.required' =>
+                        'Qalam ID is required for beneficiaries.',
 
-                'token' =>
-                    $validated['token'],
-            ],
-            function (
-                User $user,
-                string $password
-            ): void {
-                $user->forceFill([
-                    'password' =>
-                        Hash::make($password),
-                ]);
+                    'qalam_id.regex' =>
+                        'Qalam ID must contain numbers only.',
 
-                $user->setRememberToken(
-                    Str::random(60)
-                );
-
-                $user->save();
-
-                event(
-                    new PasswordReset($user)
-                );
-            }
-        );
-
-
-        if ($status === Password::PASSWORD_RESET) {
-            return redirect()
-                ->route('login')
-                ->with(
-                    'success',
-                    'Your password has been reset successfully. You can now sign in with your new password.'
-                );
+                    'qalam_id.unique' =>
+                        'This Qalam ID is already registered.',
+                ]
+            );
         }
 
 
-        return back()
-            ->withErrors([
-                'email' => __($status),
-            ])
-            ->withInput(
-                $request->only('email')
+        /*
+        |--------------------------------------------------------------------------
+        | Create User
+        |--------------------------------------------------------------------------
+        */
+
+        $user = User::create([
+            'name' =>
+                trim(
+                    $request->name
+                ),
+
+            'email' =>
+                strtolower(
+                    trim(
+                        $request->email
+                    )
+                ),
+
+            'qalam_id' =>
+                $request->role === 'beneficiary'
+                    ? trim(
+                        $request->qalam_id
+                    )
+                    : null,
+
+            'password' =>
+                Hash::make(
+                    $request->password
+                ),
+
+            'role' =>
+                $request->role,
+
+            /*
+            |--------------------------------------------------------------------------
+            | Default Profile Status
+            |--------------------------------------------------------------------------
+            */
+
+            'profile_status' =>
+                'active',
+
+            'email_verified_at' =>
+                null,
+        ]);
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Generate Verification Token
+        |--------------------------------------------------------------------------
+        */
+
+        $plainToken =
+            Str::random(64);
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Save Token Hash
+        |--------------------------------------------------------------------------
+        */
+
+        $user->update([
+            'email_verification_token' =>
+                hash(
+                    'sha256',
+                    $plainToken
+                ),
+
+            'email_verification_token_expires_at' =>
+                now()->addMinutes(60),
+        ]);
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Send Verification Email
+        |--------------------------------------------------------------------------
+        */
+
+        $user->notify(
+            new VerifyEmailNotification(
+                $plainToken
+            )
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Verification Session
+        |--------------------------------------------------------------------------
+        */
+
+        $request->session()->put(
+            'pending_verification_user_id',
+            $user->id
+        );
+
+
+        $request->session()->put(
+            'verification_email',
+            $user->email
+        );
+
+
+        $request->session()->put(
+            'pending_remember',
+            false
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Verification Page
+        |--------------------------------------------------------------------------
+        */
+
+        return redirect()
+            ->route(
+                'verification.notice'
+            )
+            ->with(
+                'success',
+                'Your account has been created successfully. A verification email has been sent to ' .
+                $user->email .
+                '.'
             );
     }
 
 
+    /*
+    |--------------------------------------------------------------------------
+    | Verification Notice
+    |--------------------------------------------------------------------------
+    */
+
+    public function verificationNotice(
+        Request $request
+    ) {
+        $userId =
+            $request
+                ->session()
+                ->get(
+                    'pending_verification_user_id'
+                );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Verification Session Missing
+        |--------------------------------------------------------------------------
+        */
+
+        if (!$userId) {
+
+            return redirect()
+                ->route('login')
+                ->withErrors([
+                    'email' =>
+                        'Please login to continue email verification.',
+                ]);
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Find User
+        |--------------------------------------------------------------------------
+        */
+
+        $user =
+            User::find(
+                $userId
+            );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | User Not Found
+        |--------------------------------------------------------------------------
+        */
+
+        if (!$user) {
+
+            $this->clearVerificationSession(
+                $request
+            );
+
+
+            return redirect()
+                ->route('login')
+                ->withErrors([
+                    'email' =>
+                        'User account could not be found.',
+                ]);
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Profile Status Check
+        |--------------------------------------------------------------------------
+        */
+
+        $statusError =
+            $this->profileStatusError(
+                $user
+            );
+
+
+        if ($statusError) {
+
+            $this->clearVerificationSession(
+                $request
+            );
+
+
+            return redirect()
+                ->route('login')
+                ->withErrors([
+                    'email' =>
+                        $statusError,
+                ]);
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Already Verified
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            !is_null(
+                $user->email_verified_at
+            )
+        ) {
+
+            return redirect()
+                ->route('login')
+                ->with(
+                    'success',
+                    'Your email address is already verified. Please login.'
+                );
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Verification Page
+        |--------------------------------------------------------------------------
+        */
+
+        return view(
+            'pages.auth.email.verification-notice'
+        );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Verify Email
+    |--------------------------------------------------------------------------
+    */
+
+    public function verifyEmail(
+        Request $request,
+        User $user,
+        string $token
+    ) {
+        /*
+        |--------------------------------------------------------------------------
+        | Profile Status Check
+        |--------------------------------------------------------------------------
+        */
+
+        $statusError =
+            $this->profileStatusError(
+                $user
+            );
+
+
+        if ($statusError) {
+
+            $this->clearVerificationSession(
+                $request
+            );
+
+
+            return redirect()
+                ->route('login')
+                ->withErrors([
+                    'email' =>
+                        $statusError,
+                ]);
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Already Verified
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            !is_null(
+                $user->email_verified_at
+            )
+        ) {
+
+            return redirect()
+                ->route('login')
+                ->with(
+                    'success',
+                    'Your email address is already verified. Please login.'
+                );
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Verification Token Exists
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            is_null(
+                $user->email_verification_token
+            )
+        ) {
+
+            return redirect()
+                ->route('login')
+                ->withErrors([
+                    'email' =>
+                        'The verification link is invalid.',
+                ]);
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Hash Verification Token
+        |--------------------------------------------------------------------------
+        */
+
+        $hashedToken =
+            hash(
+                'sha256',
+                $token
+            );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Verification Token Match
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            !hash_equals(
+                $user->email_verification_token,
+                $hashedToken
+            )
+        ) {
+
+            return redirect()
+                ->route('login')
+                ->withErrors([
+                    'email' =>
+                        'The verification link is invalid.',
+                ]);
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Expiration Check
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            is_null(
+                $user
+                    ->email_verification_token_expires_at
+            )
+            ||
+            now()->greaterThan(
+                $user
+                    ->email_verification_token_expires_at
+            )
+        ) {
+
+            return redirect()
+                ->route('login')
+                ->withErrors([
+                    'email' =>
+                        'The verification link has expired. Please login and request a new verification email.',
+                ]);
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Verify User
+        |--------------------------------------------------------------------------
+        */
+
+        $user->update([
+            'email_verified_at' =>
+                now(),
+
+            'email_verification_token' =>
+                null,
+
+            'email_verification_token_expires_at' =>
+                null,
+        ]);
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Refresh User
+        |--------------------------------------------------------------------------
+        */
+
+        $user->refresh();
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Final Profile Status Check
+        |--------------------------------------------------------------------------
+        |
+        | Prevent login if the administrator changed the status while
+        | the verification process was taking place.
+        |--------------------------------------------------------------------------
+        */
+
+        $statusError =
+            $this->profileStatusError(
+                $user
+            );
+
+
+        if ($statusError) {
+
+            $this->clearVerificationSession(
+                $request
+            );
+
+
+            return redirect()
+                ->route('login')
+                ->withErrors([
+                    'email' =>
+                        $statusError,
+                ]);
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Remember Login
+        |--------------------------------------------------------------------------
+        */
+
+        $remember =
+            $request
+                ->session()
+                ->get(
+                    'pending_remember',
+                    false
+                );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Login Verified User
+        |--------------------------------------------------------------------------
+        */
+
+        Auth::login(
+            $user,
+            $remember
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Clear Verification Session
+        |--------------------------------------------------------------------------
+        */
+
+        $this->clearVerificationSession(
+            $request
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Regenerate Session
+        |--------------------------------------------------------------------------
+        */
+
+        $request
+            ->session()
+            ->regenerate();
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | One Dashboard
+        |--------------------------------------------------------------------------
+        */
+
+        return redirect()
+            ->route('dashboard')
+            ->with(
+                'success',
+                'Your email address has been verified successfully.'
+            );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Resend Verification
+    |--------------------------------------------------------------------------
+    */
+
+    public function resendVerification(
+        Request $request
+    ) {
+        /*
+        |--------------------------------------------------------------------------
+        | Get Pending User
+        |--------------------------------------------------------------------------
+        */
+
+        $userId =
+            $request
+                ->session()
+                ->get(
+                    'pending_verification_user_id'
+                );
+
+
+        if (!$userId) {
+
+            return redirect()
+                ->route('login')
+                ->withErrors([
+                    'email' =>
+                        'Please login again to continue.',
+                ]);
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Find User
+        |--------------------------------------------------------------------------
+        */
+
+        $user =
+            User::find(
+                $userId
+            );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | User Not Found
+        |--------------------------------------------------------------------------
+        */
+
+        if (!$user) {
+
+            $this->clearVerificationSession(
+                $request
+            );
+
+
+            return redirect()
+                ->route('login')
+                ->withErrors([
+                    'email' =>
+                        'User account could not be found.',
+                ]);
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Profile Status Check
+        |--------------------------------------------------------------------------
+        */
+
+        $statusError =
+            $this->profileStatusError(
+                $user
+            );
+
+
+        if ($statusError) {
+
+            $this->clearVerificationSession(
+                $request
+            );
+
+
+            return redirect()
+                ->route('login')
+                ->withErrors([
+                    'email' =>
+                        $statusError,
+                ]);
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Already Verified
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            !is_null(
+                $user->email_verified_at
+            )
+        ) {
+
+            $this->clearVerificationSession(
+                $request
+            );
+
+
+            return redirect()
+                ->route('login')
+                ->with(
+                    'success',
+                    'Your email address is already verified.'
+                );
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Generate New Token
+        |--------------------------------------------------------------------------
+        */
+
+        $plainToken =
+            Str::random(64);
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Store New Token
+        |--------------------------------------------------------------------------
+        */
+
+        $user->update([
+            'email_verification_token' =>
+                hash(
+                    'sha256',
+                    $plainToken
+                ),
+
+            'email_verification_token_expires_at' =>
+                now()->addMinutes(60),
+        ]);
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Send Verification Email
+        |--------------------------------------------------------------------------
+        */
+
+        $user->notify(
+            new VerifyEmailNotification(
+                $plainToken
+            )
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Success
+        |--------------------------------------------------------------------------
+        */
+
+        return back()
+            ->with(
+                'success',
+                'A new verification email has been sent to ' .
+                $user->email .
+                '.'
+            );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Logout
+    |--------------------------------------------------------------------------
+    */
+
     public function logout(
         Request $request
-    ): RedirectResponse {
+    ) {
+        /*
+        |--------------------------------------------------------------------------
+        | Logout User
+        |--------------------------------------------------------------------------
+        */
+
         Auth::logout();
 
-        $request->session()->invalidate();
 
-        $request->session()->regenerateToken();
+        /*
+        |--------------------------------------------------------------------------
+        | Invalidate Session
+        |--------------------------------------------------------------------------
+        */
+
+        $request
+            ->session()
+            ->invalidate();
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Regenerate CSRF Token
+        |--------------------------------------------------------------------------
+        */
+
+        $request
+            ->session()
+            ->regenerateToken();
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Login Page
+        |--------------------------------------------------------------------------
+        */
 
         return redirect()
             ->route('login')
@@ -685,5 +1190,94 @@ class AuthController extends Controller
                 'success',
                 'You have been logged out successfully.'
             );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Profile Status Error
+    |--------------------------------------------------------------------------
+    |
+    | Only active accounts are allowed to authenticate.
+    |--------------------------------------------------------------------------
+    */
+
+    private function profileStatusError(
+        User $user
+    ): ?string {
+        /*
+        |--------------------------------------------------------------------------
+        | Suspended
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            $user->profile_status ===
+            'suspended'
+        ) {
+
+            return
+                'Your account has been suspended. Please contact the administrator for assistance.';
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Blocked
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            $user->profile_status ===
+            'blocked'
+        ) {
+
+            return
+                'Your account has been blocked. Please contact the administrator for assistance.';
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Invalid / Unknown Status
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            $user->profile_status !==
+            'active'
+        ) {
+
+            return
+                'Your account is currently unavailable. Please contact the administrator for assistance.';
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Active
+        |--------------------------------------------------------------------------
+        */
+
+        return null;
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Clear Verification Session
+    |--------------------------------------------------------------------------
+    */
+
+    private function clearVerificationSession(
+        Request $request
+    ): void {
+        $request
+            ->session()
+            ->forget([
+                'pending_verification_user_id',
+                'verification_email',
+                'pending_remember',
+            ]);
     }
 }

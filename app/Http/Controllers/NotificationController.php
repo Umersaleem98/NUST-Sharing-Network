@@ -2,72 +2,48 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class NotificationController extends Controller
 {
-    /**
-     * Mark one notification as read.
-     */
-    public function markAsRead(
-        Request $request,
-        string $id
-    ): RedirectResponse {
-        $notification = $request->user()
+    /*
+    |--------------------------------------------------------------------------
+    | Mark Single Notification As Read
+    |--------------------------------------------------------------------------
+    */
+
+    public function markAsRead(string $notification): RedirectResponse
+    {
+        $user = Auth::user();
+
+        $userNotification = $user
             ->notifications()
-            ->whereKey($id)
+            ->where('id', $notification)
             ->firstOrFail();
 
-        $notification->markAsRead();
-
-        $productId = $notification->data['product_id'] ?? null;
-
-        if (
-            $productId &&
-            Product::whereKey($productId)->exists()
-        ) {
-            return redirect()->route(
-                'admin.product.edit',
-                $productId
-            );
+        if (is_null($userNotification->read_at)) {
+            $userNotification->markAsRead();
         }
 
-        return redirect()->route('dashboard');
+        return back();
     }
 
-    /**
-     * Mark all notifications as read.
-     */
-    public function markAllAsRead(
-        Request $request
-    ): RedirectResponse {
-        $request->user()
+
+    /*
+    |--------------------------------------------------------------------------
+    | Mark All Notifications As Read
+    |--------------------------------------------------------------------------
+    */
+
+    public function markAllAsRead(): RedirectResponse
+    {
+        Auth::user()
             ->unreadNotifications()
             ->update([
                 'read_at' => now(),
             ]);
 
-        return back()->with(
-            'success',
-            'All notifications have been marked as read.'
-        );
-    }
-
-    /**
-     * Delete all notifications.
-     */
-    public function clearAll(
-        Request $request
-    ): RedirectResponse {
-        $request->user()
-            ->notifications()
-            ->delete();
-
-        return back()->with(
-            'success',
-            'All notifications have been cleared.'
-        );
+        return back();
     }
 }

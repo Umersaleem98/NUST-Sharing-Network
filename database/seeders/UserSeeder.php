@@ -2,98 +2,71 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\User;
+use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        // =========================
-        // ADMIN
-        // =========================
-        User::create([
-            'name' => 'Admin User',
-            'email' => 'admin@gmail.com',
-            'password' => Hash::make('12345678'),
-            'role' => 'admin',
-        ]);
+        /*
+        |--------------------------------------------------------------------------
+        | Admin
+        |--------------------------------------------------------------------------
+        */
 
-        // =========================
-        // DONORS
-        // =========================
-        $donors = [
+        User::updateOrCreate(
             [
-                'name' => 'Ali Donor',
-                'email' => 'ali.donor@gmail.com',
+                'email' => 'admin@gmail.com',
             ],
             [
-                'name' => 'Sara Donor',
-                'email' => 'sara.donor@gmail.com',
-            ],
-            [
-                'name' => 'Ahmed Donor',
-                'email' => 'ahmed.donor@gmail.com',
-            ],
-            [
-                'name' => 'Zain Donor',
-                'email' => 'zain.donor@gmail.com',
-            ],
-            [
-                'name' => 'Hassan Donor',
-                'email' => 'hassan.donor@gmail.com',
-            ],
-        ];
+                'name' => 'System Admin',
+                'qalam_id' => null,
+                'password' => Hash::make('12345678'),
+                'role' => 'admin',
+                'email_verified_at' => now(),
+            ]
+        );
 
-        foreach ($donors as $donor) {
-            User::create([
-                'name' => $donor['name'],
-                'email' => $donor['email'],
+
+        /*
+        |--------------------------------------------------------------------------
+        | Donor
+        |--------------------------------------------------------------------------
+        */
+
+        User::updateOrCreate(
+            [
+                'email' => 'donor@gmail.com',
+            ],
+            [
+                'name' => 'Test Donor',
+                'qalam_id' => null,
                 'password' => Hash::make('12345678'),
                 'role' => 'donor',
-            ]);
-        }
+                'email_verified_at' => now(),
+            ]
+        );
 
-        // =========================
-        // BENEFICIARIES
-        // =========================
-        $beneficiaries = [
-            [
-                'name' => 'Ali Beneficiary',
-                'email' => 'ali.beneficiary@gmail.com',
-                'qalam_id' => '1001',
-            ],
-            [
-                'name' => 'Sara Beneficiary',
-                'email' => 'sara.beneficiary@gmail.com',
-                'qalam_id' => '1002',
-            ],
-            [
-                'name' => 'Usman Beneficiary',
-                'email' => 'usman.beneficiary@gmail.com',
-                'qalam_id' => '1003',
-            ],
-            [
-                'name' => 'Ayesha Beneficiary',
-                'email' => 'ayesha.beneficiary@gmail.com',
-                'qalam_id' => '1004',
-            ],
-            [
-                'name' => 'Bilal Beneficiary',
-                'email' => 'bilal.beneficiary@gmail.com',
-                'qalam_id' => '1005',
-            ],
-        ];
 
-        foreach ($beneficiaries as $beneficiary) {
-            User::create([
-                'name' => $beneficiary['name'],
-                'email' => $beneficiary['email'],
+        /*
+        |--------------------------------------------------------------------------
+        | Beneficiary
+        |--------------------------------------------------------------------------
+        */
+
+        User::updateOrCreate(
+            [
+                'email' => 'beneficiary@gmail.com',
+            ],
+            [
+                'name' => 'Test Beneficiary',
+                'qalam_id' => '123456',
                 'password' => Hash::make('12345678'),
                 'role' => 'beneficiary',
-                'qalam_id' => $beneficiary['qalam_id'],
-            ]);
-        }
+                'email_verified_at' => now(),
+            ]
+        );
     }
 }
