@@ -36,6 +36,11 @@ return new class extends Migration
                 'beneficiary',
             ]);
 
+            $table->enum('profile_status', [
+    'active',
+    'suspended',
+    'blocked',
+])->default('active');
             /*
             |--------------------------------------------------------------------------
             | Email Verification

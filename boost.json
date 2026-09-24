@@ -1,9 +1,13 @@
 {
     "agents": [
-        "amp"
+        "codex"
     ],
-    "cloud": false,
-    "mcp": true,
-    "nightwatch": false,
-    "sail": false
+    "cloud": true,
+    "skills": [
+        "infer-conventions",
+        "deploying-to-cloud",
+        "laravel-best-practices",
+        "testing-best-practices",
+        "tailwindcss-development"
+    ]
 }
